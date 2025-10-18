@@ -37,6 +37,29 @@ const builderTabs: Array<{ id: BuilderTab; label: string; description: string; c
   { id: 'text-to-video', label: 'Text to Video', description: 'Generate cinematic moments from a prompt.' },
 ];
 const VIDEO_GENERATION_COST = COIN_COSTS.generateVideo;
+const GENERATION_TIMEOUT_MS = 600_000;
+const POLL_INTERVAL_MS = 2000;
+
+const waitWithSignal = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+
+    const onAbort = () => {
+      clearTimeout(timeoutId);
+      signal.removeEventListener('abort', onAbort);
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+
+    const timeoutId = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+
+    signal.addEventListener('abort', onAbort);
+  });
 
 const GuestPrompt = () => {
   const { openAuthModal } = useAuth();
@@ -176,7 +199,7 @@ const VideoContent = () => {
 
     generationTimeoutRef.current = setTimeout(
       () => controller.abort(),
-      120_000,
+      GENERATION_TIMEOUT_MS,
     );
 
     try {
@@ -201,8 +224,69 @@ const VideoContent = () => {
       }
 
       const remote = payload?.data ?? {};
-      const videoUrl: string | undefined =
+      const predictionId: string | undefined =
+        remote.predictionId || remote.id || remote.prediction_id;
+      let videoUrl: string | undefined =
         remote.videoUrl || remote.url || remote.result;
+
+      if (!videoUrl) {
+        if (!predictionId) {
+          throw new Error(
+            'Video prediction started but no prediction ID was returned.',
+          );
+        }
+
+        const startTime = Date.now();
+
+        while (!videoUrl) {
+          const elapsed = Date.now() - startTime;
+          if (elapsed >= GENERATION_TIMEOUT_MS) {
+            throw new Error(
+              'Video generation is taking longer than expected. Please try again later.',
+            );
+          }
+
+          await waitWithSignal(POLL_INTERVAL_MS, controller.signal);
+
+          const pollResponse = await fetch(
+            `/api/video-generator?predictionId=${encodeURIComponent(
+              predictionId,
+            )}`,
+            {
+              method: 'GET',
+              signal: controller.signal,
+            },
+          );
+
+          const pollPayload = await pollResponse.json().catch(() => ({}));
+          if (!pollResponse.ok) {
+            const error = new Error(
+              pollPayload?.error || 'Failed to retrieve video status.',
+            ) as Error & { status?: number };
+            error.status = pollResponse.status;
+            throw error;
+          }
+
+          const polledData = pollPayload?.data ?? {};
+          const polledStatus: string | undefined = polledData.status;
+          const polledUrl: string | undefined =
+            polledData.videoUrl || polledData.url || polledData.result;
+
+          if (
+            polledStatus === 'failed' ||
+            polledStatus === 'canceled'
+          ) {
+            const detail =
+              pollPayload?.error ||
+              `Prediction ended with status ${polledStatus}.`;
+            throw new Error(detail);
+          }
+
+          if (polledUrl) {
+            videoUrl = polledUrl;
+          }
+        }
+      }
 
       if (!videoUrl) {
         throw new Error('No video URL returned from the video service.');

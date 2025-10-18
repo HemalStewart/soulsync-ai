@@ -5,8 +5,6 @@ export const runtime = 'nodejs';
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 const REPLICATE_MODEL_BASE =
   'https://api.replicate.com/v1/models/minimax/video-01';
-const POLL_INTERVAL_MS = 2000;
-const POLL_TIMEOUT_MS = 600_000;
 
 type ReplicatePrediction = {
   id: string;
@@ -17,9 +15,6 @@ type ReplicatePrediction = {
     get?: string;
   };
 };
-
-const wait = (ms: number) =>
-  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const sanitizeString = (value: unknown): string =>
   typeof value === 'string' ? value.trim() : '';
@@ -134,71 +129,47 @@ export async function POST(request: NextRequest) {
       return buildErrorResponse(detail, createResponse.status);
     }
 
-    let currentPrediction: ReplicatePrediction = initialPrediction;
-    const start = Date.now();
-
-    while (
-      currentPrediction.status !== 'succeeded' &&
-      currentPrediction.status !== 'failed' &&
-      currentPrediction.status !== 'canceled'
+    if (
+      initialPrediction.status === 'failed' ||
+      initialPrediction.status === 'canceled'
     ) {
-      if (Date.now() - start > POLL_TIMEOUT_MS) {
-        return buildErrorResponse(
-          'Video generation timed out before completion.',
-          504,
-        );
-      }
-
-      await wait(POLL_INTERVAL_MS);
-
-      const pollResponse = await fetch(
-        `https://api.replicate.com/v1/predictions/${currentPrediction.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            Accept: 'application/json',
-          },
-          cache: 'no-store',
-        },
-      );
-
-      if (!pollResponse.ok) {
-        const detail = await pollResponse
-          .json()
-          .then((json) => sanitizeString(json?.error) || sanitizeString(json?.detail))
-          .catch(() => '');
-        return buildErrorResponse(
-          detail || `Failed to poll prediction ${currentPrediction.id}.`,
-          pollResponse.status,
-        );
-      }
-
-      currentPrediction = (await pollResponse.json()) as ReplicatePrediction;
-    }
-
-    if (currentPrediction.status !== 'succeeded') {
       const detail =
-        sanitizeString(currentPrediction.error) ||
-        `Prediction ended with status ${currentPrediction.status}.`;
+        sanitizeString(initialPrediction.error) ||
+        `Prediction ended with status ${initialPrediction.status}.`;
       return buildErrorResponse(detail, 502);
     }
 
-    const videoUrl = extractVideoUrl(currentPrediction.output);
+    if (initialPrediction.status === 'succeeded') {
+      const videoUrl = extractVideoUrl(initialPrediction.output);
 
-    if (!videoUrl) {
-      return buildErrorResponse(
-        'Prediction completed but no video URL was returned.',
-        502,
-      );
+      if (!videoUrl) {
+        return buildErrorResponse(
+          'Prediction completed but no video URL was returned.',
+          502,
+        );
+      }
+
+      return NextResponse.json({
+        data: {
+          videoUrl,
+          predictionId: initialPrediction.id,
+          status: initialPrediction.status,
+        },
+      });
     }
 
-    return NextResponse.json({
-      data: {
-        videoUrl,
-        predictionId: currentPrediction.id,
-        status: currentPrediction.status,
+    return NextResponse.json(
+      {
+        data: {
+          predictionId: initialPrediction.id,
+          status: initialPrediction.status,
+          ...(initialPrediction.urls?.get
+            ? { pollUrl: initialPrediction.urls.get }
+            : {}),
+        },
       },
-    });
+      { status: 202 },
+    );
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Failed to reach Replicate API.';
@@ -206,6 +177,83 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
-  return buildErrorResponse('Use POST to generate videos.', 405);
+export async function GET(request: NextRequest) {
+  if (!REPLICATE_API_TOKEN) {
+    return buildErrorResponse('REPLICATE_API_TOKEN is not configured.', 500);
+  }
+
+  const url = new URL(request.url);
+  const predictionId = sanitizeString(
+    url.searchParams.get('predictionId') ?? url.searchParams.get('id'),
+  );
+
+  if (!predictionId) {
+    return buildErrorResponse('predictionId is required.', 400);
+  }
+
+  try {
+    const pollResponse = await fetch(
+      `https://api.replicate.com/v1/predictions/${predictionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+          Accept: 'application/json',
+        },
+        cache: 'no-store',
+      },
+    );
+
+    const prediction = (await pollResponse.json()) as ReplicatePrediction & {
+      detail?: string;
+    };
+
+    if (!pollResponse.ok) {
+      const detail =
+        sanitizeString(prediction?.error) ||
+        sanitizeString(prediction?.detail) ||
+        `Failed to poll prediction ${predictionId}.`;
+      return buildErrorResponse(detail, pollResponse.status);
+    }
+
+    if (
+      prediction.status === 'failed' ||
+      prediction.status === 'canceled'
+    ) {
+      const detail =
+        sanitizeString(prediction.error) ||
+        `Prediction ended with status ${prediction.status}.`;
+      return buildErrorResponse(detail, 502);
+    }
+
+    if (prediction.status === 'succeeded') {
+      const videoUrl = extractVideoUrl(prediction.output);
+
+      if (!videoUrl) {
+        return buildErrorResponse(
+          'Prediction succeeded but no video URL was returned.',
+          502,
+        );
+      }
+
+      return NextResponse.json({
+        data: {
+          predictionId: prediction.id,
+          status: prediction.status,
+          videoUrl,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      data: {
+        predictionId: prediction.id,
+        status: prediction.status,
+        ...(prediction.urls?.get ? { pollUrl: prediction.urls.get } : {}),
+      },
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Failed to reach Replicate API.';
+    return buildErrorResponse(message, 500);
+  }
 }
