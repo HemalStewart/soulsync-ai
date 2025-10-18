@@ -5,6 +5,7 @@ import {
   ChatMessage,
   ChatSummary,
   GeneratedImageRecord,
+  GeneratedVideoRecord,
   UserCharacterRecord,
 } from './types';
 import { parseDelimitedList } from './utils';
@@ -231,6 +232,67 @@ export const getCoinBalance = async (): Promise<number> => {
   return typeof response.balance === 'number' ? response.balance : 0;
 };
 
+export const listGeneratedVideos = async (
+  userId?: string | null,
+  limit = 12,
+): Promise<GeneratedVideoRecord[]> => {
+  const params = new URLSearchParams();
+  params.set('limit', String(limit));
+  if (userId) {
+    params.set('user_id', userId);
+  }
+
+  const query = params.toString();
+  const payload = await fetchJson<{ data: GeneratedVideoRecord[] }>(
+    `/generated-videos${query ? `?${query}` : ''}`,
+  );
+
+  return payload.data ?? [];
+};
+
+export interface CreateGeneratedVideoPayload {
+  remote_url: string;
+  prompt: string;
+  model?: string;
+  duration_seconds?: number | null;
+  thumbnail_url?: string | null;
+}
+
+export const createGeneratedVideo = async (
+  payload: CreateGeneratedVideoPayload,
+): Promise<{ record: GeneratedVideoRecord; coinBalance?: number }> => {
+  const response = await fetchJson<{
+    data: GeneratedVideoRecord;
+    coin_balance?: number;
+  }>(
+    '/generated-videos',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return {
+    record: response.data,
+    coinBalance:
+      typeof response.coin_balance === 'number'
+        ? response.coin_balance
+        : undefined,
+  };
+};
+
+export const deleteGeneratedVideo = async (id: number): Promise<void> => {
+  await fetchJson(`/generated-videos/${id}`, {
+    method: 'DELETE',
+  });
+};
+
+export const clearGeneratedVideos = async (): Promise<void> => {
+  await fetchJson('/generated-videos', {
+    method: 'DELETE',
+  });
+};
+
 export interface CreateGeneratedImagePayload {
   remote_url: string;
   prompt: string;
@@ -301,8 +363,11 @@ export const getUserCharacters = async (): Promise<UserCharacterRecord[]> => {
 
 export const createUserCharacter = async (
   payload: CreateUserCharacterPayload
-): Promise<UserCharacterRecord> => {
-  const response = await fetchJson<{ data: UserCharacterRecord }>(
+): Promise<{ record: UserCharacterRecord; coinBalance?: number }> => {
+  const response = await fetchJson<{
+    data: UserCharacterRecord;
+    coin_balance?: number;
+  }>(
     '/user-characters',
     {
       method: 'POST',
@@ -310,7 +375,13 @@ export const createUserCharacter = async (
     }
   );
 
-  return response.data;
+  return {
+    record: response.data,
+    coinBalance:
+      typeof response.coin_balance === 'number'
+        ? response.coin_balance
+        : undefined,
+  };
 };
 
 export const updateUserCharacter = async (

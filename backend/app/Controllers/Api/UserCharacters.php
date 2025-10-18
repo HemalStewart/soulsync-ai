@@ -3,8 +3,11 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
+use App\Libraries\CoinManager;
+use App\Libraries\CoinManagerException;
 use CodeIgniter\API\ResponseTrait;
 use Config\Database;
+use Throwable;
 
 class UserCharacters extends BaseController
 {
@@ -104,6 +107,19 @@ class UserCharacters extends BaseController
 
         $builder = $db->table('user_characters');
 
+        $coinManager = service('coinManager');
+
+        try {
+            $updatedBalance = $coinManager->spend(
+                (string) $userId,
+                CoinManager::COST_CREATE_CHARACTER,
+                'character_creation'
+            );
+        } catch (CoinManagerException $exception) {
+            $status = str_contains($exception->getMessage(), 'table') ? 500 : 402;
+            return $this->fail($exception->getMessage(), $status);
+        }
+
         $now = date('Y-m-d H:i:s');
 
         $data = [
@@ -126,8 +142,25 @@ class UserCharacters extends BaseController
             'updated_at'  => $now,
         ];
 
-        $builder->insert($data);
-        $insertId = (int) $db->insertID();
+        try {
+            $builder->insert($data);
+            $insertId = (int) $db->insertID();
+        } catch (Throwable $throwable) {
+            try {
+                $coinManager->refund(
+                    (string) $userId,
+                    CoinManager::COST_CREATE_CHARACTER,
+                    'character_creation_failed'
+                );
+            } catch (CoinManagerException $refundException) {
+                log_message(
+                    'error',
+                    'Failed to refund coins after character creation error: ' . $refundException->getMessage()
+                );
+            }
+
+            return $this->fail('Unable to create character at this time.', 500);
+        }
 
         $record = $builder
             ->where('id', $insertId)
@@ -135,12 +168,26 @@ class UserCharacters extends BaseController
             ->getRowArray();
 
         if (! $record) {
+            try {
+                $coinManager->refund(
+                    (string) $userId,
+                    CoinManager::COST_CREATE_CHARACTER,
+                    'character_creation_missing_record'
+                );
+            } catch (CoinManagerException $refundException) {
+                log_message(
+                    'error',
+                    'Failed to refund coins after missing character record: ' . $refundException->getMessage()
+                );
+            }
+
             return $this->fail('Unable to create character at this time.', 500);
         }
 
         return $this->respondCreated([
             'status' => 'success',
             'data'   => $this->formatRow($record),
+            'coin_balance' => $updatedBalance,
         ]);
     }
 

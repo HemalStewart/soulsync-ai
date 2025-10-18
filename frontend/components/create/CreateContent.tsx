@@ -20,9 +20,13 @@ import {
   updateUserCharacter,
 } from '@/lib/api';
 import { UserCharacterRecord } from '@/lib/types';
+import CoinLimitModal from '@/components/coins/CoinLimitModal';
+import { useCoins } from '@/components/coins/CoinContext';
+import { COIN_COSTS } from '@/lib/coins';
 
 const TOTAL_STEPS = 4;
 const DEFAULT_AVATAR = '';
+const CHARACTER_CREATION_COST = COIN_COSTS.createCharacter;
 
 const toneOptions = [
   { id: 'romantic', label: 'Romantic & warm' },
@@ -125,6 +129,7 @@ const CreateContent = () => {
   const router = useRouter();
   const formSectionRef = useRef<HTMLDivElement>(null);
   const { user, loading } = useAuth();
+  const { balance, setBalance, refresh: refreshCoinBalance } = useCoins();
   const [currentStep, setCurrentStep] = useState(1);
   const [formState, setFormState] = useState<CharacterFormState>({
     name: '',
@@ -145,6 +150,7 @@ const CreateContent = () => {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [showCoinModal, setShowCoinModal] = useState(false);
 
   const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
 
@@ -217,6 +223,7 @@ const CreateContent = () => {
       setSaveError(null);
       setSaveSuccess(null);
     }
+    setShowCoinModal(false);
   };
 
   const mapRecordToCharacter = useCallback(
@@ -354,6 +361,12 @@ const CreateContent = () => {
       return;
     }
 
+    if (!editingCharacterId && balance !== null && balance < CHARACTER_CREATION_COST) {
+      setSaveError('You need more coins to publish a new character.');
+      setShowCoinModal(true);
+      return;
+    }
+
     try {
       setSaving(true);
       const payload = {
@@ -375,27 +388,39 @@ const CreateContent = () => {
         visibility: 'private' as const,
       };
 
-      let record;
+      let resultRecord: UserCharacterRecord;
 
-if (editingCharacterId) {
-  // 🟢 update existing character
-  record = await updateUserCharacter(editingCharacterId, payload);
-  // setSaveSuccess('Character updated successfully!');
-} else {
-  // 🟢 create new character
-  record = await createUserCharacter(payload);
-  setSaveSuccess(`${payload.name} is ready!`);
-}
+      if (editingCharacterId) {
+        resultRecord = await updateUserCharacter(editingCharacterId, payload);
+      } else {
+        const { record: createdRecord, coinBalance } = await createUserCharacter(payload);
+        resultRecord = createdRecord;
+        if (typeof coinBalance === 'number') {
+          setBalance(coinBalance);
+        } else {
+          void refreshCoinBalance();
+        }
+        // setSaveSuccess(`${payload.name} is ready!`);
+      }
 
-setCharacters((prev) => [
-  mapRecordToCharacter(record),
-  ...prev.filter((item) => item.id !== `user-${record.id}`),
-]);
+      setCharacters((prev) => [
+        mapRecordToCharacter(resultRecord),
+        ...prev.filter((item) => item.id !== `user-${resultRecord.id}`),
+      ]);
 
-resetWizard(false);
-setEditingCharacterId(null); // 🟢 clear edit mode after saving
+      resetWizard(false);
+      setEditingCharacterId(null); // 🟢 clear edit mode after saving
 
     } catch (error) {
+      const status =
+        typeof error === 'object' && error && 'status' in error
+          ? (error as { status?: number }).status ?? null
+          : null;
+
+      if (status === 402) {
+        setShowCoinModal(true);
+      }
+
       setSaveError(
         error instanceof Error
           ? error.message
@@ -425,6 +450,7 @@ setEditingCharacterId(null); // 🟢 clear edit mode after saving
   }
 
   return (
+    <>
     <AppLayout activeTab="create">
       <div className="flex flex-col bg-gray-50">
         <style>{`
@@ -495,7 +521,8 @@ setEditingCharacterId(null); // 🟢 clear edit mode after saving
 
                   
                 </div>
-                <div className="flex items-center gap-3 text-sm text-gray-600">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                  
                   <span className="font-semibold text-blue-600 animate-fade-in" style={{ animationDelay: '0.25s' }}>
                     Step {currentStep}
                   </span>
@@ -506,6 +533,11 @@ setEditingCharacterId(null); // 🟢 clear edit mode after saving
                     />
                   </div>
                   <span className="animate-fade-in" style={{ animationDelay: '0.35s' }}>{progressPercent}</span>
+                  {!editingCharacterId && (
+                    <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white shadow">
+                      {CHARACTER_CREATION_COST} coins per character
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -914,7 +946,7 @@ setEditingCharacterId(null); // 🟢 clear edit mode after saving
                         <button
                           onClick={handleFinish}
                           disabled={saving}
-                          className="flex items-center justify-center gap-2 rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                          className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
                         >
                           {saving && (
                             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/50 border-t-white" />
@@ -922,6 +954,11 @@ setEditingCharacterId(null); // 🟢 clear edit mode after saving
                           {saving ? 'Publishing...' : 'Finish & publish'}
                         </button>
                       </div>
+                      {!editingCharacterId && (
+                        <p className="order-3 text-center text-xs font-semibold uppercase tracking-wide text-blue-600 sm:order-3 sm:text-right">
+                          Costs {CHARACTER_CREATION_COST} coins to publish.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1044,6 +1081,11 @@ setEditingCharacterId(null); // 🟢 clear edit mode after saving
         </div>
       </div>
     </AppLayout>
+    <CoinLimitModal
+      open={showCoinModal}
+      onClose={() => setShowCoinModal(false)}
+    />
+    </>
   );
 };
 

@@ -23,6 +23,11 @@ $routes->group('api', static function ($routes) {
     $routes->delete('generated-images', 'Api\GeneratedImages::clear');
     $routes->delete('generated-images/(:num)', 'Api\GeneratedImages::destroy/$1');
 
+    $routes->get('generated-videos', 'Api\GeneratedVideos::index');
+    $routes->post('generated-videos', 'Api\GeneratedVideos::store');
+    $routes->delete('generated-videos', 'Api\GeneratedVideos::clear');
+    $routes->delete('generated-videos/(:num)', 'Api\GeneratedVideos::destroy/$1');
+
     $routes->get('auth/me', 'Api\Auth::me');
     $routes->post('auth/request-otp', 'Api\Auth::requestOtp');
     $routes->post('auth/verify-otp', 'Api\Auth::verifyOtp');

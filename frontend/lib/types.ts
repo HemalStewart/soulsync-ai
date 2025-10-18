@@ -70,6 +70,17 @@ export interface GeneratedImageRecord {
   created_at: string;
 }
 
+export interface GeneratedVideoRecord {
+  id: number;
+  user_id: string;
+  remote_url: string;
+  prompt: string;
+  model: string | null;
+  duration_seconds: number | null;
+  thumbnail_url: string | null;
+  created_at: string;
+}
+
 export interface UserCharacterRecord {
   id: number;
   user_id: string;

@@ -11,6 +11,8 @@ class CoinManager
     public const DEFAULT_STARTING_BALANCE = 20;
     public const COST_GENERATE_IMAGE = 5;
     public const COST_SEND_MESSAGE = 1;
+    public const COST_GENERATE_VIDEO = 25;
+    public const COST_CREATE_CHARACTER = 25;
 
     private ?BaseConnection $db = null;
 

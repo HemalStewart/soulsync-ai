@@ -496,9 +496,14 @@ const GenerateContent = () => {
                             <Sparkles className="h-5 w-5 text-blue-600" />
                             Prompt settings
                         </h2>
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-                            Required
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white shadow-sm">
+                                {IMAGE_GENERATION_COST} coins per render
+                            </span>
+                            {/* <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
+                                Required
+                            </span> */}
+                        </div>
                     </div>
 
                     <div className="space-y-4">
@@ -638,7 +643,7 @@ const GenerateContent = () => {
               <button
                 onClick={handleGenerate}
                 disabled={isGenerating || !prompt.trim()}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-sm font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-sm font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                         {isGenerating ? (
                             <>
@@ -648,13 +653,13 @@ const GenerateContent = () => {
                         ) : (
                             <>
                                 <Wand2 className="h-4 w-4" />
-              Generate image
-          </>
-        )}
-      </button>
-              <p className="mt-2 text-center text-xs font-medium text-blue-600/70">
-                Costs {IMAGE_GENERATION_COST} SoulCoins per image
-              </p>
+                                Generate image
+                  </>
+                )}
+                <span className="rounded-full bg-white/20 px-2 py-1 text-xs font-semibold text-white/90">
+                  {IMAGE_GENERATION_COST} coins
+                </span>
+              </button>
       {generationError && (
         <p className="text-sm font-semibold text-red-600">{generationError}</p>
       )}
@@ -703,7 +708,7 @@ const GenerateContent = () => {
                         className="group overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg animate-fade-up"
                         style={{ animationDelay: `${0.26 + index * 0.05}s` }}
                       >
-                        <div className="relative h-48 w-full overflow-hidden">
+                        <div className="relative w-full overflow-hidden aspect-square">
                           <Image
                             src={image.remote_url}
                             alt={image.prompt}
