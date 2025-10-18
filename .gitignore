@@ -10,3 +10,8 @@ node_modules/
 .next/
 out/
 dist/
+
+
+echo "backend/writable/logs/" >> .gitignore
+echo "backend/writable/session/" >> .gitignore
+echo "frontend/.env.local" >> .gitignore
