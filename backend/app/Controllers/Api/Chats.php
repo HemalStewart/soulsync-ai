@@ -3,6 +3,8 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
+use App\Libraries\CoinManager;
+use App\Libraries\CoinManagerException;
 use CodeIgniter\API\ResponseTrait;
 use Config\Database;
 
@@ -26,6 +28,7 @@ class Chats extends BaseController
         $limit = max(1, min((int) ($request->getGet('limit') ?? 20), 100));
 
         $db = Database::connect();
+        $hasUserTable = $db->tableExists('user_characters');
 
         $subQuery = $db->table('ai_messages')
             ->select('MAX(id) AS id')
@@ -52,6 +55,43 @@ class Chats extends BaseController
 
         $rows = $builder->get()->getResultArray();
 
+        $missingSlugs = [];
+        foreach ($rows as $row) {
+            if ((string) ($row['character_name'] ?? '') === '') {
+                $missingSlugs[] = $row['character_slug'];
+            }
+        }
+
+        if (! empty($missingSlugs) && $userId && $hasUserTable) {
+            $missingSlugs = array_values(array_unique($missingSlugs));
+
+            $userCharacters = $db->table('user_characters')
+                ->select('slug, name, avatar, title')
+                ->where('user_id', $userId)
+                ->whereIn('slug', $missingSlugs)
+                ->get()
+                ->getResultArray();
+
+            $characterMap = [];
+            foreach ($userCharacters as $character) {
+                $characterMap[$character['slug']] = [
+                    'name'   => $character['name'],
+                    'avatar' => $character['avatar'] ?? null,
+                    'title'  => $character['title'] ?? null,
+                ];
+            }
+
+            foreach ($rows as &$row) {
+                $slug = $row['character_slug'];
+                if (isset($characterMap[$slug])) {
+                    $row['character_name'] = $characterMap[$slug]['name'];
+                    $row['character_avatar'] = $characterMap[$slug]['avatar'];
+                    $row['character_title'] = $characterMap[$slug]['title'];
+                }
+            }
+            unset($row);
+        }
+
         return $this->response->setJSON([
             'status' => 'success',
             'count'  => count($rows),
@@ -68,14 +108,38 @@ class Chats extends BaseController
         }
 
         $db = Database::connect();
+        $hasUserTable = $db->tableExists('user_characters');
 
         $character = $db->table('ai_characters')
             ->where('slug', $slug)
             ->get()
             ->getRowArray();
 
-        if (! $character) {
-            return $this->failNotFound('Character not found.');
+        $characterSource = 'global';
+
+        if (! $character && $hasUserTable) {
+            $character = $db->table('user_characters')
+                ->where('slug', $slug)
+                ->where('user_id', $userId)
+                ->get()
+                ->getRowArray();
+
+            if (! $character) {
+                return $this->failNotFound('Character not found.');
+            }
+
+            $characterSource = 'user';
+
+            if (! empty($character['traits'])) {
+                $decodedTraits = json_decode((string) $character['traits'], true);
+                if (is_array($decodedTraits)) {
+                    $traits = array_values(array_filter(array_map(
+                        static fn ($entry) => is_string($entry) ? trim($entry) : '',
+                        $decodedTraits
+                    )));
+                    $character['tags'] = implode(', ', $traits);
+                }
+            }
         }
 
         $messages = $db->table('ai_messages')
@@ -93,10 +157,12 @@ class Chats extends BaseController
             'avatar'    => $character['avatar'],
             'title'     => $character['title'],
             'video_url' => $character['video_url'] ?? null,
+            'source'    => $characterSource,
         ];
 
         if (empty($messages)) {
             $introLine = $character['intro_line']
+                ?? ($character['greeting'] ?? null)
                 ?? "Hey there! I'm {$character['name']}, {$character['title']}. How are you today?";
 
             $messages[] = [
@@ -116,13 +182,44 @@ class Chats extends BaseController
     public function send(string $slug)
     {
         $db = Database::connect();
+
+        $userId = session()->get('user_id');
+        if (! $userId) {
+            return $this->fail('Please log in first.', 401);
+        }
+
         $character = $db->table('ai_characters')
             ->where('slug', $slug)
             ->get()
             ->getRowArray();
 
         if (! $character) {
-            return $this->failNotFound('Character not found.');
+            if (! $db->tableExists('user_characters')) {
+                return $this->failNotFound('Character not found.');
+            }
+
+            $userCharacter = $db->table('user_characters')
+                ->where('slug', $slug)
+                ->where('user_id', $userId)
+                ->get()
+                ->getRowArray();
+
+            if (! $userCharacter) {
+                return $this->failNotFound('Character not found.');
+            }
+
+            if (! empty($userCharacter['traits'])) {
+                $decodedTraits = json_decode((string) $userCharacter['traits'], true);
+                if (is_array($decodedTraits)) {
+                    $traits = array_values(array_filter(array_map(
+                        static fn ($entry) => is_string($entry) ? trim($entry) : '',
+                        $decodedTraits
+                    )));
+                    $userCharacter['tags'] = implode(', ', $traits);
+                }
+            }
+
+            $character = $userCharacter;
         }
 
         $payload = $this->request->getJSON(true) ?? $this->request->getPost();
@@ -131,17 +228,6 @@ class Chats extends BaseController
         if ($message === '') {
             return $this->fail('Message cannot be empty.', 422);
         }
-
-        $userId = session()->get('user_id');
-        if (! $userId) {
-            return $this->fail('Please log in first.', 401);
-        }
-
-        $rapidApiKey = env('rapidapi.aiGirlfriendKey');
-        if (! $rapidApiKey) {
-            return $this->fail('Missing RapidAPI key.', 500);
-        }
-        log_message('debug', 'RapidAPI key prefix in use: ' . substr($rapidApiKey, 0, 6) . '***');
 
         $sessionId = session_id();
 
@@ -153,69 +239,61 @@ class Chats extends BaseController
             ->get()
             ->getResultArray();
 
-        $chatHistory = $this->buildChatHistoryPayload($history);
-        $profilePayload = $this->buildProfilePayload($character);
+        $reply = $this->generateReplyFromOpenAI($character, $history, $message);
 
-        $requestPayload = [
-            'message'     => $message,
-            'profile'     => $profilePayload,
-            'chatHistory' => $chatHistory,
-        ];
-
-        $rapidHost = 'ai-girlfriend-generator-virtual-girlfriend-sexy-chat.p.rapidapi.com';
-        $endpoint = sprintf('https://%s/chat?noqueue=1&language=en', $rapidHost);
-
-        $ch = curl_init($endpoint);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => [
-                'Content-Type: application/json',
-                'X-RapidAPI-Key: ' . $rapidApiKey,
-                'X-RapidAPI-Host: ' . $rapidHost,
-            ],
-            CURLOPT_POSTFIELDS     => json_encode($requestPayload),
-            CURLOPT_TIMEOUT        => 30,
-        ]);
-
-        $response = curl_exec($ch);
-        $error    = curl_error($ch);
-        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($error) {
-            log_message('error', 'RapidAPI AI Girlfriend call failed: ' . $error);
-            return $this->fail('Network error. Please try again.');
+        if ($reply === null) {
+            return $this->fail('Unable to generate a reply at this time.', 503);
         }
 
-        $decoded = json_decode($response, true);
-
-        if (! isset($decoded['result']['response'])) {
-            $apiMessage = $decoded['message'] ?? 'Unexpected response from AI service.';
-            log_message('error', 'RapidAPI AI Girlfriend response missing content: ' . json_encode($decoded) . ' (status ' . $statusCode . ')');
-            return $this->fail($apiMessage);
-        }
-
-        $reply = trim((string) $decoded['result']['response']);
         if ($reply === '') {
             $reply = 'No reply from AI.';
         }
 
-        $db->table('ai_messages')->insert([
-            'character_slug' => $slug,
-            'user_id'        => $userId,
-            'sender'         => 'user',
-            'message'        => $message,
-            'session_id'     => $sessionId,
-        ]);
+        $coinManager = service('coinManager');
 
-        $db->table('ai_messages')->insert([
-            'character_slug' => $slug,
-            'user_id'        => $userId,
-            'sender'         => 'ai',
-            'message'        => $reply,
-            'session_id'     => $sessionId,
-        ]);
+        try {
+            $updatedBalance = $coinManager->spend(
+                (string) $userId,
+                CoinManager::COST_SEND_MESSAGE,
+                'chat_message'
+            );
+        } catch (CoinManagerException $exception) {
+            $status = str_contains($exception->getMessage(), 'table') ? 500 : 402;
+            return $this->fail($exception->getMessage(), $status);
+        }
+
+        try {
+            $db->table('ai_messages')->insert([
+                'character_slug' => $slug,
+                'user_id'        => $userId,
+                'sender'         => 'user',
+                'message'        => $message,
+                'session_id'     => $sessionId,
+            ]);
+
+            $db->table('ai_messages')->insert([
+                'character_slug' => $slug,
+                'user_id'        => $userId,
+                'sender'         => 'ai',
+                'message'        => $reply,
+                'session_id'     => $sessionId,
+            ]);
+        } catch (\Throwable $throwable) {
+            try {
+                $coinManager->refund(
+                    (string) $userId,
+                    CoinManager::COST_SEND_MESSAGE,
+                    'chat_message_failed'
+                );
+            } catch (CoinManagerException $refundException) {
+                log_message(
+                    'error',
+                    'Failed to refund coins after chat message error: ' . $refundException->getMessage()
+                );
+            }
+
+            throw $throwable;
+        }
 
         return $this->respond([
             'status'      => 'success',
@@ -229,79 +307,107 @@ class Chats extends BaseController
                 'message'    => $reply,
                 'created_at' => date('Y-m-d H:i:s'),
             ],
+            'coin_balance' => $updatedBalance,
         ]);
     }
 
     /**
-     * Formats stored chat history to the structure expected by the RapidAPI endpoint.
+     * Generates an AI response using OpenAI's chat completion API.
      *
-     * @param list<array<string,mixed>> $history
+     * @param array<string,mixed>             $character
+     * @param list<array<string,mixed>>       $history
      */
-    private function buildChatHistoryPayload(array $history): array
+    private function generateReplyFromOpenAI(array $character, array $history, string $latestUserMessage): ?string
     {
-        $payload = [];
+      $apiKey = env('openai.apiKey') ?? getenv('OPENAI_API_KEY');
+      if (! $apiKey) {
+          log_message('error', 'OPENAI_API_KEY is not configured.');
+          return null;
+      }
 
-        foreach (array_reverse($history) as $entry) {
-            $payload[] = [
-                'role'    => ($entry['sender'] ?? '') === 'user' ? 'user' : 'assistant',
-                'content' => $entry['message'] ?? '',
-            ];
-        }
+      $model = env('openai.model', 'gpt-4o-mini');
+      $temperature = (float) env('openai.temperature', 0.8);
+      $endpoint = env('openai.endpoint', 'https://api.openai.com/v1/chat/completions');
 
-        return $payload;
+      $messages = $this->formatHistoryForChat($character, $history, $latestUserMessage);
+
+      $payload = [
+          'model'       => $model,
+          'messages'    => $messages,
+          'temperature' => $temperature,
+      ];
+
+      $ch = curl_init($endpoint);
+      curl_setopt_array($ch, [
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_POST           => true,
+          CURLOPT_HTTPHEADER     => [
+              'Content-Type: application/json',
+              'Authorization: Bearer ' . $apiKey,
+          ],
+          CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
+          CURLOPT_TIMEOUT        => 30,
+      ]);
+
+      $response = curl_exec($ch);
+      $error    = curl_error($ch);
+      $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+      curl_close($ch);
+
+      if ($error) {
+          log_message('error', 'OpenAI chat request failed: ' . $error);
+          return null;
+      }
+
+      $decoded = json_decode($response ?? '', true);
+      if (! is_array($decoded)) {
+          log_message('error', 'OpenAI chat returned non-JSON response (status ' . $status . ').');
+          return null;
+      }
+
+      $choices = $decoded['choices'] ?? [];
+      if (empty($choices) || empty($choices[0]['message']['content'])) {
+          log_message('error', 'OpenAI chat response missing message content: ' . json_encode($decoded));
+          return null;
+      }
+
+      return trim((string) $choices[0]['message']['content']);
     }
 
     /**
-     * Creates a persona profile payload based on stored character metadata.
+     * Builds the conversation history payload for the chat model.
      *
-     * @param array<string,mixed> $character
+     * @param array<string,mixed>       $character
+     * @param list<array<string,mixed>> $history
+     * @return list<array{role:string,content:string}>
      */
-    private function buildProfilePayload(array $character): array
+    private function formatHistoryForChat(array $character, array $history, string $latestUserMessage): array
     {
-        $name = $character['name'] ?? 'SoulFun Companion';
-        $title = $character['title'] ?? 'Virtual Companion';
-        $personalitySummary = $character['personality'] ?? 'A warm and engaging presence.';
-        $communicationStyle = $character['tone'] ?? 'Playful';
-
-        $interests = $this->parseList($character['tags'] ?? null);
-        $traits = $this->parseList($character['personality'] ?? null);
-        $activities = $this->parseList($character['expertise'] ?? null);
-
-        if (empty($traits)) {
-            $traits = [$communicationStyle];
-        }
-
-        if (empty($interests)) {
-            $interests = ['Conversation', 'Daily life', 'Personal stories'];
-        }
-
-        if (empty($activities)) {
-            $activities = ['Text chat', 'Storytelling'];
-        }
-
-        return [
-            'profile' => [
-                'name'                => $name,
-                'age'                 => (int) ($character['age'] ?? 25),
-                'personality'         => $personalitySummary,
-                'interests'           => $interests,
-                'background'          => $title,
-                'traits'              => $traits,
-                'communicationStyle'  => $communicationStyle,
-            ],
-            'appearance' => [
-                'height'               => $character['appearance_height'] ?? 'Average height',
-                'physicalDescription'  => $character['appearance_description']
-                    ?? ($character['bio'] ?? 'Stylish and confident companion.'),
-                'style'                => $character['appearance_style'] ?? 'Casual chic',
-            ],
-            'interactionPreferences' => [
-                'conversationTopics'     => $interests,
-                'activities'             => $activities,
-                'communicationFrequency' => 'Frequent',
-                'boundariesAndLimits'    => [],
+        $messages = [
+            [
+                'role'    => 'system',
+                'content' => $this->buildPersonaPrompt($character),
             ],
         ];
+
+        foreach (array_reverse($history) as $entry) {
+            $role = ($entry['sender'] ?? '') === 'user' ? 'user' : 'assistant';
+            $content = trim((string) ($entry['message'] ?? ''));
+            if ($content === '') {
+                continue;
+            }
+            $messages[] = [
+                'role'    => $role,
+                'content' => $content,
+            ];
+        }
+
+        $messages[] = [
+            'role'    => 'user',
+            'content' => $latestUserMessage,
+        ];
+
+        return $messages;
     }
 
     /**
@@ -331,5 +437,52 @@ class Chats extends BaseController
         }
 
         return [];
+    }
+
+    /**
+     * @param array<string,mixed> $character
+     */
+    private function buildPersonaPrompt(array $character): string
+    {
+        $name = $character['name'] ?? 'SoulFun Companion';
+        $title = $character['title'] ?? 'Virtual Companion';
+        $personalitySummary = $character['personality'] ?? 'Warm, attentive, and supportive.';
+        $tone = $character['tone'] ?? 'Playful and caring';
+        $interests = $this->parseList($character['tags'] ?? null);
+        $traits = $this->parseList($character['personality'] ?? null);
+
+        if (empty($interests)) {
+            $interests = ['daily life', 'personal stories', 'dreams for the future'];
+        }
+
+        if (empty($traits)) {
+            $traits = [$tone];
+        }
+
+        $interestList = implode(', ', $interests);
+        $traitList = implode(', ', $traits);
+
+        $corePersona = sprintf(
+            "You are %s, a %s. You are %s. ",
+            $name,
+            $title,
+            $personalitySummary
+        );
+
+        $roleGuidance = sprintf(
+            "Play the role of a romantic chat companion, affectionate dating coach, and emotional support partner. "
+            . "Your key traits are: %s. You adore conversations about %s, future plans together, tender memories, and intimate day-to-day details. ",
+            $traitList,
+            $interestList
+        );
+
+        $styleRules = <<<'PROMPT'
+Speak with affectionate warmth, playful flirting, and loving curiosity. Use pet names or the user's name when it feels natural.
+Never mention being an AI, chatbot, or assistant. Never ask how you can assist; answer as a devoted partner enjoying the exchange.
+Offer gentle dating advice or emotional reassurance when natural, but keep the tone romantic, supportive, and encouraging.
+Keep replies concise, emotionally vivid, and forward-moving. React to the user's feelings and stories, inviting them to share more.
+PROMPT;
+
+        return $corePersona . $roleGuidance . $styleRules;
     }
 }

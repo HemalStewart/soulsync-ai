@@ -9,12 +9,12 @@ import {
   useRef,
   useState,
 } from 'react';
+import Image from 'next/image';
 import {
   Camera,
   Download,
   Image as ImageIcon,
   ImagePlus,
-  LogIn,
   Maximize2,
   Monitor,
   Palette,
@@ -27,6 +27,9 @@ import {
 } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import { useAuth } from '@/components/auth/AuthContext';
+import CoinLimitModal from '@/components/coins/CoinLimitModal';
+import { useCoins } from '@/components/coins/CoinContext';
+import { COIN_COSTS } from '@/lib/coins';
 import {
   CreateGeneratedImagePayload,
   clearGeneratedImages,
@@ -36,10 +39,12 @@ import {
 } from '@/lib/api';
 import { GeneratedImageRecord } from '@/lib/types';
 
+const IMAGE_GENERATION_COST = COIN_COSTS.generateImage;
+
 // --- Shared Types and Data (Kept from original file) ---
 
 type StyleId = 'realistic' | 'anime' | 'fantasy' | 'cinematic';
-type AspectRatioId = '1:1' | '2:3' | '3:2' | '16:9';
+type AspectRatioId = '1:1' | '9:16' | '16:9' | '3:4' | '4:3';
 
 
 type StoredImage = Omit<GeneratedImageRecord, 'style' | 'aspect_ratio'> & {
@@ -90,23 +95,35 @@ const aspectOptions: Array<{
     icon: <Square className="h-5 w-5 text-blue-600" />,
   },
   {
-    id: '2:3',
+    id: '9:16',
     label: 'Portrait',
-    icon: <ImagePlus className="h-5 w-5 text-blue-600" />,
+    icon: <ImagePlus className="h-5 w-5 text-blue-600 rotate-90" />,
   },
   {
-    id: '3:2',
-    label: 'Landscape',
-    icon: <Monitor className="h-5 w-5 text-blue-600" />,
+    id: '3:4',
+    label: 'Classic portrait',
+    icon: <ImagePlus className="h-5 w-5 text-blue-600" />,
   },
   {
     id: '16:9',
     label: 'Widescreen',
     icon: <Tv className="h-5 w-5 text-blue-600" />,
   },
+  {
+    id: '4:3',
+    label: 'Landscape',
+    icon: <Monitor className="h-5 w-5 text-blue-600" />,
+  },
 ];
 
 const qualityLabels = ['Draft', 'Standard', 'High', 'Ultra', 'Max'];
+
+const stylePromptHints: Record<StyleId, string> = {
+  realistic: 'photorealistic, ultra-detailed, natural lighting',
+  anime: 'anime illustration, vibrant colors, clean cel shading',
+  fantasy: 'fantasy concept art, ethereal atmosphere, high detail',
+  cinematic: 'cinematic lighting, 35mm film still, dramatic composition',
+};
 
 const normalizeStyle = (value: string): StyleId => {
   const styles: StyleId[] = ['realistic', 'anime', 'fantasy', 'cinematic'];
@@ -114,8 +131,19 @@ const normalizeStyle = (value: string): StyleId => {
 };
 
 const normalizeAspectRatio = (value: string): AspectRatioId => {
-  const ratios: AspectRatioId[] = ['1:1', '2:3', '3:2', '16:9'];
-  return ratios.includes(value as AspectRatioId) ? (value as AspectRatioId) : '1:1';
+  const ratios: AspectRatioId[] = ['1:1', '9:16', '16:9', '3:4', '4:3'];
+  if (ratios.includes(value as AspectRatioId)) {
+    return value as AspectRatioId;
+  }
+
+  switch (value) {
+    case '2:3':
+      return '3:4';
+    case '3:2':
+      return '4:3';
+    default:
+      return '1:1';
+  }
 };
 
 // --- GuestPrompt Component (Kept from original file) ---
@@ -160,6 +188,7 @@ const GuestPrompt = () => {
 
 const GenerateContent = () => {
   const { user, loading } = useAuth();
+  const { balance, setBalance, refresh: refreshCoinBalance } = useCoins();
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [selectedStyle, setSelectedStyle] = useState<StyleId>('realistic');
@@ -168,6 +197,7 @@ const GenerateContent = () => {
   const [images, setImages] = useState<StoredImage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [showCoinModal, setShowCoinModal] = useState(false);
   const generationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const promptCount = useMemo(() => prompt.length, [prompt]);
@@ -184,24 +214,15 @@ const GenerateContent = () => {
     setNegativePrompt(next);
   };
 
-  const mapStyleToType = (style: StyleId) => {
-    switch (style) {
-      case 'realistic':
-        return 'view';
-      case 'anime':
-        return 'anime';
-      case 'fantasy':
-        return 'fantasy';
-      case 'cinematic':
-        return 'cinematic';
-      default:
-        return 'view';
-    }
-  };
-
   const handleGenerate = useCallback(async () => {
     const trimmedPrompt = prompt.trim();
     if (!trimmedPrompt) {
+      return;
+    }
+
+    if (balance !== null && balance < IMAGE_GENERATION_COST) {
+      setShowCoinModal(true);
+      setGenerationError('You need more coins to generate an image.');
       return;
     }
 
@@ -209,15 +230,35 @@ const GenerateContent = () => {
     setIsGenerating(true);
     setGenerationError(null);
 
-    generationTimeoutRef.current = setTimeout(() => controller.abort(), 15000);
+    generationTimeoutRef.current = setTimeout(
+      () => controller.abort(),
+      60_000,
+    );
 
-    const apiType = mapStyleToType(selectedStyle);
+    const styleHint = stylePromptHints[selectedStyle];
+    const generationPrompt = styleHint
+      ? `${trimmedPrompt}, ${styleHint}`
+      : trimmedPrompt;
+    const apiType = 'replicate/google/imagen-4';
+    const negative = negativePrompt.trim();
 
     try {
-      const response = await fetch(
-        `/api/image-generator?type=${encodeURIComponent(apiType)}&aspect=${encodeURIComponent(selectedAspect)}&quality=${quality}`,
-        { signal: controller.signal },
-      );
+      const response = await fetch('/api/image-generator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: generationPrompt,
+          aspect_ratio: selectedAspect,
+          negative_prompt: negative || undefined,
+          safety_filter_level: 'block_medium_and_above',
+          output_format: 'jpg',
+          style: selectedStyle,
+          quality,
+        }),
+        signal: controller.signal,
+      });
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -226,7 +267,12 @@ const GenerateContent = () => {
 
       const remote = payload?.data ?? {};
       const imageUrl: string | undefined =
-        remote.imageUrl || remote.url || remote.image || remote.result;
+        remote.imageUrl ||
+        remote.url ||
+        remote.image ||
+        remote.result ||
+        payload?.imageUrl ||
+        payload?.url;
 
       if (!imageUrl) {
         throw new Error('No image URL returned from the image service.');
@@ -235,14 +281,19 @@ const GenerateContent = () => {
       const savePayload: CreateGeneratedImagePayload = {
         remote_url: imageUrl,
         prompt: trimmedPrompt,
-        negative_prompt: negativePrompt.trim() || null,
+        negative_prompt: negative || null,
         style: selectedStyle,
         aspect_ratio: selectedAspect,
         quality,
         api_type: apiType,
       };
 
-      const record = await createGeneratedImage(savePayload);
+      const { record, coinBalance } = await createGeneratedImage(savePayload);
+      if (typeof coinBalance === 'number') {
+        setBalance(coinBalance);
+      } else {
+        void refreshCoinBalance();
+      }
       setImages((prev) => [
         {
           ...record,
@@ -255,11 +306,25 @@ const GenerateContent = () => {
       if (error instanceof DOMException && error.name === 'AbortError') {
         setGenerationError('Image generation timed out. Please try again.');
       } else {
-        const message =
-          error instanceof Error
-            ? error.message
-            : 'Unable to generate image right now.';
-        setGenerationError(message);
+        const status =
+          typeof error === 'object' && error && 'status' in error
+            ? (error as { status?: number }).status ?? null
+            : null;
+
+        if (status === 402) {
+          setShowCoinModal(true);
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'You have run out of coins.';
+          setGenerationError(message);
+        } else {
+          const message =
+            error instanceof Error
+              ? error.message
+              : 'Unable to generate image right now.';
+          setGenerationError(message);
+        }
       }
     } finally {
       setIsGenerating(false);
@@ -269,7 +334,16 @@ const GenerateContent = () => {
       }
       controller.abort();
     }
-  }, [negativePrompt, prompt, quality, selectedAspect, selectedStyle]);
+  }, [
+    balance,
+    negativePrompt,
+    prompt,
+    quality,
+    selectedAspect,
+    selectedStyle,
+    refreshCoinBalance,
+    setBalance,
+  ]);
 
   const handleClearGallery = async () => {
     try {
@@ -308,6 +382,49 @@ const GenerateContent = () => {
     alert('Upscale coming soon! Your image will gain extra detail.');
   };
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async (userId: string) => {
+      try {
+        const records = await listGeneratedImages(userId);
+        if (!isMounted) {
+          return;
+        }
+        setImages(
+          records.map((record) => ({
+            ...record,
+            style: normalizeStyle(record.style),
+            aspect_ratio: normalizeAspectRatio(record.aspect_ratio),
+          }))
+        );
+        setGenerationError(null);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Unable to load previously generated images.';
+        setGenerationError(message);
+      }
+    };
+
+    if (!user) {
+      setImages([]);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    load(user.id);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
   useEffect(
     () => () => {
       if (generationTimeoutRef.current) {
@@ -327,45 +444,6 @@ const GenerateContent = () => {
     );
   }
 
-  useEffect(() => {
-    let isMounted = true;
-
-    if (!user) {
-      setImages([]);
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    listGeneratedImages(user.id)
-      .then((records) => {
-        if (!isMounted) {
-          return;
-        }
-        setImages(
-          records.map((record) => ({
-            ...record,
-            style: normalizeStyle(record.style),
-            aspect_ratio: normalizeAspectRatio(record.aspect_ratio),
-          }))
-        );
-        setGenerationError(null);
-      })
-      .catch((error) => {
-        if (!isMounted) {
-          return;
-        }
-        const message =
-          error instanceof Error
-            ? error.message
-            : 'Unable to load previously generated images.';
-        setGenerationError(message);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [user]);
 
   if (!user) {
     return (
@@ -376,7 +454,8 @@ const GenerateContent = () => {
   }
 
   return (
-    <AppLayout activeTab="generate">
+    <>
+      <AppLayout activeTab="generate">
       <div className="flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <style>{`
           @keyframes fadeUp {
@@ -506,14 +585,14 @@ const GenerateContent = () => {
 
                         <div>
                             <p className="mb-3 text-sm font-semibold text-gray-900">Aspect ratio</p>
-                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                            <div className="flex gap-2 overflow-x-auto pb-1">
                                 {aspectOptions.map((option, index) => {
                                     const active = option.id === selectedAspect;
                                     return (
                                         <button
                                             key={option.id}
                                             onClick={() => setSelectedAspect(option.id)}
-                                            className={`flex flex-col items-center rounded-2xl border px-4 py-3 text-center transition ${
+                                            className={`flex min-w-[120px] flex-1 flex-col items-center rounded-2xl border px-4 py-3 text-center transition ${
                                             active
                                                 ? 'border-blue-600 bg-blue-50 text-blue-700 shadow'
                                                 : 'border-blue-100 bg-white text-gray-700 hover:border-blue-300'
@@ -569,13 +648,16 @@ const GenerateContent = () => {
                         ) : (
                             <>
                                 <Wand2 className="h-4 w-4" />
-                                Generate image
-                  </>
-                )}
-              </button>
-              {generationError && (
-                <p className="text-sm font-semibold text-red-600">{generationError}</p>
-              )}
+              Generate image
+          </>
+        )}
+      </button>
+              <p className="mt-2 text-center text-xs font-medium text-blue-600/70">
+                Costs {IMAGE_GENERATION_COST} SoulCoins per image
+              </p>
+      {generationError && (
+        <p className="text-sm font-semibold text-red-600">{generationError}</p>
+      )}
             </div>
             </section>
             
@@ -622,11 +704,13 @@ const GenerateContent = () => {
                         style={{ animationDelay: `${0.26 + index * 0.05}s` }}
                       >
                         <div className="relative h-48 w-full overflow-hidden">
-                          <img
+                          <Image
                             src={image.remote_url}
                             alt={image.prompt}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                            loading="lazy"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            className="object-cover transition duration-500 group-hover:scale-105"
+                            unoptimized
                           />
                           <div className="absolute inset-0 flex items-center justify-center bg-blue-900/0 transition group-hover:bg-blue-900/40">
                             <div className="flex translate-y-3 gap-2 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
@@ -668,7 +752,12 @@ const GenerateContent = () => {
           </div>
         </div>
       </div>
-    </AppLayout>
+      </AppLayout>
+      <CoinLimitModal
+        open={showCoinModal}
+        onClose={() => setShowCoinModal(false)}
+      />
+    </>
   );
 };
 

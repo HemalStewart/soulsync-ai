@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useCallback } from 'react';
-import { MessageCircle, Phone, Video } from 'lucide-react';
+import { MessageCircle, Phone, Video, User } from 'lucide-react';
 import { CharacterCard } from '@/lib/types';
 
 interface CharacterGridProps {
@@ -271,6 +271,9 @@ const CharacterGrid = ({
 
         {characters.map((character, index) => {
           const hasVideo = Boolean(character.videoUrl);
+          const hasAvatar = Boolean(character.avatar && character.avatar.trim() !== '');
+          const imageTransitionClass =
+            hoveredCard === index && hasVideo ? 'opacity-0 scale-95' : 'opacity-100 scale-100';
 
           return (
             <div
@@ -280,16 +283,22 @@ const CharacterGrid = ({
               onMouseLeave={handleMouseLeave}
               style={{ animationDelay: `${(index + 1) * 0.1}s` }}
             >
-              <Image
-                src={character.avatar}
-                alt={character.name}
-                fill
-                sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ${
-                  hoveredCard === index && hasVideo ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-                }`}
-                priority={index < 2}
-              />
+              {hasAvatar ? (
+                <Image
+                  src={character.avatar}
+                  alt={character.name}
+                  fill
+                  sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                  className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ${imageTransitionClass}`}
+                  priority={index < 2}
+                />
+              ) : (
+                <div
+                  className={`absolute inset-0 flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 transition-all duration-500 ${imageTransitionClass}`}
+                >
+                  <User className="h-16 w-16 text-white drop-shadow-lg" />
+                </div>
+              )}
 
               {hasVideo && (
                 <video

@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { User } from 'lucide-react';
 import { ChatSummary } from '@/lib/types';
 
 interface ChatListProps {
@@ -38,28 +39,34 @@ const ChatList = ({ chats, selectedChat, onSelect, loading, fullWidth }: ChatLis
           ))}
         </>
       ) : chats.length ? (
-        chats.map((chat) => (
-          <button
-            key={chat.character_slug}
-            onClick={() => onSelect(chat.character_slug)}
-            className={`flex w-full items-center space-x-3 border-b p-4 text-left transition ${
-              selectedChat === chat.character_slug
-                ? 'bg-blue-50'
-                : 'hover:bg-gray-50'
-            }`}
-          >
-            <div className="relative h-14 w-14 flex-shrink-0">
-              <Image
-                src={
-                  chat.character_avatar ||
-                  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&h=200&fit=crop'
-                }
-                alt={chat.character_name}
-                fill
-                sizes="56px"
-                className="rounded-full object-cover"
-              />
-            </div>
+        chats.map((chat) => {
+          const avatar = chat.character_avatar?.trim() ?? '';
+
+          return (
+            <button
+              key={chat.character_slug}
+              onClick={() => onSelect(chat.character_slug)}
+              className={`flex w-full items-center space-x-3 border-b p-4 text-left transition ${
+                selectedChat === chat.character_slug
+                  ? 'bg-blue-50'
+                  : 'hover:bg-gray-50'
+              }`}
+            >
+              <div className="relative h-14 w-14 flex-shrink-0">
+                {avatar ? (
+                  <Image
+                    src={avatar}
+                    alt={chat.character_name}
+                    fill
+                    sizes="56px"
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
+                    <User className="h-6 w-6 text-white" />
+                  </div>
+                )}
+              </div>
             <div className="min-w-0 flex-1">
               <h3 className="font-bold text-gray-900">
                 {chat.character_name}
@@ -69,8 +76,9 @@ const ChatList = ({ chats, selectedChat, onSelect, loading, fullWidth }: ChatLis
                 {chat.message}
               </p>
             </div>
-          </button>
-        ))
+            </button>
+          );
+        })
       ) : (
         <div className="p-4 text-sm text-gray-500">
           No chats yet. Start a conversation from the Discover page.

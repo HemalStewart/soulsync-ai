@@ -10,8 +10,6 @@ import {
   Clock3,
   Film,
   ImagePlus,
-  Lock,
-  LogIn,
   Play,
   RefreshCw,
   Sparkles,

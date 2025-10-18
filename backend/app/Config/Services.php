@@ -29,4 +29,12 @@ class Services extends BaseService
      *     return new \CodeIgniter\Example();
      * }
      */
+    public static function coinManager(bool $getShared = true)
+    {
+        if ($getShared) {
+            return static::getSharedInstance('coinManager');
+        }
+
+        return new \App\Libraries\CoinManager();
+    }
 }

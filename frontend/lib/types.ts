@@ -1,5 +1,5 @@
 export interface CharacterApiModel {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   avatar: string | null;
@@ -10,10 +10,12 @@ export interface CharacterApiModel {
   tags?: string | null;
   video_url?: string | null;
   bio?: string | null;
+  greeting?: string | null;
+  source?: 'global' | 'user';
 }
 
 export interface CharacterCard {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   avatar: string;
@@ -21,6 +23,8 @@ export interface CharacterCard {
   description: string;
   tags: string[];
   videoUrl?: string;
+  source?: 'global' | 'user';
+  greeting?: string | null;
 }
 
 export interface ChatSummary {
@@ -48,6 +52,7 @@ export interface CharacterChatDetail {
     avatar: string | null;
     title: string | null;
     video_url: string | null;
+    source?: 'global' | 'user';
   };
   messages: ChatMessage[];
 }
@@ -63,4 +68,25 @@ export interface GeneratedImageRecord {
   quality: number;
   api_type: string;
   created_at: string;
+}
+
+export interface UserCharacterRecord {
+  id: number;
+  user_id: string;
+  name: string;
+  slug: string;
+  avatar: string | null;
+  title: string | null;
+  personality: string | null;
+  backstory: string | null;
+  expertise: string | null;
+  traits: string[];
+  greeting: string | null;
+  voice: string | null;
+  tone: string | null;
+  memory_mode: 'user' | 'global' | 'none';
+  visibility: 'private' | 'public';
+  created_at: string;
+  updated_at: string | null;
+  source: 'user';
 }

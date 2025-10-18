@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { User } from 'lucide-react';
 import { ChatSummary } from '@/lib/types';
 
 interface RecentChatsProps {
@@ -224,31 +225,41 @@ const RecentChats = ({
           </div>
         ) : visibleChats.length ? (
           <div className="chat-items-container flex space-x-4 overflow-x-auto overflow-y-visible pb-4 pr-2">
-            {visibleChats.map((chat, index) => (
-              <div
-                key={chat.character_slug}
-                className="chat-item-wrapper chat-item animate-scale-in"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <button
-                  onClick={() => onChatSelect(chat.character_slug)}
-                  className="flex flex-col items-center space-y-2 text-gray-800 w-full"
+            {visibleChats.map((chat, index) => {
+              const avatar = chat.character_avatar?.trim() ?? '';
+
+              return (
+                <div
+                  key={chat.character_slug}
+                  className="chat-item-wrapper chat-item animate-scale-in"
+                  style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-white shadow-lg avatar-ring flex-shrink-0">
-                    <Image
-                      src={chat.character_avatar || 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&h=200&fit=crop'}
-                      alt={chat.character_name}
-                      fill
-                      sizes="80px"
-                      className="h-full w-full rounded-full object-cover transition-transform duration-300 hover:scale-110"
-                    />
-                  </div>
-                  <p className="max-w-[100px] truncate text-xs font-semibold text-gray-900 transition-all duration-300">
-                    {chat.character_name}
-                  </p>
-                </button>
-              </div>
-            ))}
+                  <button
+                    onClick={() => onChatSelect(chat.character_slug)}
+                    className="flex flex-col items-center space-y-2 text-gray-800 w-full"
+                  >
+                    <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-white shadow-lg avatar-ring flex-shrink-0">
+                      {avatar ? (
+                        <Image
+                          src={avatar}
+                          alt={chat.character_name}
+                          fill
+                          sizes="80px"
+                          className="h-full w-full rounded-full object-cover transition-transform duration-300 hover:scale-110"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 transition-transform duration-300 hover:scale-110">
+                          <User className="h-6 w-6 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="max-w-[100px] truncate text-xs font-semibold text-gray-900 transition-all duration-300">
+                      {chat.character_name}
+                    </p>
+                  </button>
+                </div>
+              );
+            })}
             {hasMore && onViewAll && (
               <div
                 className="chat-item-wrapper view-all-button animate-scale-in"

@@ -3,8 +3,11 @@
 namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
+use App\Libraries\CoinManager;
+use App\Libraries\CoinManagerException;
 use CodeIgniter\API\ResponseTrait;
 use Config\Database;
+use Throwable;
 
 class GeneratedImages extends BaseController
 {
@@ -91,6 +94,19 @@ class GeneratedImages extends BaseController
         $db = Database::connect();
         $builder = $db->table('generated_images');
 
+        $coinManager = service('coinManager');
+
+        try {
+            $updatedBalance = $coinManager->spend(
+                (string) $userId,
+                CoinManager::COST_GENERATE_IMAGE,
+                'image_generation'
+            );
+        } catch (CoinManagerException $exception) {
+            $status = str_contains($exception->getMessage(), 'table') ? 500 : 402;
+            return $this->fail($exception->getMessage(), $status);
+        }
+
         $data = [
             'user_id'        => $userId,
             'remote_url'     => $remoteUrl,
@@ -103,17 +119,35 @@ class GeneratedImages extends BaseController
             'created_at'     => date('Y-m-d H:i:s'),
         ];
 
-        $builder->insert($data);
-        $insertId = $db->insertID();
+        try {
+            $builder->insert($data);
+            $insertId = $db->insertID();
 
-        $record = $builder
-            ->where('id', $insertId)
-            ->get()
-            ->getRowArray();
+            $record = $builder
+                ->where('id', $insertId)
+                ->get()
+                ->getRowArray();
+        } catch (Throwable $throwable) {
+            try {
+                $coinManager->refund(
+                    (string) $userId,
+                    CoinManager::COST_GENERATE_IMAGE,
+                    'image_generation_failed'
+                );
+            } catch (CoinManagerException $refundException) {
+                log_message(
+                    'error',
+                    'Failed to refund coins after image generation error: ' . $refundException->getMessage()
+                );
+            }
+
+            throw $throwable;
+        }
 
         return $this->respondCreated([
-            'status' => 'success',
-            'data'   => $record,
+            'status'       => 'success',
+            'data'         => $record,
+            'coin_balance' => $updatedBalance,
         ]);
     }
 

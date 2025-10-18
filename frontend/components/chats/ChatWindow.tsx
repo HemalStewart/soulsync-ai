@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { ChatMessage } from '@/lib/types';
-import { MoreVertical, Phone, Video, Send, ChevronLeft } from 'lucide-react';
+import { MoreVertical, Phone, Video, Send, ChevronLeft, User } from 'lucide-react';
 import ChatEmptyState from './ChatEmptyState';
 
 interface ChatWindowProps {
@@ -17,6 +17,7 @@ interface ChatWindowProps {
   isSending?: boolean;
   headerLoading?: boolean;
   onBack?: () => void;
+  coinCost?: number;
 }
 
 const formatTimestamp = (timestamp: string) => {
@@ -52,6 +53,7 @@ const ChatWindow = ({
   isSending,
   headerLoading = false,
   onBack,
+  coinCost,
 }: ChatWindowProps) => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -90,6 +92,8 @@ const ChatWindow = ({
     }
   };
 
+  const avatar = characterAvatar?.trim() ?? '';
+
   return (
     <div className="flex flex-1 flex-col">
       {/* Header with subtle animation */}
@@ -111,16 +115,19 @@ const ChatWindow = ({
           ) : (
             <>
               <div className="relative h-11 w-11 group sm:h-12 sm:w-12">
-                <Image
-                  src={
-                    characterAvatar ||
-                    'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&h=200&fit=crop'
-                  }
-                  alt={characterName}
-                  fill
-                  sizes="48px"
-                  className="rounded-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+                {avatar ? (
+                  <Image
+                    src={avatar}
+                    alt={characterName}
+                    fill
+                    sizes="48px"
+                    className="rounded-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 transition-transform duration-300 group-hover:scale-105">
+                    <User className="h-6 w-6 text-white" />
+                  </div>
+                )}
                 <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white bg-green-500 animate-pulse" />
               </div>
               <div className="transition-transform duration-300 hover:translate-x-1">
@@ -155,48 +162,50 @@ const ChatWindow = ({
         {/* --- MODIFICATION: CORRECTED LOGIC --- */}
         {isLoading ? (
           <MessageSkeleton />
-        ) : messages.length === 0 ? (
-          <ChatEmptyState />
         ) : (
-          messages.map((message, index) => (
-            <div
-              key={`${message.created_at}-${index}`}
-              className="animate-in fade-in slide-in-from-bottom-4 duration-500"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              {message.sender === 'ai' ? (
-                <div className="group flex items-end justify-start gap-2">
-                  <div
-                    onClick={() => handleCopyMessage(message.message, index)}
-                    className="relative max-w-2xl cursor-pointer rounded-3xl bg-gradient-to-br from-cyan-400 to-cyan-500 px-6 py-4 text-black shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
-                  >
-                    {message.message.split('\n').map((line, lineIndex) => (
-                      <p key={`${lineIndex}-${line}`} className="my-1 whitespace-pre-wrap">
-                        {line}
-                      </p>
-                    ))}
-                    <div className="absolute bottom-2 right-4 opacity-0 transition-opacity duration-300 group-hover:opacity-70">
-                      <span className="text-xs text-cyan-900">
-                        {copiedMessageIndex === index ? 'Copied!' : 'Click to copy'}
-                      </span>
+          messages.length === 0 ? (
+            <ChatEmptyState />
+          ) : (
+            messages.map((message, index) => (
+              <div
+                key={`${message.created_at}-${index}`}
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                {message.sender === 'ai' ? (
+                  <div className="group flex items-end justify-start gap-2">
+                    <div
+                      onClick={() => handleCopyMessage(message.message, index)}
+                      className="relative max-w-2xl cursor-pointer rounded-3xl bg-gradient-to-br from-cyan-400 to-cyan-500 px-6 py-4 text-black shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+                    >
+                      {message.message.split('\n').map((line, lineIndex) => (
+                        <p key={`${lineIndex}-${line}`} className="my-1 whitespace-pre-wrap">
+                          {line}
+                        </p>
+                      ))}
+                      <div className="absolute bottom-2 right-4 opacity-0 transition-opacity duration-300 group-hover:opacity-70">
+                        <span className="text-xs text-cyan-900">
+                          {copiedMessageIndex === index ? 'Copied!' : 'Click to copy'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      {formatTimestamp(message.created_at)}
                     </div>
                   </div>
-                  <div className="text-xs text-gray-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    {formatTimestamp(message.created_at)}
+                ) : (
+                  <div className="group flex items-end justify-end gap-2">
+                    <div className="text-xs text-gray-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      {formatTimestamp(message.created_at)}
+                    </div>
+                    <div className="max-w-md rounded-3xl bg-gradient-to-br from-gray-200 to-gray-300 px-6 py-3 text-gray-900 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+                      {message.message}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="group flex items-end justify-end gap-2">
-                  <div className="text-xs text-gray-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    {formatTimestamp(message.created_at)}
-                  </div>
-                  <div className="max-w-md rounded-3xl bg-gradient-to-br from-gray-200 to-gray-300 px-6 py-3 text-gray-900 shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-                    {message.message}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
+                )}
+              </div>
+            ))
+          )
         )}
 
         {isSending && (
@@ -246,6 +255,11 @@ const ChatWindow = ({
             <Send size={20} className={isSending ? 'animate-pulse' : ''} />
           </button>
         </div>
+        {/* {coinCost !== undefined && (
+          <p className="mt-3 text-center text-xs font-medium text-blue-600/70">
+            Costs {coinCost} SoulCoin{coinCost === 1 ? '' : 's'} per message
+          </p>
+        )} */}
       </div>
     </div>
   );

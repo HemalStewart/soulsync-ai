@@ -20,12 +20,18 @@ import {
   ChatSummary,
 } from '@/lib/types';
 import { useAuth } from '@/components/auth/AuthContext';
+import { useCoins } from '@/components/coins/CoinContext';
+import CoinLimitModal from '@/components/coins/CoinLimitModal';
+import { COIN_COSTS } from '@/lib/coins';
+
+const MESSAGE_COST = COIN_COSTS.chatMessage;
 
 const ChatsContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const characterParam = searchParams.get('character');
   const { user, loading: authLoading, openAuthModal } = useAuth();
+  const { balance, setBalance, refresh: refreshCoinBalance } = useCoins();
 
   const [chatSummaries, setChatSummaries] = useState<ChatSummary[]>([]);
   const [characters, setCharacters] = useState<Record<string, CharacterCard>>(
@@ -43,6 +49,7 @@ const ChatsContent = () => {
   const [isErrorVisible, setIsErrorVisible] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
+  const [showCoinModal, setShowCoinModal] = useState(false);
 
   const defaultChatSlug = useMemo(
     () => chatSummaries[0]?.character_slug ?? null,
@@ -95,8 +102,8 @@ const ChatsContent = () => {
       try {
         setLoadingChats(true);
         const [chats, characterCards] = await Promise.all([
-          getChatSummaries(),
-          getCharacters(),
+          getChatSummaries(user?.id ?? undefined),
+          getCharacters({ includeUser: true, userId: user?.id ?? undefined }),
         ]);
 
         if (!isMounted) return;
@@ -196,9 +203,25 @@ const ChatsContent = () => {
       return;
     }
 
+    const outgoing = messageInput.trim();
+
+    if (balance !== null && balance < MESSAGE_COST) {
+      setShowCoinModal(true);
+      setErrorMessage('You have no coins left. Please top up to continue chatting.');
+      setIsErrorVisible(true);
+      return;
+    }
+
     try {
       setSending(true);
-      const payload = await sendChatMessage(selectedChat, messageInput.trim());
+      setMessageInput('');
+      const payload = await sendChatMessage(selectedChat, outgoing);
+
+      if (typeof payload.coinBalance === 'number') {
+        setBalance(payload.coinBalance);
+      } else {
+        void refreshCoinBalance();
+      }
 
       setChatDetail((previous) => {
         if (!previous) {
@@ -216,17 +239,31 @@ const ChatsContent = () => {
           messages,
         };
       });
-      setMessageInput('');
+      setSending(false);
 
       // Refresh chat summaries to show latest message preview
       const refreshedSummaries = await getChatSummaries();
       setChatSummaries(refreshedSummaries);
       setErrorMessage(null);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Failed to send message.'
-      );
-    } finally {
+      setMessageInput((prev) => (prev.trim() === '' ? outgoing : prev));
+      const status =
+        typeof error === 'object' && error && 'status' in error
+          ? (error as { status?: number }).status ?? null
+          : null;
+
+      if (status === 402) {
+        setShowCoinModal(true);
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : 'You have no coins left. Please purchase more to continue.'
+        );
+      } else {
+        setErrorMessage(
+          error instanceof Error ? error.message : 'Failed to send message.'
+        );
+      }
       setSending(false);
     }
   };
@@ -291,7 +328,8 @@ const ChatsContent = () => {
   }
 
   return (
-    <AppLayout activeTab="chats">
+    <>
+      <AppLayout activeTab="chats">
       <div className="flex h-full flex-1 flex-col overflow-hidden">
         {/* Error notification with slide animation */}
         {errorMessage && (
@@ -373,6 +411,7 @@ const ChatsContent = () => {
                     isLoading={loadingMessages}
                     isSending={sending}
                     headerLoading={headerLoading}
+                    coinCost={MESSAGE_COST}
                     onBack={isMobileView ? () => setShowMobileChat(false) : undefined}
                   />
                   
@@ -399,7 +438,12 @@ const ChatsContent = () => {
           )}
         </div>
       </div>
-    </AppLayout>
+      </AppLayout>
+      <CoinLimitModal
+        open={showCoinModal}
+        onClose={() => setShowCoinModal(false)}
+      />
+    </>
   );
 };
 

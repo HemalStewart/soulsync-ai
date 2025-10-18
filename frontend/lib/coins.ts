@@ -1,0 +1,6 @@
+export const COIN_COSTS = {
+  generateImage: 5,
+  chatMessage: 1,
+} as const;
+
+export type CoinCostKey = keyof typeof COIN_COSTS;

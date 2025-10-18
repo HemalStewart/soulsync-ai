@@ -5,6 +5,7 @@ import {
   ChatMessage,
   ChatSummary,
   GeneratedImageRecord,
+  UserCharacterRecord,
 } from './types';
 import { parseDelimitedList } from './utils';
 
@@ -65,11 +66,14 @@ const fetchJson = async <T>(endpoint: string, options: FetchOptions = {}) => {
 
   if (!response.ok) {
     const message = isJson ? await response.json() : await response.text();
-    throw new Error(
+    const error = new Error(
       typeof message === 'string'
         ? message
         : message?.message ?? response.statusText
-    );
+    ) as Error & { status?: number; payload?: unknown };
+    error.status = response.status;
+    error.payload = message;
+    throw error;
   }
 
   return (isJson ? response.json() : response.text()) as Promise<T>;
@@ -82,22 +86,50 @@ const mapCharacter = (character: CharacterApiModel): CharacterCard => {
     character.title ||
     'Always ready for a great conversation.';
 
+  const isUserSource = character.source === 'user';
+  const rawAvatar = typeof character.avatar === 'string' ? character.avatar.trim() : '';
+  const avatar = rawAvatar !== ''
+    ? rawAvatar
+    : isUserSource
+      ? ''
+      : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop';
+
   return {
     id: character.id,
     name: character.name,
     slug: character.slug,
-    avatar:
-      character.avatar ||
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop',
+    avatar,
     title: character.title || 'AI Companion',
     description,
     tags: tags.length ? tags : ['AI Companion'],
     videoUrl: character.video_url || undefined,
+    source: character.source ?? 'global',
+    greeting: character.greeting ?? null,
   };
 };
 
-export const getCharacters = async (): Promise<CharacterCard[]> => {
-  const payload = await fetchJson<{ data: CharacterApiModel[] }>('/characters');
+export interface GetCharactersOptions {
+  includeUser?: boolean;
+  userId?: string | null;
+}
+
+export const getCharacters = async (
+  options: GetCharactersOptions = {}
+): Promise<CharacterCard[]> => {
+  const params = new URLSearchParams();
+
+  if (options.includeUser) {
+    params.set('include_user', 'true');
+  }
+
+  if (options.userId) {
+    params.set('user_id', options.userId);
+  }
+
+  const query = params.toString();
+  const endpoint = query ? `/characters?${query}` : '/characters';
+
+  const payload = await fetchJson<{ data: CharacterApiModel[] }>(endpoint);
   return (payload.data ?? []).map(mapCharacter);
 };
 
@@ -146,16 +178,28 @@ export const getCharacterChat = async (
 export const sendChatMessage = async (
   slug: string,
   message: string
-): Promise<{ userMessage: ChatMessage; aiMessage: ChatMessage }> => {
+): Promise<{
+  userMessage: ChatMessage;
+  aiMessage: ChatMessage;
+  coinBalance?: number;
+}> => {
   const payload = await fetchJson<{
     userMessage: ChatMessage;
     aiMessage: ChatMessage;
+    coin_balance?: number;
   }>(`/chats/${slug}`, {
     method: 'POST',
     body: JSON.stringify({ message }),
   });
 
-  return payload;
+  return {
+    userMessage: payload.userMessage,
+    aiMessage: payload.aiMessage,
+    coinBalance:
+      typeof payload.coin_balance === 'number'
+        ? payload.coin_balance
+        : undefined,
+  };
 };
 
 export const apiConfig = {
@@ -182,6 +226,11 @@ export const listGeneratedImages = async (
   return payload.data ?? [];
 };
 
+export const getCoinBalance = async (): Promise<number> => {
+  const response = await fetchJson<{ balance: number }>('/coins');
+  return typeof response.balance === 'number' ? response.balance : 0;
+};
+
 export interface CreateGeneratedImagePayload {
   remote_url: string;
   prompt: string;
@@ -194,8 +243,11 @@ export interface CreateGeneratedImagePayload {
 
 export const createGeneratedImage = async (
   payload: CreateGeneratedImagePayload
-): Promise<GeneratedImageRecord> => {
-  const response = await fetchJson<{ data: GeneratedImageRecord }>(
+): Promise<{ record: GeneratedImageRecord; coinBalance?: number }> => {
+  const response = await fetchJson<{
+    data: GeneratedImageRecord;
+    coin_balance?: number;
+  }>(
     '/generated-images',
     {
       method: 'POST',
@@ -203,7 +255,13 @@ export const createGeneratedImage = async (
     }
   );
 
-  return response.data;
+  return {
+    record: response.data,
+    coinBalance:
+      typeof response.coin_balance === 'number'
+        ? response.coin_balance
+        : undefined,
+  };
 };
 
 export const deleteGeneratedImage = async (id: number): Promise<void> => {
@@ -216,4 +274,56 @@ export const clearGeneratedImages = async (): Promise<void> => {
   await fetchJson('/generated-images', {
     method: 'DELETE',
   });
+};
+
+export interface CreateUserCharacterPayload {
+  name: string;
+  title: string;
+  avatar?: string | null;
+  personality: string;
+  backstory?: string;
+  expertise?: string;
+  traits: string[];
+  greeting?: string;
+  tone?: string;
+  voice?: string;
+  memory_mode: 'user' | 'global' | 'none';
+  visibility: 'private' | 'public';
+}
+
+export const getUserCharacters = async (): Promise<UserCharacterRecord[]> => {
+  const payload = await fetchJson<{ data: UserCharacterRecord[] }>(
+    '/user-characters'
+  );
+
+  return payload.data ?? [];
+};
+
+export const createUserCharacter = async (
+  payload: CreateUserCharacterPayload
+): Promise<UserCharacterRecord> => {
+  const response = await fetchJson<{ data: UserCharacterRecord }>(
+    '/user-characters',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return response.data;
+};
+
+export const updateUserCharacter = async (
+  id: string,
+  payload: Partial<CreateUserCharacterPayload>
+): Promise<UserCharacterRecord> => {
+  const response = await fetchJson<{ data: UserCharacterRecord }>(
+    `/user-characters/${id}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return response.data;
 };
