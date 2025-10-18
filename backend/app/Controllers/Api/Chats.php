@@ -312,66 +312,142 @@ class Chats extends BaseController
     }
 
     /**
-     * Generates an AI response using OpenAI's chat completion API.
+     * Generates an AI response using OpenRouter's OpenAI-compatible chat API.
+     *
+     * The previous OpenAI integration has been kept in comments below so we can easily restore it
+     * if we need to switch back.
      *
      * @param array<string,mixed>             $character
      * @param list<array<string,mixed>>       $history
      */
     private function generateReplyFromOpenAI(array $character, array $history, string $latestUserMessage): ?string
     {
-      $apiKey = env('openai.apiKey') ?? getenv('OPENAI_API_KEY');
-      if (! $apiKey) {
-          log_message('error', 'OPENAI_API_KEY is not configured.');
-          return null;
-      }
+        $openRouterKey = env('openrouter.apiKey') ?? getenv('OPENROUTER_API_KEY');
 
-      $model = env('openai.model', 'gpt-4o-mini');
-      $temperature = (float) env('openai.temperature', 0.8);
-      $endpoint = env('openai.endpoint', 'https://api.openai.com/v1/chat/completions');
+        if (! $openRouterKey) {
+            log_message('error', 'OPENROUTER_API_KEY is not configured.');
+            return null;
+        }
 
-      $messages = $this->formatHistoryForChat($character, $history, $latestUserMessage);
+        $endpoint   = env('openrouter.endpoint', 'https://openrouter.ai/api/v1/chat/completions');
+        $model      = env('openrouter.model', 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free');
+        $temperature = (float) env('openrouter.temperature', (float) env('openai.temperature', 0.8));
+        $httpReferer = env('openrouter.httpReferer');
+        $titleHeader = env('openrouter.title');
 
-      $payload = [
-          'model'       => $model,
-          'messages'    => $messages,
-          'temperature' => $temperature,
-      ];
+        $messages = $this->formatHistoryForChat($character, $history, $latestUserMessage);
 
-      $ch = curl_init($endpoint);
-      curl_setopt_array($ch, [
-          CURLOPT_RETURNTRANSFER => true,
-          CURLOPT_POST           => true,
-          CURLOPT_HTTPHEADER     => [
-              'Content-Type: application/json',
-              'Authorization: Bearer ' . $apiKey,
-          ],
-          CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
-          CURLOPT_TIMEOUT        => 30,
-      ]);
+        $payload = [
+            'model'       => $model,
+            'messages'    => $messages,
+            'temperature' => $temperature,
+        ];
 
-      $response = curl_exec($ch);
-      $error    = curl_error($ch);
-      $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-      curl_close($ch);
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $openRouterKey,
+        ];
 
-      if ($error) {
-          log_message('error', 'OpenAI chat request failed: ' . $error);
-          return null;
-      }
+        if ($httpReferer) {
+            $headers[] = 'HTTP-Referer: ' . $httpReferer;
+        }
 
-      $decoded = json_decode($response ?? '', true);
-      if (! is_array($decoded)) {
-          log_message('error', 'OpenAI chat returned non-JSON response (status ' . $status . ').');
-          return null;
-      }
+        if ($titleHeader) {
+            $headers[] = 'X-Title: ' . $titleHeader;
+        }
 
-      $choices = $decoded['choices'] ?? [];
-      if (empty($choices) || empty($choices[0]['message']['content'])) {
-          log_message('error', 'OpenAI chat response missing message content: ' . json_encode($decoded));
-          return null;
-      }
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_HTTPHEADER     => $headers,
+            CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            CURLOPT_TIMEOUT        => 45,
+        ]);
 
-      return trim((string) $choices[0]['message']['content']);
+        $response = curl_exec($ch);
+        $error    = curl_error($ch);
+        $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($error) {
+            log_message('error', 'OpenRouter chat request failed: ' . $error);
+            return null;
+        }
+
+        if ($status < 200 || $status >= 300) {
+            log_message(
+                'error',
+                sprintf('OpenRouter chat request returned status %s. Response: %s', (string) $status, (string) $response)
+            );
+            return null;
+        }
+
+        $decoded = json_decode((string) $response, true);
+
+        if (! is_array($decoded) || empty($decoded['choices'][0]['message']['content'])) {
+            log_message('error', 'OpenRouter response missing choices or message content.');
+            return null;
+        }
+
+        return (string) $decoded['choices'][0]['message']['content'];
+
+        /*
+        // --- Previous OpenAI integration kept for quick rollback ---
+        $apiKey = env('openai.apiKey') ?? getenv('OPENAI_API_KEY');
+        if (! $apiKey) {
+            log_message('error', 'OPENAI_API_KEY is not configured.');
+            return null;
+        }
+
+        $model = env('openai.model', 'gpt-4o-mini');
+        $temperature = (float) env('openai.temperature', 0.8);
+        $endpoint = env('openai.endpoint', 'https://api.openai.com/v1/chat/completions');
+
+        $messages = $this->formatHistoryForChat($character, $history, $latestUserMessage);
+
+        $payload = [
+            'model'       => $model,
+            'messages'    => $messages,
+            'temperature' => $temperature,
+        ];
+
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apiKey,
+            ],
+            CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            CURLOPT_TIMEOUT        => 30,
+        ]);
+
+        $response = curl_exec($ch);
+        $error    = curl_error($ch);
+        $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($error) {
+            log_message('error', 'OpenAI chat request failed: ' . $error);
+            return null;
+        }
+
+        $decoded = json_decode($response ?? '', true);
+        if (! is_array($decoded)) {
+            log_message('error', 'OpenAI chat returned non-JSON response (status ' . $status . ').');
+            return null;
+        }
+
+        $choices = $decoded['choices'] ?? [];
+        if (empty($choices) || empty($choices[0]['message']['content'])) {
+            log_message('error', 'OpenAI chat response missing message content: ' . json_encode($decoded));
+            return null;
+        }
+
+        return trim((string) $choices[0]['message']['content']);
+        */
     }
 
     /**
