@@ -174,48 +174,49 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
         }
 
         input {
-          transition: all 0.3s ease;
+          transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         input:focus {
-          transform: scale(1.01);
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         button {
-          transition: all 0.3s ease;
+          transition: box-shadow 0.3s ease, background-color 0.3s ease;
         }
 
         button:hover:not(:disabled) {
-          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
         }
 
         button:active:not(:disabled) {
-          transform: translateY(0);
+          box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
         }
       `}</style>
 
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm modal-backdrop">
-        <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl modal-content">
-          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-            <h2 className="text-xl font-semibold text-gray-900">
+        <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl modal-content max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 flex items-center justify-between border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 bg-white">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 pr-2">
               {mode === 'login' ? 'Sign in with your mobile number' : 'Create your SoulFun account'}
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 transition duration-200 hover:text-gray-600 hover:rotate-90"
+              className="flex-shrink-0 text-gray-400 transition duration-200 hover:text-gray-600 hover:rotate-90"
             >
               ✕
             </button>
           </div>
 
           {error && (
-            <div className="mx-6 mt-4 animate-shake rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
+            <div className="mx-4 sm:mx-6 mt-4 animate-shake rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
               {error}
             </div>
           )}
 
           {mode === 'login' ? (
-            <form className="space-y-4 px-6 py-6" onSubmit={handleLoginSubmit}>
+            <form className="space-y-4 px-4 sm:px-6 py-4 sm:py-6" onSubmit={handleLoginSubmit}>
               {loginStep === 'credentials' ? (
                 <>
                   <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0s' }}>
@@ -228,7 +229,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                       value={mobile}
                       onChange={(event) => setMobile(event.target.value)}
                       required
-                      className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                       placeholder="Enter your mobile"
                       autoComplete="tel"
                     />
@@ -245,7 +246,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                       onChange={(event) => setPassword(event.target.value)}
                       required
                       minLength={6}
-                      className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                       placeholder="Enter password"
                       autoComplete="current-password"
                     />
@@ -276,7 +277,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                     required
                     inputMode="numeric"
                     maxLength={6}
-                    className="w-full animate-slide-down rounded-lg border border-gray-200 px-4 py-2 text-center text-2xl font-semibold tracking-widest text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="w-full animate-slide-down rounded-lg border border-gray-200 px-4 py-2 text-center text-2xl font-semibold tracking-widest text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                     placeholder="000000"
                     style={{ animationDelay: '0.2s' }}
                   />
@@ -307,7 +308,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
               )}
             </form>
           ) : (
-            <form className="space-y-4 px-6 py-6" onSubmit={handleRegisterSubmit}>
+            <form className="space-y-4 px-4 sm:px-6 py-4 sm:py-6" onSubmit={handleRegisterSubmit}>
               <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0s' }}>
                 <label className="text-sm font-medium text-gray-700" htmlFor="register-email">
                   Email Address
@@ -318,7 +319,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                   placeholder="you@example.com"
                   autoComplete="email"
                 />
@@ -335,7 +336,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                   onChange={(event) => setPassword(event.target.value)}
                   required
                   minLength={6}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                   placeholder="Create a password"
                   autoComplete="new-password"
                 />
@@ -384,7 +385,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
             </form>
           )}
 
-          <div className="border-t border-gray-100 px-6 py-4 text-sm text-gray-500">
+          <div className="border-t border-gray-100 px-4 sm:px-6 py-3 sm:py-4 text-sm text-gray-500 bg-gray-50">
             {mode === 'login' ? (
               <p>
                 Want to create an account instead?{' '}

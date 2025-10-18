@@ -100,6 +100,24 @@ const DiscoverContent = () => {
     router.push(`/chats?character=${encodeURIComponent(slug)}`);
   };
 
+  // Prevent rendering logged-out content while auth is loading
+  if (authLoading) {
+    return (
+      <AppLayout activeTab="discover">
+        <div className="flex-1 overflow-auto px-4 py-8 space-y-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="h-32 rounded-2xl bg-gradient-to-r from-gray-200 to-gray-300 animate-pulse" />
+          </div>
+          <div className="max-w-7xl mx-auto">
+            <div className="h-12 w-48 bg-gray-200 animate-pulse rounded-lg mb-4" />
+            <div className="h-6 w-full bg-gray-200 animate-pulse rounded-lg" />
+          </div>
+        </div>
+        <FloatingChatButton />
+      </AppLayout>
+    );
+  }
+
   return (
     <>
       <style>{`
@@ -223,12 +241,14 @@ const DiscoverContent = () => {
       `}</style>
 
       <AppLayout activeTab="discover">
-        <div className="flex-1 overflow-auto px-4 py-8 space-y-8 page-container">
+        <div className="flex-1 overflow-auto px-4 py-6 sm:py-8 space-y-6 sm:space-y-8 page-container">
+          {/* Banners - Only show relevant content */}
           <div className="animate-fade-in-down">
-            {user ? <FreeChatBanner /> : <PromoCarousel />}
+            {user ? <FreeChatBanner /> : <PromoCarousel isLoggedIn={false} />}
           </div>
 
-          {user && !authLoading && (
+          {/* Recent Chats - Only for logged in users */}
+          {user && (
             <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <RecentChats
                 chats={recentChats}
@@ -241,21 +261,24 @@ const DiscoverContent = () => {
             </div>
           )}
 
+          {/* Section Header */}
           <div className="max-w-7xl mx-auto section-header" style={{ animationDelay: '0.2s' }}>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent hover:from-gray-800 hover:to-gray-900 transition-all duration-300">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent hover:from-gray-800 hover:to-gray-900 transition-all duration-300">
               Discover
             </h1>
-            <p className="text-gray-600 mt-2 text-lg hover:text-gray-700 transition-all duration-300">
+            <p className="text-gray-600 mt-2 text-sm sm:text-lg hover:text-gray-700 transition-all duration-300">
               Meet curated AI companions tailored for every mood. Browse profiles to find your perfect match.
             </p>
           </div>
 
+          {/* Error Banner */}
           {charactersError && (
-            <div className="max-w-7xl mx-auto rounded-lg bg-gradient-to-r from-red-50 to-red-100 px-4 py-3 text-red-700 border border-red-200 error-banner shadow-md">
+            <div className="max-w-7xl mx-auto rounded-xl bg-gradient-to-r from-red-50 to-red-100 px-4 sm:px-6 py-3 sm:py-4 text-red-700 border border-red-200 error-banner shadow-md text-sm sm:text-base">
               {charactersError}
             </div>
           )}
 
+          {/* Character Grid */}
           <div className="section-content" style={{ animationDelay: '0.3s' }}>
             <CharacterGrid
               loading={charactersLoading}

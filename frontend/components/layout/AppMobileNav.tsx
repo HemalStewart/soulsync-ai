@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  Home,
+  Grid2X2,
   MessageCircle,
   Sparkles,
   Video,
@@ -16,49 +16,123 @@ interface AppMobileNavProps {
 }
 
 const AppMobileNav = ({ activeTab }: AppMobileNavProps) => {
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
+
   const items = useMemo(
     () => [
-      { id: 'discover' as const, label: 'Discover', href: '/', icon: Home },
+      { id: 'discover' as const, label: 'Discover', href: '/', icon: Grid2X2 },
       { id: 'chats' as const, label: 'Chats', href: '/chats', icon: MessageCircle },
       { id: 'create' as const, label: 'Create', href: '/create', icon: Sparkles },
-      { id: 'video' as const, label: 'Video', href: '/video', icon: Video },
+      { id: 'video' as const, label: 'Video', href: '/video', icon: Video, badge: 'Hot' },
       { id: 'generate' as const, label: 'Generate', href: '/generate', icon: ImagePlus },
     ],
     []
   );
 
-  return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-lg shadow-[0_-4px_12px_rgba(15,23,42,0.08)] lg:hidden"
-      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}
-    >
-      <div className="mx-auto flex max-w-4xl items-center justify-between px-4 pt-2">
-        {items.map(({ id, label, href, icon: Icon }) => {
-          const isActive = activeTab === id;
+  const activeTileClasses =
+    'w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 shadow-lg shadow-blue-500/30';
+  const inactiveTileClasses =
+    'w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-gray-100/80 hover:shadow-sm';
 
-          return (
-            <Link
-              key={id}
-              href={href}
-              className={`flex flex-1 flex-col items-center gap-1 text-xs font-medium transition ${
-                isActive ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <span
-                className={`flex h-10 w-10 items-center justify-center rounded-full border transition ${
-                  isActive
-                    ? 'border-blue-600 bg-blue-50 shadow-sm'
-                    : 'border-slate-200 bg-white'
+  return (
+    <>
+      <style>{`
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes pulse-soft {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.08); }
+        }
+
+        @keyframes bounce-icon {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+
+        .animate-slide-in-up {
+          animation: slideInUp 0.5s ease-out;
+        }
+
+        .animate-pulse-soft {
+          animation: pulse-soft 2s ease-in-out infinite;
+        }
+
+        .animate-bounce-icon {
+          animation: bounce-icon 0.6s ease-in-out;
+        }
+
+        nav a {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        nav a:hover {
+          transform: translateY(-2px);
+        }
+      `}</style>
+
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200/60 bg-white/80 backdrop-blur-xl shadow-[0_-4px_12px_rgba(15,23,42,0.08)] lg:hidden"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}
+      >
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 pt-2">
+          {items.map(({ id, label, href, icon: Icon, badge }, index) => {
+            const isActive = activeTab === id;
+
+            return (
+              <Link
+                key={id}
+                href={href}
+                className={`flex flex-1 flex-col items-center gap-1.5 text-xs font-semibold transition-all duration-300 animate-slide-in-up ${
+                  isActive ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
                 }`}
+                onMouseEnter={() => setHoveredIcon(id)}
+                onMouseLeave={() => setHoveredIcon(null)}
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <Icon className="h-5 w-5" />
-              </span>
-              {label}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+                <div className="relative w-11">
+                  {badge && (
+                    <div
+                      className={`absolute -top-2 -right-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold shadow-lg transition-all duration-300 z-10 ${
+                        hoveredIcon === id ? 'scale-110 animate-pulse-soft' : 'scale-100'
+                      }`}
+                    >
+                      {badge}
+                    </div>
+                  )}
+                  <div
+                    className={`${isActive ? activeTileClasses : inactiveTileClasses} ${
+                      hoveredIcon === id && !isActive ? 'animate-bounce-icon' : ''
+                    } ${isActive ? 'animate-pulse-soft' : ''}`}
+                  >
+                    <Icon
+                      className={`w-5 h-5 ${
+                        isActive ? 'text-white' : 'text-gray-700'
+                      }`}
+                    />
+                  </div>
+                </div>
+                <span
+                  className={`transition-all duration-300 ${
+                    isActive ? 'text-gray-900' : 'text-gray-500'
+                  }`}
+                >
+                  {label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </>
   );
 };
 

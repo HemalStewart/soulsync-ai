@@ -94,6 +94,19 @@ const FloatingChatButton = () => {
         .icon-pulse {
           transition: all 0.3s ease;
         }
+
+        @media (max-width: 640px) {
+          .floating-button {
+            width: 3rem;
+            height: 3rem;
+            bottom: 6rem;
+            right: 1rem;
+          }
+
+          .floating-button:hover {
+            transform: scale(1.1) rotate(-15deg);
+          }
+        }
       `}</style>
 
       <button

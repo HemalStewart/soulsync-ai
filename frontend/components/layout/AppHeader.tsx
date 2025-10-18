@@ -1,14 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Menu, User, X, LogOut, Coins as CoinsIcon } from 'lucide-react';
+import { User, LogOut, Coins as CoinsIcon, ChevronDown } from 'lucide-react';
 import AuthModal from '@/components/auth/AuthModal';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useCoins } from '@/components/coins/CoinContext';
+// import HeaderPromoBanner from './HeaderPromoBanner';
 
 const initialCountdown = { hours: 59, minutes: 46, seconds: 89 };
-
-const formatUnit = (value: number) => String(value).padStart(2, '0');
 
 const AppHeader = () => {
   const [timeLeft, setTimeLeft] = useState(initialCountdown);
@@ -24,7 +23,12 @@ const AppHeader = () => {
   const { balance, loading: coinLoading } = useCoins();
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [hoverGetPro, setHoverGetPro] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const formattedBalance = balance != null ? balance.toLocaleString() : '--';
 
@@ -68,6 +72,10 @@ const AppHeader = () => {
     setShowAccountMenu(false);
   };
 
+  const closeBanner = () => {
+    setBannerVisible(false);
+  };
+
   const initials = user?.email
     ? user.email
         .split('@')[0]
@@ -80,134 +88,118 @@ const AppHeader = () => {
 
   return (
     <>
-      <header className={`sticky top-0 z-50 bg-white transition-all duration-300 ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg">
-              <div className="h-6 w-6 rounded-full bg-white" />
+      {/* {bannerVisible && (
+        <HeaderPromoBanner timeLeft={timeLeft} onClose={closeBanner} />
+      )} */}
+      <header className={`sticky top-0 z-50 backdrop-blur-xl bg-white/80 transition-all duration-300 border-b shadow-sm ${scrolled ? 'border-gray-200/60 shadow-sm' : 'border-gray-100/40 shadow-sm'}`}>
+        {/* Main Header Row */}
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:gap-4 px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+          {/* Logo Section */}
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 shadow-lg">
+              <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-md bg-white/20 backdrop-blur-sm" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-transparent">SoulFun</span>
+            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">SoulFun</span>
           </div>
 
-          <div className="hidden items-center space-x-4 rounded-full bg-gradient-to-r from-green-700 to-green-600 px-6 py-2 text-white md:flex shadow-lg">
-            <span className="font-semibold">FIRST SUBSCRIPTION</span>
-            <div className="rounded-full bg-gradient-to-r from-orange-400 to-orange-500 px-4 py-1 shadow-md">
-              <span className="font-bold">up to 75% off</span>
-            </div>
-            <div className="flex space-x-2 font-mono text-sm">
-              <span className="rounded bg-black/20 px-2 py-1 backdrop-blur-sm">
-                {formatUnit(timeLeft.hours)}
-              </span>
-              <span>:</span>
-              <span className="rounded bg-black/20 px-2 py-1 backdrop-blur-sm">
-                {formatUnit(timeLeft.minutes)}
-              </span>
-              <span>:</span>
-              <span className="rounded bg-black/20 px-2 py-1 backdrop-blur-sm">
-                {formatUnit(timeLeft.seconds)}
-              </span>
-            </div>
-            <button className="rounded-full p-1 hover:bg-white/20 transition-all duration-200 hover:scale-110">
-              <X size={20} />
-            </button>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {user && (
-              <div className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-300 sm:flex">
-                <CoinsIcon className="h-4 w-4 text-white/90" />
+          {/* Right Section */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Coins Display - Desktop */}
+            {user && mounted && (
+              <div className="hidden md:flex items-center gap-2.5 px-3 md:px-4 py-2 md:py-2.5 rounded-xl bg-gradient-to-r from-amber-400/10 via-yellow-400/10 to-orange-400/10 border border-amber-300/40 text-sm font-semibold shadow-sm hover:border-amber-300/60 transition-all duration-200">
+                <div className="flex items-center justify-center h-5 w-5 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 shadow-md">
+                  <CoinsIcon className="h-3 w-3 text-white" />
+                </div>
                 {coinLoading ? (
-                  <span className="h-3 w-10 rounded-full bg-white/40 animate-pulse" />
+                  <span className="h-3.5 w-10 rounded-full bg-gray-300 animate-pulse" />
                 ) : (
-                  <span className="tabular-nums">{formattedBalance}</span>
+                  <span className="tabular-nums bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">{formattedBalance}</span>
                 )}
               </div>
             )}
-            <button 
-              onMouseEnter={() => setHoverGetPro(true)}
-              onMouseLeave={() => setHoverGetPro(false)}
-              className={`relative rounded-full px-6 py-2 font-medium text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-500 ${hoverGetPro ? 'shadow-lg shadow-blue-400 scale-105' : 'shadow-md hover:shadow-lg'}`}
-            >
-              <span className="relative z-10">Get Pro</span>
-              <div className={`absolute inset-0 bg-gradient-to-r from-blue-700 to-blue-600 opacity-0 transition-all duration-300 ${hoverGetPro ? 'opacity-100' : ''}`} />
-            </button>
-            {user && (
-              <div className="flex items-center sm:hidden">
-                <div className="flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-                  <CoinsIcon className="h-3.5 w-3.5 text-white/90" />
-                  {coinLoading ? '…' : formattedBalance}
+
+            {/* Coins Display - Mobile */}
+            {user && mounted && (
+              <div className="flex md:hidden items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-400/10 via-yellow-400/10 to-orange-400/10 border border-amber-300/40 text-xs font-semibold shadow-sm">
+                <div className="flex items-center justify-center h-4 w-4 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500">
+                  <CoinsIcon className="h-2.5 w-2.5 text-white" />
                 </div>
+                <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent tabular-nums">{coinLoading ? '…' : formattedBalance}</span>
               </div>
             )}
+
+            {/* Get Pro Button - Fixed width */}
+            <button className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
+              <span className="relative z-10">Get Pro</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </button>
+
             {loading ? (
-              <div className="flex items-center space-x-3">
-                <div className="h-9 w-24 rounded-full bg-gray-200 animate-pulse" />
-                <div className="h-9 w-24 rounded-full bg-blue-200/60 animate-pulse hidden sm:block" />
-                <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse sm:hidden" />
-              </div>
+              <>
+                <div className="hidden sm:block h-9 w-20 rounded-xl bg-gray-200 animate-pulse flex-shrink-0" />
+                <div className="hidden sm:block h-9 w-20 rounded-xl bg-gray-200 animate-pulse flex-shrink-0" />
+                <div className="sm:hidden p-2 text-gray-300">
+                  <div className="h-5 w-5 rounded bg-gray-200 animate-pulse" />
+                </div>
+              </>
             ) : !user ? (
               <>
                 <button
-                  className="hidden rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300 hover:text-gray-900 hover:bg-gray-50 sm:inline-block"
+                  className="hidden sm:inline-block px-3 md:px-4 py-2 rounded-xl font-semibold text-gray-700 bg-gray-100/80 hover:bg-gray-200 transition-all duration-200 text-sm border border-gray-200/50 whitespace-nowrap"
                   onClick={() => openModal('login')}
                 >
                   Log in
                 </button>
                 <button
-                  className="hidden rounded-full border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 transition hover:bg-blue-50 sm:inline-block"
+                  className="hidden sm:inline-block px-3 md:px-4 py-2 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 text-sm whitespace-nowrap"
                   onClick={() => openModal('register')}
-                  style={{ animationDelay: '0.1s' }}
                 >
-                  Register
+                  Sign up
                 </button>
                 <button
-                  className="rounded-full p-2 text-gray-700 hover:bg-blue-50 sm:hidden transition-all duration-200 hover:scale-110"
+                  className="sm:hidden p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
                   onClick={() => openModal('login')}
                 >
-                  <User size={22} />
+                  <User size={20} />
                 </button>
               </>
             ) : (
               <div className="relative">
                 <button
-                  className="flex items-center space-x-2 rounded-full border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:text-gray-900 hover:scale-105 duration-200"
+                  className="flex items-center gap-2 px-2.5 sm:px-3 py-2 rounded-xl border border-gray-200/60 hover:border-gray-300 bg-white/50 backdrop-blur-sm hover:bg-gray-50 font-medium text-sm text-gray-700 transition-all duration-200 hover:scale-105"
                   onClick={() => setShowAccountMenu((prev) => !prev)}
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white shadow-md">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 text-xs font-bold text-white shadow-md">
                     {initials ?? 'U'}
                   </span>
-                  <span className="hidden sm:inline-block">
-                    {user.email || user.mobile || 'Account'}
-                  </span>
+                  <span className="hidden lg:inline-block max-w-[120px] truncate text-sm">{user.email || user.mobile || 'Account'}</span>
+                  <ChevronDown size={16} className={`hidden lg:block transition-transform duration-300 ${showAccountMenu ? 'rotate-180' : ''}`} />
                 </button>
 
                 {showAccountMenu && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-gray-100 bg-white shadow-lg animate-slide-down">
-                    <div className="px-4 py-3">
-                      <p className="text-sm font-semibold text-gray-900">
+                  <div className="absolute right-0 mt-3 w-56 rounded-xl border border-gray-200/60 bg-white/95 backdrop-blur-md shadow-xl z-50">
+                    <div className="px-4 py-3 border-b border-gray-100/50">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
                         {user.email || user.mobile}
                       </p>
-                      {user.email && (
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      )}
                     </div>
                     <button
                       onClick={async () => {
                         setShowAccountMenu(false);
                         await logout();
                       }}
-                      className="flex w-full rounded-xl items-center space-x-2 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-50"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50/80 transition-all duration-200 font-medium rounded-b-xl"
                     >
-                      <LogOut size={18} />
-                      <span>Log out</span>
+                      <LogOut size={16} className="text-red-600" />
+                      <span>Sign out</span>
                     </button>
                   </div>
                 )}
               </div>
             )}
-            
           </div>
         </div>
+
       </header>
 
       <AuthModal

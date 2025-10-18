@@ -34,12 +34,8 @@ const ChatsContent = () => {
   const { balance, setBalance, refresh: refreshCoinBalance } = useCoins();
 
   const [chatSummaries, setChatSummaries] = useState<ChatSummary[]>([]);
-  const [characters, setCharacters] = useState<Record<string, CharacterCard>>(
-    {}
-  );
-  const [chatDetail, setChatDetail] = useState<CharacterChatDetail | null>(
-    null
-  );
+  const [characters, setCharacters] = useState<Record<string, CharacterCard>>({});
+  const [chatDetail, setChatDetail] = useState<CharacterChatDetail | null>(null);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [loadingChats, setLoadingChats] = useState(true);
@@ -50,6 +46,7 @@ const ChatsContent = () => {
   const [isMobileView, setIsMobileView] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showCoinModal, setShowCoinModal] = useState(false);
+  const [showInfoPanel, setShowInfoPanel] = useState(true);
 
   const defaultChatSlug = useMemo(
     () => chatSummaries[0]?.character_slug ?? null,
@@ -283,8 +280,8 @@ const ChatsContent = () => {
       <AppLayout activeTab="chats">
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
-            <p className="text-sm font-medium text-gray-600 animate-pulse">Loading your chats…</p>
+            <div className="mx-auto mb-4 h-10 sm:h-12 w-10 sm:w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
+            <p className="text-xs sm:text-sm font-medium text-gray-600 animate-pulse">Loading your chats…</p>
           </div>
         </div>
       </AppLayout>
@@ -294,11 +291,11 @@ const ChatsContent = () => {
   if (!user) {
     return (
       <AppLayout activeTab="chats">
-        <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-12 py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+        <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+          <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-6 sm:px-12 py-8 sm:py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105 max-w-sm">
+            <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg flex-shrink-0">
               <svg
-                className="h-8 w-8 text-white"
+                className="h-7 sm:h-8 w-7 sm:w-8 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -311,13 +308,13 @@ const ChatsContent = () => {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to continue</h2>
-            <p className="text-sm text-gray-600">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Sign in to continue</h2>
+            <p className="text-xs sm:text-sm text-gray-600">
               Log in or create an account to access this feature.
             </p>
             <button
               onClick={() => openAuthModal('login')}
-              className="mt-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+              className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
             >
               Get Started
             </button>
@@ -330,21 +327,45 @@ const ChatsContent = () => {
   return (
     <>
       <AppLayout activeTab="chats">
-      <div className="flex h-full flex-1 flex-col overflow-hidden">
-        {/* Error notification with slide animation */}
-        {errorMessage && (
-          <div
-            className={`w-full border-b border-red-200 bg-gradient-to-r from-red-50 to-red-100 px-6 py-3 shadow-sm transition-all duration-300 ${
-              isErrorVisible
-                ? 'translate-y-0 opacity-100'
-                : '-translate-y-full opacity-0'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-200 animate-pulse">
+        {/* Main wrapper - NO height constraint here */}
+        <div className="flex flex-1 flex-col overflow-hidden bg-gray-50">
+          {/* Error notification */}
+          {errorMessage && (
+            <div
+              className={`w-full border-b border-red-200 bg-gradient-to-r from-red-50 to-red-100 px-3 sm:px-6 py-2 sm:py-3 shadow-sm transition-all duration-300 ${
+                isErrorVisible
+                  ? 'translate-y-0 opacity-100'
+                  : '-translate-y-full opacity-0'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                  <div className="flex h-7 sm:h-8 w-7 sm:w-8 items-center justify-center rounded-lg bg-red-200 animate-pulse flex-shrink-0">
+                    <svg
+                      className="h-4 sm:h-5 w-4 sm:w-5 text-red-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-red-800">{errorMessage}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsErrorVisible(false);
+                    setTimeout(() => setErrorMessage(null), 300);
+                  }}
+                  className="rounded-lg p-1 text-red-600 transition-all duration-200 hover:bg-red-200 hover:scale-110 flex-shrink-0"
+                >
                   <svg
-                    className="h-5 w-5 text-red-600"
+                    className="h-5 w-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -353,91 +374,107 @@ const ChatsContent = () => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
-                </div>
-                <span className="text-sm font-medium text-red-800">{errorMessage}</span>
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  setIsErrorVisible(false);
-                  setTimeout(() => setErrorMessage(null), 300);
-                }}
-                className="rounded-full p-1 text-red-600 transition-all duration-200 hover:bg-red-200 hover:scale-110"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
             </div>
-          </div>
-        )}
-        
-        <div className="flex flex-1 overflow-hidden">
-          {/* Chat list with slide animation */}
-          {(!isMobileView || !showMobileChat) && (
-            <ChatList
-              chats={chatSummaries}
-              selectedChat={selectedChat}
-              onSelect={handleSelectChat}
-              loading={loadingChats}
-              fullWidth={isMobileView}
-            />
           )}
-          
-          {(!isMobileView || showMobileChat) && (
-            <div className="flex flex-1 overflow-hidden">
-              {selectedChat ? (
-                <>
-                  {/* Main chat window with fade animation */}
-                  <ChatWindow
-                    characterName={resolvedName}
-                    characterAvatar={resolvedAvatar}
-                    messages={chatDetail?.messages ?? []}
-                    messageInput={messageInput}
-                    onMessageInputChange={setMessageInput}
-                    onSend={handleSendMessage}
-                    isLoading={loadingMessages}
-                    isSending={sending}
-                    headerLoading={headerLoading}
-                    coinCost={MESSAGE_COST}
-                    onBack={isMobileView ? () => setShowMobileChat(false) : undefined}
-                  />
-                  
-                  {/* Info panel with slide animation */}
-                  {!isMobileView && (
-                    <ChatInfoPanel
-                      characterName={resolvedName || selectedChat}
+
+          {/* Chat content - Let it take remaining space */}
+          <div className="flex flex-1 overflow-hidden min-h-0">
+            {/* Chat list */}
+            {(!isMobileView || !showMobileChat) && (
+              <ChatList
+                chats={chatSummaries}
+                selectedChat={selectedChat}
+                onSelect={handleSelectChat}
+                loading={loadingChats}
+                fullWidth={isMobileView}
+              />
+            )}
+
+            {/* Main chat area */}
+            {(!isMobileView || showMobileChat) && (
+              <div className="flex flex-1 overflow-hidden min-h-0">
+                {selectedChat ? (
+                  <>
+                    {/* Chat window */}
+                    <ChatWindow
+                      characterName={resolvedName}
                       characterAvatar={resolvedAvatar}
-                      characterTitle={
-                        panelCharacter?.title ?? characterProfile?.title ?? null
-                      }
-                      videoUrl={panelCharacter?.video_url ?? characterProfile?.videoUrl}
-                      tags={characterProfile?.tags}
-                      description={characterProfile?.description}
+                      messages={chatDetail?.messages ?? []}
+                      messageInput={messageInput}
+                      onMessageInputChange={setMessageInput}
+                      onSend={handleSendMessage}
+                      isLoading={loadingMessages}
+                      isSending={sending}
+                      headerLoading={headerLoading}
+                      coinCost={MESSAGE_COST}
+                      onBack={isMobileView ? () => setShowMobileChat(false) : undefined}
+                      onToggleInfoPanel={() => setShowInfoPanel(!showInfoPanel)}
+                      showInfoPanel={showInfoPanel}
                     />
-                  )}
-                </>
-              ) : (
-                <div className="flex-1 animate-in fade-in zoom-in duration-700">
-                  <ChatEmptyState />
-                </div>
-              )}
-            </div>
-          )}
+
+                    {/* Info panel */}
+                    {showInfoPanel && (
+                      <div className={`transition-all duration-300 overflow-hidden ${
+                        isMobileView 
+                          ? 'fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end' 
+                          : 'w-80 border-l'
+                      }`}
+                      onClick={isMobileView ? () => setShowInfoPanel(false) : undefined}
+                      >
+                        {isMobileView && (
+                          <div className="w-full bg-white rounded-t-2xl max-h-[80vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl z-10">
+                              <h3 className="font-semibold text-gray-900">{resolvedName || selectedChat}</h3>
+                              <button
+                                onClick={() => setShowInfoPanel(false)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-all"
+                              >
+                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                            <ChatInfoPanel
+                              characterName={resolvedName || selectedChat}
+                              characterAvatar={resolvedAvatar}
+                              characterTitle={
+                                panelCharacter?.title ?? characterProfile?.title ?? null
+                              }
+                              videoUrl={panelCharacter?.video_url ?? characterProfile?.videoUrl}
+                              tags={characterProfile?.tags}
+                              description={characterProfile?.description}
+                            />
+                          </div>
+                        )}
+                        {!isMobileView && (
+                          <ChatInfoPanel
+                            characterName={resolvedName || selectedChat}
+                            characterAvatar={resolvedAvatar}
+                            characterTitle={
+                              panelCharacter?.title ?? characterProfile?.title ?? null
+                            }
+                            videoUrl={panelCharacter?.video_url ?? characterProfile?.videoUrl}
+                            tags={characterProfile?.tags}
+                            description={characterProfile?.description}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex-1 animate-in fade-in zoom-in duration-700">
+                    <ChatEmptyState />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       </AppLayout>
       <CoinLimitModal
         open={showCoinModal}

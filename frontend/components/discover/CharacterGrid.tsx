@@ -14,7 +14,7 @@ interface CharacterGridProps {
 }
 
 const SkeletonCard = () => (
-  <div className="h-96 rounded-3xl bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
+  <div className="h-80 sm:h-96 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
 );
 
 const CharacterGrid = ({
@@ -114,7 +114,7 @@ const CharacterGrid = ({
             animation: slideIn 0.6s ease-out;
           }
         `}</style>
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mx-auto px-4 grid max-w-7xl grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
             <div key={index} className="grid-item" style={{ animationDelay: `${index * 0.1}s` }}>
               <SkeletonCard />
@@ -246,10 +246,18 @@ const CharacterGrid = ({
           background-color: rgba(255, 255, 255, 0.3);
           transform: translateY(-2px);
         }
+
+        .character-card {
+          transition: box-shadow 0.3s ease;
+        }
+
+        .character-card:hover {
+          box-shadow: 0 25px 50px rgba(59, 130, 246, 0.15);
+        }
       `}</style>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div className="relative h-96 cursor-pointer overflow-hidden rounded-3xl grid-item shadow-lg hover:shadow-3xl transition-shadow duration-300">
+      <div className="mx-auto px-4 grid max-w-7xl grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="relative h-80 sm:h-96 cursor-pointer overflow-hidden rounded-2xl sm:rounded-3xl grid-item shadow-lg hover:shadow-3xl transition-shadow duration-300">
           <video autoPlay loop muted playsInline className="h-full w-full object-cover">
             <source
               src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
@@ -257,12 +265,12 @@ const CharacterGrid = ({
             />
           </video>
           <div className="absolute inset-0 bg-gradient-to-br from-green-400/40 via-orange-400/40 via-pink-400/40 via-purple-400/40 to-blue-400/40" />
-          <div className="absolute inset-0 flex flex-col justify-end p-6">
+          <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6">
             <div className="mb-4 text-center animate-fade-in-up">
-              <p className="mb-3 text-sm text-white drop-shadow-lg">
+              <p className="mb-3 text-xs sm:text-sm text-white drop-shadow-lg">
                 Unlock your imagination with SoulFun&apos;s AI character creator and craft your perfect companion experience.
               </p>
-              <button className="promo-button rounded-full bg-white px-6 py-3 font-semibold text-gray-900 shadow-lg hover:bg-white/90">
+              <button className="promo-button rounded-full bg-white px-4 sm:px-6 py-2 sm:py-3 font-semibold text-xs sm:text-base text-gray-900 shadow-lg hover:bg-white/90">
                 Generate Your Own Character
               </button>
             </div>
@@ -278,7 +286,7 @@ const CharacterGrid = ({
           return (
             <div
               key={character.slug}
-              className="relative h-96 cursor-pointer overflow-hidden rounded-3xl grid-item shadow-lg hover:shadow-3xl transition-all duration-300 group"
+              className="character-card relative h-80 sm:h-96 cursor-pointer overflow-hidden rounded-2xl sm:rounded-3xl grid-item group"
               onMouseEnter={() => onCardHover(index)}
               onMouseLeave={handleMouseLeave}
               style={{ animationDelay: `${(index + 1) * 0.1}s` }}
@@ -296,7 +304,7 @@ const CharacterGrid = ({
                 <div
                   className={`absolute inset-0 flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 transition-all duration-500 ${imageTransitionClass}`}
                 >
-                  <User className="h-16 w-16 text-white drop-shadow-lg" />
+                  <User className="h-12 sm:h-16 w-12 sm:w-16 text-white drop-shadow-lg" />
                 </div>
               )}
 
@@ -329,29 +337,29 @@ const CharacterGrid = ({
               {hoveredCard === index && (
                 <button
                   onClick={() => onOpenChat(character.slug)}
-                  className="action-button absolute right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition animate-scale-in"
+                  className="action-button absolute right-3 sm:right-4 top-3 sm:top-4 z-10 flex h-10 sm:h-12 w-10 sm:w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition animate-scale-in"
                 >
-                  <MessageCircle size={24} className="text-white" />
+                  <MessageCircle size={20} className="sm:w-6 sm:h-6 text-white" />
                 </button>
               )}
 
-              <div className="absolute inset-x-0 bottom-0 p-6 card-content">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-2xl font-bold text-white drop-shadow-lg group-hover:translate-y-0 transition-all duration-300">
+              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-6 card-content">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h3 className="text-lg sm:text-2xl font-bold text-white drop-shadow-lg group-hover:translate-y-0 transition-all duration-300 truncate">
                     {character.name}
                   </h3>
-                  <div className="flex space-x-2">
-                    <button className="action-button flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/30">
-                      <Phone size={20} className="text-white" />
+                  <div className="flex space-x-1 sm:space-x-2 flex-shrink-0">
+                    <button className="action-button flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/30">
+                      <Phone size={16} className="sm:w-5 sm:h-5 text-white" />
                     </button>
-                    <button className="action-button flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/30">
-                      <Video size={20} className="text-white" />
+                    <button className="action-button flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/30">
+                      <Video size={16} className="sm:w-5 sm:h-5 text-white" />
                     </button>
                   </div>
                 </div>
 
                 {hoveredCard === index && (
-                  <p className="mb-3 text-sm text-white drop-shadow-lg animate-fade-in-up">
+                  <p className="mb-3 text-xs sm:text-sm text-white drop-shadow-lg animate-fade-in-up line-clamp-2">
                     {character.description}
                   </p>
                 )}
@@ -360,7 +368,7 @@ const CharacterGrid = ({
                   {character.tags.map((tag, tagIndex) => (
                     <span
                       key={tag}
-                      className="tag rounded-full bg-white/20 px-3 py-1 text-sm text-white backdrop-blur-sm"
+                      className="tag rounded-full bg-white/20 px-2 sm:px-3 py-1 text-xs sm:text-sm text-white backdrop-blur-sm"
                       style={{ animationDelay: `${tagIndex * 0.05}s` }}
                     >
                       {tag}

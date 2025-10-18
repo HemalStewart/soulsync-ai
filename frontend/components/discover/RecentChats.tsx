@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
 import { User } from 'lucide-react';
 import { ChatSummary } from '@/lib/types';
@@ -21,14 +22,27 @@ const RecentChats = ({
   error,
   onViewAll,
 }: RecentChatsProps) => {
-  const visibleChats = chats.slice(0, 7);
+  const [windowWidth, setWindowWidth] = React.useState(0);
+
+  React.useEffect(() => {
+    setWindowWidth(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const getVisibleCount = () => {
+    if (windowWidth < 640) return 2; // mobile
+    if (windowWidth < 1024) return 4; // tablet
+    return 7; // desktop
+  };
+
+  const visibleChats = chats.slice(0, getVisibleCount());
   const hasMore = chats.length > visibleChats.length;
 
   return (
     <>
       <style>{`
-        /* ... (all other keyframes and styles remain the same) ... */
-
         @keyframes slideInLeft {
           from {
             opacity: 0;
@@ -145,15 +159,13 @@ const RecentChats = ({
         .view-all-button {
           transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        
-        /* MODIFICATION 1: Removed box-shadow from the wrapper's hover state */
+
         .view-all-button:hover {
           transform: translateY(-8px) scale(1.05);
         }
 
-        /* MODIFICATION 2: Added this new rule to target the inner circle on hover */
         .view-all-button:hover .view-all-circle {
-           box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
 
         .error-banner {
@@ -183,18 +195,16 @@ const RecentChats = ({
           z-index: 20;
         }
       `}</style>
-      
-      {/* ... (rest of the component up to the "View all" button) ... */}
 
-      <div className="mx-auto mb-8 max-w-7xl">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900 animate-slide-in-left">
+      <div className="mx-auto mb-8 max-w-7xl px-4">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-slide-in-left">
             Recent Chats
           </h2>
           {hasMore && onViewAll && (
             <button
               onClick={onViewAll}
-              className="hidden items-center space-x-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 md:flex animate-slide-in-right shadow-sm hover:shadow-md"
+              className="hidden items-center space-x-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 md:inline-flex animate-slide-in-right shadow-sm hover:shadow-md"
             >
               <span>View all chats</span>
               <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-xs font-bold text-white shadow-md">
@@ -211,7 +221,7 @@ const RecentChats = ({
         )}
 
         {loading ? (
-          <div className="flex space-x-4 overflow-x-auto overflow-y-visible pb-4">
+          <div className="flex space-x-3 sm:space-x-4 overflow-x-auto overflow-y-visible pb-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={index}
@@ -224,7 +234,7 @@ const RecentChats = ({
             ))}
           </div>
         ) : visibleChats.length ? (
-          <div className="chat-items-container flex space-x-4 overflow-x-auto overflow-y-visible pb-4 pr-2">
+          <div className="chat-items-container flex space-x-3 sm:space-x-4 overflow-x-auto overflow-y-visible pb-4 pr-2">
             {visibleChats.map((chat, index) => {
               const avatar = chat.character_avatar?.trim() ?? '';
 
@@ -269,7 +279,6 @@ const RecentChats = ({
                   onClick={onViewAll}
                   className="flex flex-col items-center justify-center space-y-2 text-gray-500 w-full"
                 >
-                  {/* MODIFICATION 3: Added the new 'view-all-circle' class here */}
                   <div className="view-all-circle flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 text-lg font-semibold text-gray-600 transition-all duration-300 hover:border-blue-400 hover:bg-blue-50 shadow-sm flex-shrink-0">
                     +{chats.length - visibleChats.length}
                   </div>
@@ -279,7 +288,7 @@ const RecentChats = ({
             )}
           </div>
         ) : (
-          <div className="rounded-2xl border border-gray-100 bg-white px-6 py-10 text-center shadow-sm empty-state hover:shadow-md transition-shadow duration-300">
+          <div className="rounded-2xl border border-gray-100 bg-white px-4 sm:px-6 py-8 sm:py-10 text-center shadow-sm empty-state hover:shadow-md transition-shadow duration-300">
             <p className="text-sm text-gray-600">
               {isAuthenticated
                 ? 'You have no recent chats yet. Start a conversation from the Discover section.'
