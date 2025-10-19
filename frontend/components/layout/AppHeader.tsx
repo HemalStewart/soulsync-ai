@@ -7,10 +7,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { useCoins } from '@/components/coins/CoinContext';
 // import HeaderPromoBanner from './HeaderPromoBanner';
 
-const initialCountdown = { hours: 59, minutes: 46, seconds: 89 };
-
 const AppHeader = () => {
-  const [timeLeft, setTimeLeft] = useState(initialCountdown);
   const {
     user,
     logout,
@@ -23,7 +20,6 @@ const AppHeader = () => {
   const { balance, loading: coinLoading } = useCoins();
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [bannerVisible, setBannerVisible] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -31,32 +27,6 @@ const AppHeader = () => {
   }, []);
 
   const formattedBalance = balance != null ? balance.toLocaleString() : '--';
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        let { hours, minutes, seconds } = prev;
-
-        if (seconds > 0) {
-          seconds -= 1;
-        } else {
-          seconds = 59;
-          if (minutes > 0) {
-            minutes -= 1;
-          } else {
-            minutes = 59;
-            if (hours > 0) {
-              hours -= 1;
-            }
-          }
-        }
-
-        return { hours, minutes, seconds };
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,10 +40,6 @@ const AppHeader = () => {
   const openModal = (mode: 'login' | 'register') => {
     openAuthModal(mode);
     setShowAccountMenu(false);
-  };
-
-  const closeBanner = () => {
-    setBannerVisible(false);
   };
 
   const initials = user?.email

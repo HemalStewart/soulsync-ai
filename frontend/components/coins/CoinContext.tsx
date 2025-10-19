@@ -36,7 +36,7 @@ export const CoinProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       const nextBalance = await getCoinBalance();
       internalSetBalance(nextBalance);
-    } catch (error) {
+    } catch {
       internalSetBalance(null);
     } finally {
       setLoading(false);

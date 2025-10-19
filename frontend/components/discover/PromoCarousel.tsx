@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Slide {
   id: string;
@@ -78,14 +77,6 @@ const PromoCarousel = ({ isLoggedIn = false }: PromoCarouselProps) => {
   }, [slideCount, isLoggedIn]);
 
   const activeSlide = slides[index];
-
-  const goToPrev = () => {
-    setIndex((prev) => (prev - 1 + slideCount) % slideCount);
-  };
-
-  const goToNext = () => {
-    setIndex((prev) => (prev + 1) % slideCount);
-  };
 
   // ✅ Early return now comes after all hooks
   if (isLoggedIn) {
