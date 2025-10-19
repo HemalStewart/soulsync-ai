@@ -24,6 +24,7 @@ import {
   Trash2,
   Tv,
   Wand2,
+  RefreshCw,
 } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -41,11 +42,8 @@ import { GeneratedImageRecord } from '@/lib/types';
 
 const IMAGE_GENERATION_COST = COIN_COSTS.generateImage;
 
-// --- Shared Types and Data (Kept from original file) ---
-
 type StyleId = 'realistic' | 'anime' | 'fantasy' | 'cinematic';
 type AspectRatioId = '1:1' | '9:16' | '16:9' | '3:4' | '4:3';
-
 
 type StoredImage = Omit<GeneratedImageRecord, 'style' | 'aspect_ratio'> & {
   style: StyleId;
@@ -146,17 +144,15 @@ const normalizeAspectRatio = (value: string): AspectRatioId => {
   }
 };
 
-// --- GuestPrompt Component (Kept from original file) ---
-
 const GuestPrompt = () => {
   const { openAuthModal } = useAuth();
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-12 py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+    <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+      <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-6 sm:px-12 py-8 sm:py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105 max-w-sm">
+        <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg flex-shrink-0">
           <svg
-            className="h-8 w-8 text-white"
+            className="h-7 sm:h-8 w-7 sm:w-8 text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -169,13 +165,13 @@ const GuestPrompt = () => {
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to continue</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Sign in to continue</h2>
+        <p className="text-xs sm:text-sm text-gray-600">
           Log in or create an account to access this feature.
         </p>
         <button
           onClick={() => openAuthModal('login')}
-          className="mt-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+          className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
         >
           Get Started
         </button>
@@ -183,8 +179,6 @@ const GuestPrompt = () => {
     </div>
   );
 };
-
-// --- GenerateContent Component (Refactored Layout) ---
 
 const GenerateContent = () => {
   const { user, loading } = useAuth();
@@ -198,6 +192,7 @@ const GenerateContent = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [showCoinModal, setShowCoinModal] = useState(false);
+  const [imagesLoading, setImagesLoading] = useState(false);
   const generationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const promptCount = useMemo(() => prompt.length, [prompt]);
@@ -345,6 +340,34 @@ const GenerateContent = () => {
     setBalance,
   ]);
 
+  const handleLoadImages = useCallback(async () => {
+    if (!user) {
+      setImages([]);
+      return;
+    }
+
+    try {
+      setImagesLoading(true);
+      const records = await listGeneratedImages(user.id);
+      setImages(
+        records.map((record) => ({
+          ...record,
+          style: normalizeStyle(record.style),
+          aspect_ratio: normalizeAspectRatio(record.aspect_ratio),
+        }))
+      );
+      setGenerationError(null);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to load your images right now.';
+      setGenerationError(message);
+    } finally {
+      setImagesLoading(false);
+    }
+  }, [user]);
+
   const handleClearGallery = async () => {
     try {
       await clearGeneratedImages();
@@ -383,47 +406,11 @@ const GenerateContent = () => {
   };
 
   useEffect(() => {
-    let isMounted = true;
-
-    const load = async (userId: string) => {
-      try {
-        const records = await listGeneratedImages(userId);
-        if (!isMounted) {
-          return;
-        }
-        setImages(
-          records.map((record) => ({
-            ...record,
-            style: normalizeStyle(record.style),
-            aspect_ratio: normalizeAspectRatio(record.aspect_ratio),
-          }))
-        );
-        setGenerationError(null);
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-        const message =
-          error instanceof Error
-            ? error.message
-            : 'Unable to load previously generated images.';
-        setGenerationError(message);
-      }
-    };
-
-    if (!user) {
-      setImages([]);
-      return () => {
-        isMounted = false;
-      };
+    if (loading) {
+      return;
     }
-
-    load(user.id);
-
-    return () => {
-      isMounted = false;
-    };
-  }, [user]);
+    handleLoadImages();
+  }, [loading, handleLoadImages]);
 
   useEffect(
     () => () => {
@@ -437,13 +424,12 @@ const GenerateContent = () => {
   if (loading) {
     return (
       <AppLayout activeTab="generate">
-        <div className="flex flex-1 items-center justify-center bg-gray-50">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
+        <div id="generate-page-root" className="flex flex-1 items-center justify-center bg-gray-50">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
         </div>
       </AppLayout>
     );
   }
-
 
   if (!user) {
     return (
@@ -456,292 +442,269 @@ const GenerateContent = () => {
   return (
     <>
       <AppLayout activeTab="generate">
-      <div className="flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <style>{`
-          @keyframes fadeUp {
-            0% { opacity: 0; transform: translateY(24px); }
-            100% { opacity: 1; transform: translateY(0); }
-          }
-
-          @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-          }
-
-          .animate-fade-up {
-            opacity: 0;
-            animation: fadeUp 0.5s ease forwards;
-          }
-
-          .animate-fade-in {
-            opacity: 0;
-            animation: fadeIn 0.4s ease forwards;
-          }
-        `}</style>
-
-        <div className="mx-auto w-full max-w-6xl space-y-10 px-4 py-8 sm:px-6 sm:py-10">
-          
-          {/* Main content grid: Settings (left) vs. Gallery (right) */}
-          {/* The flex-col on the left section ensures vertical stacking on all screens,
-              while the grid container handles the side-by-side layout on 'lg'. */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.1fr),minmax(0,0.9fr)]">
+        <div className="flex flex-col bg-gray-50">
+          <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 sm:py-10">
             
-            {/* LEFT SIDE: Settings (Stacked vertically) */}
-            <section className="flex flex-col space-y-6">
-                
-                {/* 1. Prompt settings (Top Left Card) */}
-                <div className="space-y-6 rounded-3xl border border-blue-100 bg-white p-6 shadow-lg animate-fade-up" style={{ animationDelay: '0.12s' }}>
-                    <div className="flex items-center justify-between">
-                        <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                            <Sparkles className="h-5 w-5 text-blue-600" />
-                            Prompt settings
-                        </h2>
-                        <div className="flex items-center gap-2">
-                            <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white shadow-sm">
-                                {IMAGE_GENERATION_COST} coins per render
-                            </span>
-                            {/* <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-                                Required
-                            </span> */}
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div>
-                            <label className="mb-2 block text-sm font-semibold text-gray-900">
-                                Main prompt <span className="text-red-500">*</span>
-                            </label>
-                            <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-1">
-                                <textarea
-                                    value={prompt}
-                                    onChange={handlePromptChange}
-                                    placeholder="Describe the scene you imagine in vivid detail..."
-                                    rows={4}
-                                    className="h-full w-full resize-none rounded-2xl border-none bg-transparent px-4 py-3 text-sm text-gray-900 outline-none focus:ring-0"
-                                />
-                            </div>
-                            <div className="mt-2 flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Be specific about subject, mood, lighting, and colours.</span>
-                                <span className={promptCount >= 500 ? 'font-medium text-red-500' : 'text-gray-400'}>
-                                    {promptCount}/500
-                                </span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="mb-2 block text-sm font-semibold text-gray-900">
-                                Negative prompt <span className="text-gray-400">(optional)</span>
-                            </label>
-                            <div className="rounded-2xl border border-blue-50 bg-white p-1">
-                                <textarea
-                                    value={negativePrompt}
-                                    onChange={handleNegativePromptChange}
-                                    placeholder="Describe anything you want the model to avoid..."
-                                    rows={3}
-                                    className="h-full w-full resize-none rounded-2xl border-none bg-transparent px-4 py-3 text-sm text-gray-900 outline-none focus:ring-0"
-                                />
-                            </div>
-                            <div className="mt-2 flex items-center justify-between text-xs">
-                                <span className="text-gray-500">Keep prompts concise—use commas to separate items.</span>
-                                <span className={negativePromptCount >= 200 ? 'font-medium text-red-500' : 'text-gray-400'}>
-                                    {negativePromptCount}/200
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+            {/* Prompt Settings Section */}
+            <section className="space-y-6 sm:space-y-8 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-1">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                    Generate images
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Create AI-powered artwork with custom styles and precise control.
+                  </p>
                 </div>
 
-                {/* 2. Advanced controls (Bottom Left Card) */}
-                <div className="space-y-6 rounded-3xl border border-blue-100 bg-white p-6 shadow-lg animate-fade-up" style={{ animationDelay: '0.16s' }}>
-                    <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                        <Wand2 className="h-5 w-5 text-blue-600" />
-                        Advanced controls
-                    </h2>
+                <span className="self-start md:self-auto inline-block rounded-full bg-blue-600 px-2.5 sm:px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white shadow whitespace-nowrap">
+                  {IMAGE_GENERATION_COST} coins per image
+                </span>
+              </div>
 
-                    <div className="space-y-4">
-                        <div>
-                            <p className="mb-3 text-sm font-semibold text-gray-900">Generation style</p>
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                {styleOptions.map((option, index) => {
-                                    const active = option.id === selectedStyle;
-                                    return (
-                                        <button
-                                            key={option.id}
-                                            onClick={() => setSelectedStyle(option.id)}
-                                            className={`flex flex-col rounded-2xl border p-4 text-left transition ${
-                                            active
-                                                ? 'border-blue-600 bg-blue-50 shadow'
-                                                : 'border-blue-100 bg-white hover:border-blue-300'
-                                            } animate-fade-up`}
-                                            style={{ animationDelay: `${0.18 + index * 0.05}s` }}
-                                        >
-                                            <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                                {option.icon}
-                                                {option.label}
-                                            </span>
-                                            <span className="mt-1 text-xs text-gray-500">
-                                                {option.description}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
 
-                        <div>
-                            <p className="mb-3 text-sm font-semibold text-gray-900">Aspect ratio</p>
-                            <div className="flex gap-2 overflow-x-auto pb-1">
-                                {aspectOptions.map((option, index) => {
-                                    const active = option.id === selectedAspect;
-                                    return (
-                                        <button
-                                            key={option.id}
-                                            onClick={() => setSelectedAspect(option.id)}
-                                            className={`flex min-w-[120px] flex-1 flex-col items-center rounded-2xl border px-4 py-3 text-center transition ${
-                                            active
-                                                ? 'border-blue-600 bg-blue-50 text-blue-700 shadow'
-                                                : 'border-blue-100 bg-white text-gray-700 hover:border-blue-300'
-                                            } animate-fade-up`}
-                                            style={{ animationDelay: `${0.2 + index * 0.05}s` }}
-                                        >
-                                            {option.icon}
-                                            <span className="mt-2 text-xs font-semibold">{option.label}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+              {generationError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-red-700">
+                  {generationError}
+                </div>
+              )}
 
-                        <div>
-                            <div className="mb-3 flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-900">Image quality</p>
-                                    <p className="text-xs text-gray-500">Balance render speed with fine detail.</p>
-                                </div>
-                                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-                                    {qualityLabel}
-                                </span>
-                            </div>
-                            <div className="space-y-2">
-                                <input
-                                    type="range"
-                                    min={1}
-                                    max={5}
-                                    value={quality}
-                                    onChange={(event) => setQuality(Number(event.target.value))}
-                                    className="h-2 w-full cursor-pointer appearance-none rounded-full bg-blue-100 accent-blue-600"
-                                />
-                                <div className="flex justify-between text-[11px] text-gray-500">
-                                    {qualityLabels.map((label) => (
-                                        <span key={label}>{label}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+              <div className="space-y-6 sm:space-y-8">
+                <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+                  {/* Prompt input card */}
+                  <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4 sm:p-6 shadow-sm">
+                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Prompt editor</h3>
+                    <p className="mt-1 text-xs sm:text-sm text-gray-500">
+                      Be specific about subject, mood, lighting, and colors.
+                    </p>
+                  </div>
+
+                  <div className="lg:col-span-2 space-y-4 sm:space-y-6 rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
+                    <div>
+                      <label className="text-xs sm:text-sm font-medium text-gray-700">
+                        Main prompt <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        value={prompt}
+                        onChange={handlePromptChange}
+                        placeholder="Describe the scene you imagine in vivid detail..."
+                        rows={4}
+                        className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      />
+                      <div className={`mt-2 text-xs ${promptCount >= 500 ? 'font-medium text-red-500' : 'text-gray-400'}`}>
+                        {promptCount}/500
+                      </div>
                     </div>
 
-              <button
-                onClick={handleGenerate}
-                disabled={isGenerating || !prompt.trim()}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-sm font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                        {isGenerating ? (
-                            <>
-                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                Generating...
-                            </>
-                        ) : (
-                            <>
-                                <Wand2 className="h-4 w-4" />
-                                Generate image
-                  </>
-                )}
-                <span className="rounded-full bg-white/20 px-2 py-1 text-xs font-semibold text-white/90">
-                  {IMAGE_GENERATION_COST} coins
-                </span>
-              </button>
-      {generationError && (
-        <p className="text-sm font-semibold text-red-600">{generationError}</p>
-      )}
-            </div>
+                    <div>
+                      <label className="text-xs sm:text-sm font-medium text-gray-700">
+                        Negative prompt <span className="text-gray-400">(optional)</span>
+                      </label>
+                      <textarea
+                        value={negativePrompt}
+                        onChange={handleNegativePromptChange}
+                        placeholder="Describe anything you want the model to avoid..."
+                        rows={3}
+                        className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      />
+                      <div className={`mt-2 text-xs ${negativePromptCount >= 200 ? 'font-medium text-red-500' : 'text-gray-400'}`}>
+                        {negativePromptCount}/200
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Advanced Controls */}
+                <div className="space-y-6 sm:space-y-8 rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+                      Generation style
+                    </h3>
+                    <div className="grid grid-cols-1 gap-2 sm:gap-3 sm:grid-cols-2">
+                      {styleOptions.map((option) => {
+                        const active = option.id === selectedStyle;
+                        return (
+                          <button
+                            key={option.id}
+                            onClick={() => setSelectedStyle(option.id)}
+                            className={`flex flex-col rounded-lg border px-3 sm:px-4 py-3 sm:py-4 text-left transition ${
+                              active
+                                ? 'border-blue-500 bg-blue-50 shadow-sm'
+                                : 'border-gray-300 bg-white hover:border-blue-300'
+                            }`}
+                          >
+                            <span className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-900">
+                              {option.icon}
+                              {option.label}
+                            </span>
+                            <span className="mt-1 text-xs text-gray-500">
+                              {option.description}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+                      Aspect ratio
+                    </h3>
+                    <div className="flex flex-wrap gap-2 sm:gap-3">
+                      {aspectOptions.map((option) => {
+                        const active = option.id === selectedAspect;
+                        return (
+                          <button
+                            key={option.id}
+                            onClick={() => setSelectedAspect(option.id)}
+                            className={`flex flex-col items-center rounded-lg border px-3 sm:px-4 py-2 sm:py-3 text-center transition min-w-[100px] sm:min-w-[120px] ${
+                              active
+                                ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                                : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300'
+                            }`}
+                          >
+                            {option.icon}
+                            <span className="mt-1 text-xs font-semibold">{option.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold text-gray-900">Image quality</p>
+                        <p className="text-xs text-gray-500">Balance render speed with fine detail.</p>
+                      </div>
+                      <span className="bg-blue-100 px-2.5 sm:px-3 py-1 text-xs font-semibold text-blue-700 whitespace-nowrap rounded">
+                        {qualityLabel}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      <input
+                        type="range"
+                        min={1}
+                        max={5}
+                        value={quality}
+                        onChange={(event) => setQuality(Number(event.target.value))}
+                        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-blue-100 accent-blue-600"
+                      />
+                      <div className="flex justify-between text-[11px] text-gray-500">
+                        {qualityLabels.map((label) => (
+                          <span key={label}>{label}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleGenerate}
+                    disabled={isGenerating || !prompt.trim()}
+                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-white shadow-md transition hover:from-blue-700 hover:to-blue-800 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <span className="h-3.5 sm:h-4 w-3.5 sm:w-4 animate-spin rounded-full border-2 border-white/50 border-t-white" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-4 w-4" />
+                        Generate image
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </section>
-            
-            {/* RIGHT SIDE: Generated images (Spans the full height) */}
-            <section className="flex flex-col space-y-6">
-              <div className="space-y-4 rounded-3xl border border-blue-100 bg-white p-6 shadow-lg animate-fade-up" style={{ animationDelay: '0.18s' }}>
-                <div className="flex items-center justify-between">
-                  <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                    <ImageIcon className="h-5 w-5 text-blue-600" />
+
+            {/* Generated Images Section */}
+            <section className="space-y-4 sm:space-y-6 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                     Generated images
-                  </h2>
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                    Your creations stay visible for 30 days. Download or upscale for higher fidelity.
+                  </p>
+                </div>
+                <div className="flex gap-2 sm:gap-3">
+                  <button
+                    onClick={handleLoadImages}
+                    disabled={imagesLoading}
+                    className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 whitespace-nowrap"
+                  >
+                    <RefreshCw className={`h-3.5 sm:h-4 w-3.5 sm:w-4 ${imagesLoading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </button>
                   {images.length > 0 && (
                     <button
                       onClick={handleClearGallery}
-                      className="flex items-center gap-1 text-xs font-semibold text-gray-500 transition hover:text-red-500"
+                      className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-700 transition hover:bg-gray-50 whitespace-nowrap"
                     >
-                      <Trash2 className="h-4 w-4" />
-                      Clear all
+                      <Trash2 className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                      Clear
                     </button>
                   )}
                 </div>
-                <div className="rounded-2xl border border-dashed border-blue-100 bg-blue-50/40 p-6 text-sm text-gray-600">
-                  Images stay visible for 30 days. Save locally or upscale for higher fidelity exports.
-                </div>
               </div>
 
-              <div className="flex-1 overflow-hidden rounded-3xl border border-blue-100 bg-white p-6 shadow-lg animate-fade-up" style={{ animationDelay: '0.22s' }}>
-                {images.length === 0 ? (
-                  <div className="flex h-full flex-col items-center justify-center text-center text-sm text-gray-500">
-                    <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-blue-500">
-                      <ImageIcon className="h-10 w-10" />
-                    </div>
-                    <p className="text-base font-semibold text-gray-900">Your creations will appear here</p>
-                    <p className="mt-2 max-w-xs">
-                      Enter a prompt on the left and click &ldquo;Generate image&rdquo; to see the gallery come alive.
-                    </p>
+              <div>
+                {imagesLoading ? (
+                  <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <div
+                        key={`image-skeleton-${index}`}
+                        className="h-40 sm:h-48 rounded-lg border border-gray-200 bg-gray-100 animate-pulse"
+                      />
+                    ))}
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                    {images.map((image, index) => (
+                ) : images.length ? (
+                  <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {images.map((image) => (
                       <div
                         key={image.id}
-                        className="group overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg animate-fade-up"
-                        style={{ animationDelay: `${0.26 + index * 0.05}s` }}
+                        className="group rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm transition hover:border-blue-300 hover:-translate-y-1 hover:shadow-md"
                       >
                         <div className="relative w-full overflow-hidden aspect-square">
                           <Image
                             src={image.remote_url}
                             alt={image.prompt}
                             fill
-                            sizes="(max-width: 768px) 100vw, 50vw"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             className="object-cover transition duration-500 group-hover:scale-105"
                             unoptimized
                           />
                           <div className="absolute inset-0 flex items-center justify-center bg-blue-900/0 transition group-hover:bg-blue-900/40">
-                            <div className="flex translate-y-3 gap-2 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                            <div className="flex translate-y-2 gap-1 sm:gap-2 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                               <button
                                 onClick={() => handleDownload(image)}
-                                className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-blue-50"
+                                className="rounded bg-white px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold text-gray-700 transition hover:bg-blue-50"
+                                title="Download"
                               >
-                                <Download className="h-4 w-4" />
+                                <Download className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                               </button>
                               <button
                                 onClick={handleUpscale}
-                                className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-blue-50"
+                                className="rounded bg-white px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold text-gray-700 transition hover:bg-blue-50"
+                                title="Upscale"
                               >
-                                <Maximize2 className="h-4 w-4" />
+                                <Maximize2 className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteImage(image.id)}
-                                className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                                className="rounded bg-white px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                                title="Delete"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                               </button>
                             </div>
                           </div>
                         </div>
-                        <div className="space-y-3 p-4">
-                          <p className="line-clamp-2 text-sm text-gray-700">{image.prompt}</p>
+                        <div className="space-y-2 p-3 sm:p-4">
+                          <p className="line-clamp-2 text-xs sm:text-sm text-gray-700">{image.prompt}</p>
                           <div className="flex items-center justify-between text-xs text-gray-500">
                             <span className="capitalize">{image.style}</span>
                             <span>{image.aspect_ratio}</span>
@@ -751,12 +714,22 @@ const GenerateContent = () => {
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 sm:px-6 py-8 sm:py-12 text-center text-xs sm:text-sm text-gray-600">
+                    <div className="mx-auto mb-4 flex h-12 sm:h-16 w-12 sm:w-16 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
+                      <ImageIcon className="h-6 sm:h-8 w-6 sm:w-8" />
+                    </div>
+                    <p className="text-sm sm:text-base font-semibold text-gray-900">No images yet</p>
+                    <p className="mt-2 max-w-xs mx-auto text-xs sm:text-sm">
+                      Enter a prompt above and click "Generate image" to see your creations appear here.
+                    </p>
+                  </div>
                 )}
               </div>
             </section>
+
           </div>
         </div>
-      </div>
       </AppLayout>
       <CoinLimitModal
         open={showCoinModal}

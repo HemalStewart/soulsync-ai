@@ -65,11 +65,11 @@ const GuestPrompt = () => {
   const { openAuthModal } = useAuth();
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-12 py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+    <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+      <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-6 sm:px-12 py-8 sm:py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105 max-w-sm">
+        <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg flex-shrink-0">
           <svg
-            className="h-8 w-8 text-white"
+            className="h-7 sm:h-8 w-7 sm:w-8 text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -82,13 +82,13 @@ const GuestPrompt = () => {
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to continue</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Sign in to continue</h2>
+        <p className="text-xs sm:text-sm text-gray-600">
           Log in or create an account to access this feature.
         </p>
         <button
           onClick={() => openAuthModal('login')}
-          className="mt-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+          className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
         >
           Get Started
         </button>
@@ -440,10 +440,11 @@ const VideoContent = () => {
                   Pick a starting point, adjust the prompt, and generate a polished clip in seconds.
                 </p>
               </div>
-              <div className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white shadow">
-                {VIDEO_GENERATION_COST} coins per render
+              <div className="self-start md:self-auto inline-block rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white shadow">
+                {VIDEO_GENERATION_COST} coins per video
               </div>
             </div>
+
 
             <div className="grid gap-3 rounded-2xl bg-blue-50/40 p-3 sm:grid-cols-3">
               {builderTabs.map((tab, index) => {
@@ -562,7 +563,7 @@ const VideoContent = () => {
                 <button
                   onClick={handleGenerateVideo}
                   disabled={isGenerating || !canGenerate}
-                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-sm font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-sm font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {modeComingSoon ? (
                     <>
@@ -580,9 +581,7 @@ const VideoContent = () => {
                       Generate video
                     </>
                   )}
-                  <span className="rounded-full bg-white/20 px-2 py-1 text-xs font-semibold text-white/90">
-                    {VIDEO_GENERATION_COST} coins
-                  </span>
+                  
                 </button>
                 {generationError && (
                   <div className="mt-3 w-full rounded-lg bg-red-500/25 px-3 py-2 text-xs font-semibold text-red-50">
@@ -604,13 +603,13 @@ const VideoContent = () => {
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => setShowGallery((prev) => !prev)}
-                  className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                 >
                   {showGallery ? 'Hide gallery' : 'Show gallery'}
                 </button>
                 <button
                   onClick={handleRefreshVideos}
-                  className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
                 >
                   <RefreshCw className={`h-4 w-4 ${loadingVideos ? 'animate-spin' : ''}`} />
                   Refresh

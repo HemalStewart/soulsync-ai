@@ -93,11 +93,11 @@ const GuestPrompt = () => {
   const { openAuthModal } = useAuth();
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-12 py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+    <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+      <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-6 sm:px-12 py-8 sm:py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105 max-w-sm">
+        <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg flex-shrink-0">
           <svg
-            className="h-8 w-8 text-white"
+            className="h-7 sm:h-8 w-7 sm:w-8 text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -110,13 +110,13 @@ const GuestPrompt = () => {
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to continue</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Sign in to continue</h2>
+        <p className="text-xs sm:text-sm text-gray-600">
           Log in or create an account to access this feature.
         </p>
         <button
           onClick={() => openAuthModal('login')}
-          className="mt-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+          className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
         >
           Get Started
         </button>
@@ -375,7 +375,7 @@ const CreateContent = () => {
         avatar:
         formState.image && formState.image.trim() !== ''
           ? formState.image
-          : undefined, // 🟢 don't overwrite existing avatar
+          : undefined,
         personality:
           formState.personality.trim() || formState.backstory.trim(),
         backstory: formState.backstory.trim(),
@@ -400,7 +400,6 @@ const CreateContent = () => {
         } else {
           void refreshCoinBalance();
         }
-        // setSaveSuccess(`${payload.name} is ready!`);
       }
 
       setCharacters((prev) => [
@@ -409,7 +408,7 @@ const CreateContent = () => {
       ]);
 
       resetWizard(false);
-      setEditingCharacterId(null); // 🟢 clear edit mode after saving
+      setEditingCharacterId(null);
 
     } catch (error) {
       const status =
@@ -435,7 +434,7 @@ const CreateContent = () => {
     return (
       <AppLayout activeTab="create">
         <div id="create-page-root" className="flex flex-1 items-center justify-center bg-gray-50">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-500" />
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
         </div>
       </AppLayout>
     );
@@ -453,108 +452,66 @@ const CreateContent = () => {
     <>
     <AppLayout activeTab="create">
       <div className="flex flex-col bg-gray-50">
-        <style>{`
-          @keyframes fadeUp {
-            0% {
-              opacity: 0;
-              transform: translateY(24px);
-            }
-            100% {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-
-          @keyframes fadeIn {
-            0% {
-              opacity: 0;
-            }
-            100% {
-              opacity: 1;
-            }
-          }
-
-          @keyframes pulseOutline {
-            0%, 100% {
-              box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.35);
-            }
-            50% {
-              box-shadow: 0 0 0 8px rgba(79, 70, 229, 0);
-            }
-          }
-
-          .animate-fade-up {
-            opacity: 0;
-            animation: fadeUp 0.6s ease forwards;
-          }
-
-          .animate-fade-in {
-            opacity: 0;
-            animation: fadeIn 0.6s ease forwards;
-          }
-
-          .animate-pulse-outline {
-            animation: pulseOutline 2.4s ease-in-out infinite;
-          }
-        `}</style>
-        <div className="mx-auto w-full max-w-6xl space-y-10 px-4 py-8 sm:px-6 sm:py-10">
+        <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 sm:py-10">
           
 
           <section
   ref={formSectionRef}
-  className="space-y-8 rounded-3xl border border-gray-200 bg-white p-6 shadow-lg backdrop-blur animate-fade-up"
-  style={{ animationDelay: '0.05s' }}
+  className="space-y-6 sm:space-y-8 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm"
 >
 
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between animate-fade-in" style={{ animationDelay: '0.15s' }}>
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-1">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
   {editingCharacterId ? 'Update Character' : 'Create Character'}
 </h2>
 
-<p className="text-sm text-gray-600">
+<p className="text-xs sm:text-sm text-gray-600">
   {editingCharacterId
-    ? 'You are editing your existing character. Update the details below and click “Finish & publish” to save changes.'
+    ? 'You are editing your existing character. Update the details below and click "Finish & publish" to save changes.'
     : 'Design your AI companion through a simple four-step wizard.'}
 </p>
 
 
                   
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
                   
-                  <span className="font-semibold text-blue-600 animate-fade-in" style={{ animationDelay: '0.25s' }}>
+                  <span className="font-semibold text-blue-600">
                     Step {currentStep}
                   </span>
-                  <div className="h-2 w-40 rounded-full bg-gray-200 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                  <div className="h-2 w-32 sm:w-40 rounded-full bg-gray-200">
                     <div
-                      className="h-2 rounded-full bg-blue-600 transition-all animate-pulse-outline"
+                      className="h-2 rounded-full bg-blue-600 transition-all"
                       style={{ width: progressPercent }}
                     />
                   </div>
-                  <span className="animate-fade-in" style={{ animationDelay: '0.35s' }}>{progressPercent}</span>
+                  <span className="text-gray-600">{progressPercent}</span>
                   {!editingCharacterId && (
-                    <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white shadow">
+                    <span className="rounded-full bg-blue-600 px-2.5 sm:px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white shadow">
                       {CHARACTER_CREATION_COST} coins per character
                     </span>
                   )}
                 </div>
               </div>
 
+              {saveError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-red-700">
+                  {saveError}
+                </div>
+              )}
+
               {saveSuccess && (
-                <div
-                  className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 animate-fade-in"
-                  style={{ animationDelay: '0.2s' }}
-                >
+                <div className="rounded-lg border border-green-200 bg-green-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium text-green-700">
                   {saveSuccess}
                 </div>
               )}
 
-              <div className="space-y-8">
+              <div className="space-y-6 sm:space-y-8">
                 {currentStep === 1 && (
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 animate-fade-in" style={{ animationDelay: '0.15s' }}>
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm animate-fade-up" style={{ animationDelay: '0.2s' }}>
-                      <div className="mx-auto h-40 w-40 overflow-hidden rounded-full border-4 border-white shadow">
+                  <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+                    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4 sm:p-6 text-center shadow-sm">
+                      <div className="mx-auto h-32 sm:h-40 w-32 sm:w-40 overflow-hidden rounded-full border-4 border-white shadow">
                         {formState.image ? (
                           <Image
                             src={formState.image}
@@ -565,15 +522,15 @@ const CreateContent = () => {
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
-                            <User className="h-16 w-16 text-white" />
+                            <User className="h-14 sm:h-16 w-14 sm:w-16 text-white" />
                           </div>
                         )}
                       </div>
-                      <p className="mt-3 text-sm text-gray-500">Live preview</p>
+                      <p className="mt-3 text-xs sm:text-sm text-gray-500">Live preview</p>
                     </div>
-                    <div className="lg:col-span-2 space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm animate-fade-up" style={{ animationDelay: '0.25s' }}>
+                    <div className="lg:col-span-2 space-y-4 sm:space-y-6 rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
                       <div>
-                        <label className="text-sm font-medium text-gray-700">Name</label>
+                        <label className="text-xs sm:text-sm font-medium text-gray-700">Name</label>
                         <input
                           value={formState.name}
                           onChange={(event) =>
@@ -583,11 +540,11 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="Enter character name"
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700">Title</label>
+                        <label className="text-xs sm:text-sm font-medium text-gray-700">Title</label>
                         <input
                           value={formState.title}
                           onChange={(event) =>
@@ -597,21 +554,21 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="e.g. Enigmatic Storyteller"
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700">
+                        <label className="text-xs sm:text-sm font-medium text-gray-700">
                           Appearance
                         </label>
-                        <label className="mt-2 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 transition hover:bg-gray-100">
+                        <label className="mt-2 flex cursor-pointer flex-col items-center justify-center gap-2 sm:gap-3 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 sm:p-6 transition hover:bg-gray-100">
                           <input
                             type="file"
                             accept="image/*"
                             onChange={handleFileInput}
                             className="hidden"
                           />
-                          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white/60 shadow">
+                          <div className="flex h-16 sm:h-20 w-16 sm:w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white/60 shadow">
                           {formState.image ? (
                             <Image
                               src={formState.image}
@@ -622,13 +579,13 @@ const CreateContent = () => {
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
-                              <User className="h-10 w-10 text-white" />
+                              <User className="h-8 sm:h-10 w-8 sm:w-10 text-white" />
                             </div>
                           )}
                           </div>
-                          <div className="text-center text-sm text-gray-600">
+                          <div className="text-center text-xs sm:text-sm text-gray-600">
                             <p className="font-medium">Drag & drop</p>
-                            <p>or click to upload (PNG, JPG up to 5MB)</p>
+                            <p className="text-xs text-gray-500">or click to upload (PNG, JPG up to 5MB)</p>
                           </div>
                         </label>
                       </div>
@@ -637,31 +594,29 @@ const CreateContent = () => {
                 )}
 
                 {currentStep === 2 && (
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 animate-fade-in" style={{ animationDelay: '0.18s' }}>
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm animate-fade-up" style={{ animationDelay: '0.22s' }}>
-                      <h3 className="font-semibold text-gray-900">Personality tags</h3>
-                      <p className="text-sm text-gray-500">
+                  <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Personality tags</h3>
+                      <p className="mt-1 text-xs sm:text-sm text-gray-500">
                         Add traits like Shy, Adventurous, Witty.
                       </p>
                     </div>
-                    <div className="lg:col-span-2 space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <div className="lg:col-span-2 space-y-4 sm:space-y-6 rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
                       <form
                         onSubmit={handleTraitSubmit}
-                        className="rounded-lg border border-gray-300 px-3 py-2 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200 animate-fade-in"
-                        style={{ animationDelay: '0.26s' }}
+                        className="rounded-lg border border-gray-300 px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           {formState.traits.map((trait) => (
                             <span
                               key={trait}
-                              className="flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 animate-fade-up"
-                              style={{ animationDelay: '0.28s' }}
+                              className="flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 sm:px-3 py-1 text-xs font-semibold text-blue-700"
                             >
                               {trait}
                               <button
                                 type="button"
                                 onClick={() => removeTrait(trait)}
-                                className="text-blue-600"
+                                className="text-blue-600 hover:text-blue-800 font-bold"
                               >
                                 ×
                               </button>
@@ -671,13 +626,13 @@ const CreateContent = () => {
                             value={traitInput}
                             onChange={(event) => setTraitInput(event.target.value)}
                             placeholder="Type a trait and press Enter"
-                            className="flex-1 min-w-[150px] border-0 bg-transparent py-1 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none"
+                            className="flex-1 min-w-[120px] border-0 bg-transparent py-1 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
                           />
                         </div>
                       </form>
 
                       <div>
-                        <label className="text-sm font-medium text-gray-700">
+                        <label className="text-xs sm:text-sm font-medium text-gray-700">
                           Personality summary
                         </label>
                         <textarea
@@ -690,12 +645,12 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="Describe how this character thinks, feels, and speaks."
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-gray-700">
+                        <label className="text-xs sm:text-sm font-medium text-gray-700">
                           Backstory
                         </label>
                         <textarea
@@ -708,12 +663,12 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="Write a short backstory..."
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-gray-700">
+                        <label className="text-xs sm:text-sm font-medium text-gray-700">
                           Expertise & favorite topics (optional)
                         </label>
                         <textarea
@@ -726,7 +681,7 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="List focus areas or conversation topics they love."
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         />
                       </div>
                     </div>
@@ -734,15 +689,15 @@ const CreateContent = () => {
                 )}
 
                 {currentStep === 3 && (
-                  <div className="space-y-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm animate-fade-up" style={{ animationDelay: '0.2s' }}>
+                  <div className="space-y-6 sm:space-y-8 rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                         Conversation tone
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="mt-1 text-xs sm:text-sm text-gray-600">
                         Choose the energy you want in every reply.
                       </p>
-                      <div className="mt-4 flex flex-wrap gap-3">
+                      <div className="mt-4 flex flex-wrap gap-2 sm:gap-3">
                         {toneOptions.map((option) => (
                           <button
                             key={option.id}
@@ -752,10 +707,10 @@ const CreateContent = () => {
                                 tone: option.id,
                               }))
                             }
-                            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                            className={`rounded-full border px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition ${
                               formState.tone === option.id
-                                ? 'border-indigo-500 bg-indigo-100 text-indigo-700'
-                                : 'border-gray-200 bg-white text-gray-700 hover:border-indigo-300 hover:text-indigo-600'
+                                ? 'border-blue-500 bg-blue-100 text-blue-700'
+                                : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300 hover:text-blue-600'
                             }`}
                           >
                             {option.label}
@@ -765,10 +720,10 @@ const CreateContent = () => {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                         Select a voice (optional)
                       </h3>
-                      <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      <div className="mt-4 grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {voiceOptions.map((option) => (
                           <button
                             key={option.id}
@@ -778,28 +733,28 @@ const CreateContent = () => {
                                 voice: option.id,
                               }))
                             }
-                            className={`flex items-center justify-between rounded-xl border px-4 py-4 text-left transition ${
+                            className={`flex items-center justify-between rounded-lg border px-3 sm:px-4 py-3 sm:py-4 text-left transition ${
                               formState.voice === option.id
-                                ? 'border-indigo-500 bg-indigo-50 shadow'
-                                : 'border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50'
+                                ? 'border-blue-500 bg-blue-50 shadow-sm'
+                                : 'border-gray-300 bg-white hover:border-blue-300 hover:bg-blue-50'
                             }`}
                           >
                             <div>
-                              <p className="font-semibold text-gray-900">
+                              <p className="text-xs sm:text-sm font-semibold text-gray-900">
                                 {option.label}
                               </p>
                               <p className="text-xs text-gray-500">
                                 {option.description}
                               </p>
                             </div>
-                            <Wand2 className="h-5 w-5 text-indigo-500" />
+                            <Wand2 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
                           </button>
                         ))}
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
+                      <label className="text-xs sm:text-sm font-medium text-gray-700">
                         Greeting message (optional)
                       </label>
                       <textarea
@@ -812,20 +767,20 @@ const CreateContent = () => {
                           }))
                         }
                         placeholder="The first thing your character says when a chat begins."
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                       />
                     </div>
                   </div>
                 )}
 
                 {currentStep === 4 && (
-                  <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm animate-fade-up" style={{ animationDelay: '0.18s' }}>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                  <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                       Review
                     </h3>
-                    <div className="mt-6 grid gap-6 lg:grid-cols-3">
-                      <div className="rounded-2xl border border-gray-100 bg-gradient-to-br from-indigo-50 to-white p-6 text-center shadow-sm animate-fade-up" style={{ animationDelay: '0.22s' }}>
-                        <div className="mx-auto h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow">
+                    <div className="mt-6 grid gap-4 sm:gap-6 lg:grid-cols-3">
+                      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50 to-white p-4 sm:p-6 text-center shadow-sm">
+                        <div className="mx-auto h-28 sm:h-32 w-28 sm:w-32 overflow-hidden rounded-full border-4 border-white shadow">
                         {formState.image ? (
                           <Image
                             src={formState.image}
@@ -836,35 +791,35 @@ const CreateContent = () => {
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
-                            <User className="h-14 w-14 text-white" />
+                            <User className="h-12 sm:h-14 w-12 sm:w-14 text-white" />
                           </div>
                         )}
                         </div>
-                        <p className="mt-3 text-sm text-gray-500">Live preview</p>
+                        <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-500">Live preview</p>
                       </div>
-                      <div className="lg:col-span-2 space-y-4">
-                        <div className="grid gap-4 md:grid-cols-2">
+                      <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+                        <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                           <div>
                             <p className="text-xs text-gray-500">Name</p>
-                            <p className="text-base font-semibold text-gray-900">
+                            <p className="text-sm sm:text-base font-semibold text-gray-900">
                               {formState.name || 'Untitled'}
                             </p>
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">Title</p>
-                            <p className="text-base font-semibold text-gray-900">
+                            <p className="text-sm sm:text-base font-semibold text-gray-900">
                               {formState.title || 'No title yet'}
                             </p>
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">Voice</p>
-                            <p className="text-base font-semibold text-gray-900">
+                            <p className="text-sm sm:text-base font-semibold text-gray-900">
                               {formState.voice || 'None selected'}
                             </p>
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">Tone</p>
-                            <p className="text-base font-semibold text-gray-900 capitalize">
+                            <p className="text-sm sm:text-base font-semibold text-gray-900 capitalize">
                               {formState.tone || 'No tone selected'}
                             </p>
                           </div>
@@ -876,106 +831,80 @@ const CreateContent = () => {
                               formState.traits.map((trait) => (
                                 <span
                                   key={trait}
-                                  className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700"
+                                  className="rounded-full bg-blue-100 px-2.5 sm:px-3 py-1 text-xs font-semibold text-blue-700"
                                 >
                                   {trait}
                                 </span>
                               ))
                             ) : (
-                              <span className="text-sm text-gray-500">—</span>
+                              <span className="text-xs text-gray-500">—</span>
                             )}
                           </div>
                         </div>
                         <div>
                           <p className="text-xs text-gray-500">Personality summary</p>
-                          <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
+                          <p className="mt-1 whitespace-pre-wrap text-xs sm:text-sm text-gray-700 line-clamp-2">
                             {formState.personality ||
                               'Share a short summary to shape responses.'}
                           </p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-500">Backstory</p>
-                          <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
+                          <p className="mt-1 whitespace-pre-wrap text-xs sm:text-sm text-gray-700 line-clamp-2">
                             {formState.backstory || 'No backstory provided.'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500">Greeting message</p>
-                          <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
-                            {formState.greeting || 'Uses a smart default greeting.'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500">Expertise & topics</p>
-                          <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
-                            {formState.expertise || 'Not specified'}
                           </p>
                         </div>
                       </div>
                     </div>
-                    {(saveError || saveSuccess) && (
-                      <div className="mt-6 space-y-3">
-                        {saveError && (
-                          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            {saveError}
-                          </div>
-                        )}
-                        {saveSuccess && (
-                          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                            {saveSuccess}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="mt-6 sm:mt-8 flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <button
                         onClick={() => resetWizard()}
                         disabled={saving}
-                        className="order-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 sm:order-1"
+                        className="order-2 sm:order-1 rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         Reset form
                       </button>
-                      <div className="order-1 flex gap-3 sm:order-2">
+                      <div className="order-1 sm:order-2 flex gap-2 sm:gap-3">
                         <button
                           onClick={prevStep}
                           disabled={saving}
-                          className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="flex-1 sm:flex-none rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Back
                         </button>
                         <button
                           onClick={handleFinish}
                           disabled={saving}
-                          className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+                          className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-md transition hover:from-blue-700 hover:to-blue-800 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
                         >
                           {saving && (
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/50 border-t-white" />
+                            <span className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-white/50 border-t-white" />
                           )}
                           {saving ? 'Publishing...' : 'Finish & publish'}
                         </button>
                       </div>
-                      {!editingCharacterId && (
-                        <p className="order-3 text-center text-xs font-semibold uppercase tracking-wide text-blue-600 sm:order-3 sm:text-right">
-                          Costs {CHARACTER_CREATION_COST} coins to publish.
-                        </p>
-                      )}
                     </div>
+                    {!editingCharacterId && (
+                      <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wider text-blue-600">
+                        Costs {CHARACTER_CREATION_COST} coins to publish.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
 
               {currentStep !== 4 && (
-                <div className="flex items-center justify-between animate-fade-in" style={{ animationDelay: '0.38s' }}>
+                <div className="flex items-center justify-between pt-2 sm:pt-4">
                   <button
                     onClick={prevStep}
                     disabled={currentStep === 1}
-                    className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Back
                   </button>
                   <button
                     onClick={nextStep}
-                    className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow transition hover:bg-blue-700"
+                    className="rounded-lg bg-blue-600 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
                   >
                     Next
                   </button>
@@ -984,52 +913,50 @@ const CreateContent = () => {
             </section>
 
           <section
-            className="space-y-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-lg backdrop-blur animate-fade-up"
-            style={{ animationDelay: '0.15s' }}
+            className="space-y-4 sm:space-y-6 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                   My characters
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600 mt-1">
                   Manage and iterate on the companions you have built.
                 </p>
               </div>
               <button
                 onClick={loadMyCharacters}
                 disabled={charactersLoading}
-                className="flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 whitespace-nowrap"
               >
-                <RefreshCw className={`h-4 w-4 ${charactersLoading ? 'animate-spin' : ''}`} />{' '}
+                <RefreshCw className={`h-3.5 sm:h-4 w-3.5 sm:w-4 ${charactersLoading ? 'animate-spin' : ''}`} />
                 Refresh
               </button>
             </div>
             {charactersError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-red-700">
                 {charactersError}
               </div>
             )}
-            <div className="animate-fade-in" style={{ animationDelay: '0.25s' }}>
+            <div>
               {charactersLoading ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {Array.from({ length: 4 }).map((_, index) => (
                     <div
                       key={`character-skeleton-${index}`}
-                      className="h-36 rounded-2xl border border-gray-200 bg-gray-100 animate-pulse"
+                      className="h-32 sm:h-36 rounded-lg border border-gray-200 bg-gray-100 animate-pulse"
                     />
                   ))}
                 </div>
               ) : characters.length ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {characters.map((character, index) => (
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {characters.map((character) => (
                     <div
                       key={character.id}
-                      className="group rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                      style={{ animationDelay: `${0.28 + index * 0.05}s` }}
+                      className="group rounded-lg border border-gray-200 bg-white p-3 sm:p-4 shadow-sm transition hover:border-blue-300 hover:-translate-y-1 hover:shadow-md"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="h-12 sm:h-14 w-12 sm:w-14 overflow-hidden rounded-full border-2 border-white shadow">
                           {character.image ? (
                             <Image
                               src={character.image}
@@ -1040,29 +967,29 @@ const CreateContent = () => {
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
-                              <User className="h-6 w-6 text-white" />
+                              <User className="h-5 sm:h-6 w-5 sm:w-6 text-white" />
                             </div>
                           )}
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
                             {character.name}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 truncate">
                             {character.createdAt}
                           </p>
                         </div>
                       </div>
-                      <div className="mt-4 flex gap-2">
+                      <div className="mt-3 flex gap-2">
                         <button
                           onClick={() => handleEdit(character)}
-                          className="flex-1 rounded-full border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+                          className="flex-1 rounded-lg border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleLaunch(character)}
-                          className="flex-1 rounded-full bg-indigo-100 px-3 py-1.5 text-sm font-semibold text-blue-600 transition hover:bg-indigo-200"
+                          className="flex-1 rounded-lg bg-blue-100 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-blue-700 transition hover:bg-blue-200"
                         >
                           Launch
                         </button>
@@ -1071,7 +998,7 @@ const CreateContent = () => {
                   ))}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center text-sm text-gray-600">
+                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 sm:px-6 py-8 sm:py-12 text-center text-xs sm:text-sm text-gray-600">
                   You haven&apos;t created any characters yet. Finish the wizard above to see them here.
                 </div>
               )}
