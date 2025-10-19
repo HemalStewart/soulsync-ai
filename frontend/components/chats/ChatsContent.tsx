@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import ChatList from './ChatList';
@@ -46,7 +46,8 @@ const ChatsContent = () => {
   const [isMobileView, setIsMobileView] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showCoinModal, setShowCoinModal] = useState(false);
-  const [showInfoPanel, setShowInfoPanel] = useState(true);
+  const [showInfoPanel, setShowInfoPanel] = useState(false);
+  const previousDesktopOpenRef = useRef<boolean>(true);
 
   const defaultChatSlug = useMemo(
     () => chatSummaries[0]?.character_slug ?? null,
@@ -69,7 +70,13 @@ const ChatsContent = () => {
     const handleResize = () => {
       const mobile = typeof window !== 'undefined' && window.innerWidth < 1024;
       setIsMobileView(mobile);
-      if (!mobile) {
+      if (mobile) {
+        setShowInfoPanel((prev) => (prev ? false : prev));
+      } else {
+        setShowInfoPanel((prev) => {
+          const desired = previousDesktopOpenRef.current ?? true;
+          return prev === desired ? prev : desired;
+        });
         setShowMobileChat(false);
       }
     };
@@ -192,7 +199,18 @@ const ChatsContent = () => {
     router.replace(`/chats?${params.toString()}`, { scroll: false });
     if (isMobileView) {
       setShowMobileChat(true);
+      setShowInfoPanel(false);
     }
+  };
+
+  const handleToggleInfoPanel = () => {
+    setShowInfoPanel((prev) => {
+      const next = !prev;
+      if (!isMobileView) {
+        previousDesktopOpenRef.current = next;
+      }
+      return next;
+    });
   };
 
   const handleSendMessage = async () => {
@@ -209,9 +227,29 @@ const ChatsContent = () => {
       return;
     }
 
+    const optimisticId = Date.now();
+    const optimisticMessage: ChatMessage = {
+      id: optimisticId,
+      sender: 'user',
+      message: outgoing,
+      created_at: new Date().toISOString(),
+    };
+
+    setSending(true);
+    setMessageInput('');
+
+    setChatDetail((previous) => {
+      if (!previous) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        messages: [...previous.messages, optimisticMessage],
+      };
+    });
+
     try {
-      setSending(true);
-      setMessageInput('');
       const payload = await sendChatMessage(selectedChat, outgoing);
 
       if (typeof payload.coinBalance === 'number') {
@@ -225,8 +263,12 @@ const ChatsContent = () => {
           return previous;
         }
 
+        const withoutOptimistic = previous.messages.filter(
+          (message) => !(message.id === optimisticId && message.sender === 'user')
+        );
+
         const messages: ChatMessage[] = [
-          ...previous.messages,
+          ...withoutOptimistic,
           payload.userMessage,
           payload.aiMessage,
         ];
@@ -243,6 +285,19 @@ const ChatsContent = () => {
       setChatSummaries(refreshedSummaries);
       setErrorMessage(null);
     } catch (error) {
+      setChatDetail((previous) => {
+        if (!previous) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          messages: previous.messages.filter(
+            (message) => !(message.id === optimisticId && message.sender === 'user')
+          ),
+        };
+      });
+
       setMessageInput((prev) => (prev.trim() === '' ? outgoing : prev));
       const status =
         typeof error === 'object' && error && 'status' in error
@@ -413,7 +468,7 @@ const ChatsContent = () => {
                       headerLoading={headerLoading}
                       coinCost={MESSAGE_COST}
                       onBack={isMobileView ? () => setShowMobileChat(false) : undefined}
-                      onToggleInfoPanel={() => setShowInfoPanel(!showInfoPanel)}
+                      onToggleInfoPanel={handleToggleInfoPanel}
                       showInfoPanel={showInfoPanel}
                     />
 

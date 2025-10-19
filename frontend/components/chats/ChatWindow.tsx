@@ -262,13 +262,16 @@ const ChatWindow = ({
           )}
 
           {isSending && (
-            <div className="flex justify-end animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <div className="max-w-xs sm:max-w-md lg:max-w-md rounded-2xl sm:rounded-3xl bg-gray-100 px-4 sm:px-6 py-3 sm:py-4 text-gray-900 shadow-md">
-                <div className="flex space-x-2">
-                  <div className="h-2 w-2 rounded-full bg-gray-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="h-2 w-2 rounded-full bg-gray-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="h-2 w-2 rounded-full bg-gray-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="flex justify-start animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="group flex items-end justify-start gap-2">
+                <div className="relative max-w-xs sm:max-w-md lg:max-w-2xl rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-500 to-blue-600 px-4 sm:px-6 py-3 sm:py-4 text-white shadow-md">
+                  <div className="flex items-center space-x-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/90 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/90 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="h-2.5 w-2.5 rounded-full bg-white/90 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
                 </div>
+                <div className="sr-only">Companion is typing</div>
               </div>
             </div>
           )}

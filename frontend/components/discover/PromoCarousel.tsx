@@ -64,20 +64,18 @@ interface PromoCarouselProps {
 
 const PromoCarousel = ({ isLoggedIn = false }: PromoCarouselProps) => {
   const [index, setIndex] = useState(0);
-
   const slideCount = useMemo(() => slides.length, []);
 
-  if (isLoggedIn) {
-    return null;
-  }
-
+  // ✅ Hook always runs — internal check controls behavior
   useEffect(() => {
+    if (isLoggedIn) return; // Don’t start the interval if user is logged in
+
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % slideCount);
     }, AUTOPLAY_DELAY);
 
     return () => clearInterval(interval);
-  }, [slideCount]);
+  }, [slideCount, isLoggedIn]);
 
   const activeSlide = slides[index];
 
@@ -89,12 +87,19 @@ const PromoCarousel = ({ isLoggedIn = false }: PromoCarouselProps) => {
     setIndex((prev) => (prev + 1) % slideCount);
   };
 
+  // ✅ Early return now comes after all hooks
+  if (isLoggedIn) {
+    return null;
+  }
+
   return (
     <div className="mx-auto mb-8 max-w-7xl px-4">
       <div
         className={`group relative overflow-hidden rounded-2xl px-6 py-4 transition-all duration-500 ${activeSlide.background} shadow-lg flex items-center`}
       >
-        <div className="min-h-[60px] flex items-center w-full">{activeSlide.content}</div>
+        <div className="min-h-[60px] flex items-center w-full">
+          {activeSlide.content}
+        </div>
       </div>
     </div>
   );
