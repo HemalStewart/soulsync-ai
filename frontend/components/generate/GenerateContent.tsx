@@ -721,7 +721,7 @@ const GenerateContent = () => {
                     </div>
                     <p className="text-sm sm:text-base font-semibold text-gray-900">No images yet</p>
                     <p className="mt-2 max-w-xs mx-auto text-xs sm:text-sm">
-                      Enter a prompt above and click "Generate image" to see your creations appear here.
+                      Enter a prompt above and click &quot;Generate image&quot; to see your creations appear here.
                     </p>
                   </div>
                 )}

@@ -17,7 +17,6 @@ interface ChatWindowProps {
   isSending?: boolean;
   headerLoading?: boolean;
   onBack?: () => void;
-  coinCost?: number;
   onToggleInfoPanel?: () => void;
   showInfoPanel?: boolean;
 }
@@ -54,11 +53,9 @@ const ChatWindow = ({
   isSending,
   headerLoading = false,
   onBack,
-  coinCost,
   onToggleInfoPanel,
   showInfoPanel = true,
 }: ChatWindowProps) => {
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
@@ -81,6 +78,21 @@ const ChatWindow = ({
     setShouldAutoScroll(checkIfNearBottom());
   };
 
+  // Scroll helper to ensure we target the chat container instead of the page
+  const scrollToBottom = (smooth = true) => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    try {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    } catch {
+      container.scrollTop = container.scrollHeight;
+    }
+  };
+
   // Auto-scroll only when new messages arrive AND user is near bottom
   useEffect(() => {
     // Only scroll if:
@@ -90,15 +102,9 @@ const ChatWindow = ({
     const messagesChanged = messages.length !== previousMessagesLengthRef.current;
     
     if (messagesChanged && (shouldAutoScroll || isSending)) {
-      if (messagesEndRef.current) {
-        try {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        } catch {
-          messagesEndRef.current?.scrollIntoView();
-        }
-      }
+      scrollToBottom();
     }
-    
+
     previousMessagesLengthRef.current = messages.length;
   }, [messages, shouldAutoScroll, isSending]);
 
@@ -275,7 +281,6 @@ const ChatWindow = ({
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
       </div>
 

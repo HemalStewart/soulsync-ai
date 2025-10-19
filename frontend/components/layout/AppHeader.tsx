@@ -7,10 +7,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { useCoins } from '@/components/coins/CoinContext';
 // import HeaderPromoBanner from './HeaderPromoBanner';
 
-const initialCountdown = { hours: 59, minutes: 46, seconds: 89 };
-
 const AppHeader = () => {
-  const [timeLeft, setTimeLeft] = useState(initialCountdown);
   const {
     user,
     logout,
@@ -23,7 +20,6 @@ const AppHeader = () => {
   const { balance, loading: coinLoading } = useCoins();
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [bannerVisible, setBannerVisible] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -31,32 +27,6 @@ const AppHeader = () => {
   }, []);
 
   const formattedBalance = balance != null ? balance.toLocaleString() : '--';
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        let { hours, minutes, seconds } = prev;
-
-        if (seconds > 0) {
-          seconds -= 1;
-        } else {
-          seconds = 59;
-          if (minutes > 0) {
-            minutes -= 1;
-          } else {
-            minutes = 59;
-            if (hours > 0) {
-              hours -= 1;
-            }
-          }
-        }
-
-        return { hours, minutes, seconds };
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,10 +42,6 @@ const AppHeader = () => {
     setShowAccountMenu(false);
   };
 
-  const closeBanner = () => {
-    setBannerVisible(false);
-  };
-
   const initials = user?.email
     ? user.email
         .split('@')[0]
@@ -88,9 +54,6 @@ const AppHeader = () => {
 
   return (
     <>
-      {/* {bannerVisible && (
-        <HeaderPromoBanner timeLeft={timeLeft} onClose={closeBanner} />
-      )} */}
       <header className={`sticky top-0 z-50 backdrop-blur-xl bg-white/80 transition-all duration-300 border-b shadow-sm ${scrolled ? 'border-gray-200/60 shadow-sm' : 'border-gray-100/40 shadow-sm'}`}>
         {/* Main Header Row */}
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:gap-4 px-3 sm:px-4 md:px-6 py-3 sm:py-4">
