@@ -5,6 +5,7 @@ import { User, LogOut, Coins as CoinsIcon, ChevronDown } from 'lucide-react';
 import AuthModal from '@/components/auth/AuthModal';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useCoins } from '@/components/coins/CoinContext';
+import Link from 'next/link';
 // import HeaderPromoBanner from './HeaderPromoBanner';
 
 const AppHeader = () => {
@@ -58,12 +59,17 @@ const AppHeader = () => {
         {/* Main Header Row */}
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:gap-4 px-3 sm:px-4 md:px-6 py-3 sm:py-4">
           {/* Logo Section */}
-          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 shadow-lg">
+          <Link
+            href="/"
+            className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 cursor-pointer select-none hover:opacity-90 transition"
+          >
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 shadow-lg hover:scale-105 transition-transform duration-200">
               <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-md bg-white/20 backdrop-blur-sm" />
             </div>
-            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">SoulFun</span>
-          </div>
+            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
+              SoulFun
+            </span>
+          </Link>
 
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-3">
@@ -140,107 +146,107 @@ const AppHeader = () => {
                 </button>
 
                 {showAccountMenu && (
-  <div className="absolute right-0 mt-3 w-72 rounded-2xl border border-gray-100 bg-white shadow-xl backdrop-blur-md z-50 overflow-hidden">
-    <div className="flex flex-col divide-y divide-gray-100">
-      
-      {/* My Character */}
-      <button
-        className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-purple-50/80 transition-all duration-200"
-        onClick={() => setShowAccountMenu(false)}
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-100 text-purple-600">
-            <User size={18} />
-          </div>
-          <div className="flex flex-col items-start">
-            <span className="text-sm font-semibold text-gray-900">My Characters</span>
-            <span className="text-xs text-gray-500">Manage AI companions</span>
-          </div>
-        </div>
-        <ChevronDown size={16} className="text-gray-400 rotate-270" />
-      </button>
+                <div className="absolute right-0 mt-3 w-72 rounded-2xl border border-gray-100 bg-white shadow-xl backdrop-blur-md z-50 overflow-hidden">
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    
+                    {/* My Character */}
+                    <button
+                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-purple-50/80 transition-all duration-200"
+                      onClick={() => setShowAccountMenu(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-purple-100 text-purple-600">
+                          <User size={18} />
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span className="text-sm font-semibold text-gray-900">My Characters</span>
+                          <span className="text-xs text-gray-500">Manage AI companions</span>
+                        </div>
+                      </div>
+                      <ChevronDown size={16} className="text-gray-400 rotate-270" />
+                    </button>
 
-      {/* Video Gallery */}
-      <button
-        className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-blue-50/80 transition-all duration-200"
-        onClick={() => setShowAccountMenu(false)}
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-blue-100 text-blue-600">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553 2.276a1 1 0 010 1.448L15 16V10z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h11v12H4z" />
-            </svg>
-          </div>
-          <div className="flex flex-col items-start">
-            <span className="text-sm font-semibold text-gray-900">Video Gallery</span>
-            <span className="text-xs text-gray-500">Your video collection</span>
-          </div>
-        </div>
-        <ChevronDown size={16} className="text-gray-400 rotate-270" />
-      </button>
+                    {/* Video Gallery */}
+                    <button
+                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-blue-50/80 transition-all duration-200"
+                      onClick={() => setShowAccountMenu(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-blue-100 text-blue-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553 2.276a1 1 0 010 1.448L15 16V10z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h11v12H4z" />
+                          </svg>
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span className="text-sm font-semibold text-gray-900">Video Gallery</span>
+                          <span className="text-xs text-gray-500">Your video collection</span>
+                        </div>
+                      </div>
+                      <ChevronDown size={16} className="text-gray-400 rotate-270" />
+                    </button>
 
-      {/* Coins Summary */}
-      <div className="px-4 py-3 bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="p-2.5 rounded-xl bg-amber-100 text-amber-600">
-              <CoinsIcon size={18} />
-            </div>
-            <span className="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white rounded-full px-1 font-bold">!</span>
-          </div>
-          <div className="flex flex-col items-start">
-            <span className="text-sm font-semibold text-gray-900">Coins: {balance ?? 150}</span>
-            <span className="text-xs text-gray-500">Low balance!</span>
-          </div>
-        </div>
-        <button className="px-3 py-1 text-xs font-semibold text-white rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition">
-          Get PRO
-        </button>
-      </div>
+                    {/* Coins Summary */}
+                    <div className="px-4 py-3 bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <div className="p-2.5 rounded-xl bg-amber-100 text-amber-600">
+                            <CoinsIcon size={18} />
+                          </div>
+                          <span className="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white rounded-full px-1 font-bold">!</span>
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span className="text-sm font-semibold text-gray-900">Coins: {balance ?? 150}</span>
+                          <span className="text-xs text-gray-500">Low balance!</span>
+                        </div>
+                      </div>
+                      <button className="px-3 py-2 text-xs font-semibold text-white rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition">
+                        Get PRO
+                      </button>
+                    </div>
 
-      {/* Account */}
-      <button
-        className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-indigo-50/80 transition-all duration-200"
-        onClick={() => setShowAccountMenu(false)}
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.5 6a1.5 1.5 0 013 0v3h3a1.5 1.5 0 010 3h-3v3a1.5 1.5 0 01-3 0v-3h-3a1.5 1.5 0 010-3h3V6z" />
-            </svg>
-          </div>
-          <div className="flex flex-col items-start">
-            <span className="text-sm font-semibold text-gray-900">Account</span>
-            <span className="text-xs text-gray-500">Account settings</span>
-          </div>
-        </div>
-        <ChevronDown size={16} className="text-gray-400 rotate-270" />
-      </button>
+                    {/* Account */}
+                    <button
+                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-indigo-50/80 transition-all duration-200"
+                      onClick={() => setShowAccountMenu(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.5 6a1.5 1.5 0 013 0v3h3a1.5 1.5 0 010 3h-3v3a1.5 1.5 0 01-3 0v-3h-3a1.5 1.5 0 010-3h3V6z" />
+                          </svg>
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span className="text-sm font-semibold text-gray-900">Account</span>
+                          <span className="text-xs text-gray-500">Account settings</span>
+                        </div>
+                      </div>
+                      <ChevronDown size={16} className="text-gray-400 rotate-270" />
+                    </button>
 
-      {/* Log Out */}
-      <button
-        onClick={async () => {
-          setShowAccountMenu(false);
-          await logout();
-        }}
-        className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-red-50/80 transition-all duration-200"
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-red-100 text-red-600">
-            <LogOut size={18} />
-          </div>
-          <div className="flex flex-col items-start">
-            <span className="text-sm font-semibold text-red-600">Log Out</span>
-            <span className="text-xs text-red-400">Sign out securely</span>
-          </div>
-        </div>
-        <ChevronDown size={16} className="text-red-400 rotate-270" />
-      </button>
+                    {/* Log Out */}
+                    <button
+                      onClick={async () => {
+                        setShowAccountMenu(false);
+                        await logout();
+                      }}
+                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-red-50/80 transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-red-100 text-red-600">
+                          <LogOut size={18} />
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span className="text-sm font-semibold text-red-600">Log Out</span>
+                          <span className="text-xs text-red-400">Sign out securely</span>
+                        </div>
+                      </div>
+                      <ChevronDown size={16} className="text-red-400 rotate-270" />
+                    </button>
 
-    </div>
-  </div>
-)}
+                  </div>
+                </div>
+              )}
 
               </div>
             )}
