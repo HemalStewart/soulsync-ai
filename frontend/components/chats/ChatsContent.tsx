@@ -466,6 +466,7 @@ const ChatsContent = () => {
                       isLoading={loadingMessages}
                       isSending={sending}
                       headerLoading={headerLoading}
+                      coinCost={MESSAGE_COST}
                       onBack={isMobileView ? () => setShowMobileChat(false) : undefined}
                       onToggleInfoPanel={handleToggleInfoPanel}
                       showInfoPanel={showInfoPanel}

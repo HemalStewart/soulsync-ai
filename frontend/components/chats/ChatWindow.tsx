@@ -17,6 +17,7 @@ interface ChatWindowProps {
   isSending?: boolean;
   headerLoading?: boolean;
   onBack?: () => void;
+  coinCost?: number;
   onToggleInfoPanel?: () => void;
   showInfoPanel?: boolean;
 }
@@ -53,6 +54,7 @@ const ChatWindow = ({
   isSending,
   headerLoading = false,
   onBack,
+  coinCost,
   onToggleInfoPanel,
   showInfoPanel = true,
 }: ChatWindowProps) => {
