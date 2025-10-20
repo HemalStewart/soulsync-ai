@@ -7,6 +7,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { useCoins } from '@/components/coins/CoinContext';
 import AccountSettingsModal from '@/components/account/AccountSettingsModal';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 // import HeaderPromoBanner from './HeaderPromoBanner';
 
 const AppHeader = () => {
@@ -25,6 +26,7 @@ const AppHeader = () => {
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -52,6 +54,11 @@ const AppHeader = () => {
     setShowAccountMenu(false);
   };
 
+  const handleNavigate = (path: string) => {
+    setShowAccountMenu(false);
+    router.push(path);
+  };
+
   const initials = user?.email
     ? user.email
         .split('@')[0]
@@ -62,23 +69,9 @@ const AppHeader = () => {
         .join('') || user.email[0]?.toUpperCase()
     : null;
 
-  if (!initialized) {
-    return (
-      <header className="sticky top-0 z-50 border-b border-gray-100/40 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <div className="h-8 w-24 rounded-lg bg-gray-200/70 animate-pulse" />
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-20 rounded-xl bg-gray-200/70 animate-pulse" />
-            <div className="h-9 w-9 rounded-full bg-gray-200/70 animate-pulse" />
-          </div>
-        </div>
-      </header>
-    );
-  }
-
   return (
     <>
-      <header className={`sticky top-0 z-50 backdrop-blur-xl bg-white/80 transition-all duration-300 border-b shadow-sm ${scrolled ? 'border-gray-200/60 shadow-sm' : 'border-gray-100/40 shadow-sm'}`}>
+      <header className={`sticky top-0 z-50 backdrop-blur-xl bg-white/80 transition-all duration-300 border-b shadow-sm min-h-[72px] ${scrolled ? 'border-gray-200/60 shadow-sm' : 'border-gray-100/40 shadow-sm'}`}>
         {/* Main Header Row */}
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:gap-4 px-3 sm:px-4 md:px-6 py-3 sm:py-4">
           {/* Logo Section */}
@@ -121,7 +114,7 @@ const AppHeader = () => {
             )}
 
             {/* Get Pro Button - Fixed width */}
-            <button className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-xl font-semibold text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
+            <button className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
               <span className="relative z-10">Get Pro</span>
               <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
@@ -175,7 +168,7 @@ const AppHeader = () => {
                     {/* My Character */}
                     <button
                       className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-purple-50/80 transition-all duration-200"
-                      onClick={() => setShowAccountMenu(false)}
+                      onClick={() => handleNavigate('/my-characters')}
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-xl bg-purple-100 text-purple-600">
@@ -192,7 +185,7 @@ const AppHeader = () => {
                     {/* Video Gallery */}
                     <button
                       className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-blue-50/80 transition-all duration-200"
-                      onClick={() => setShowAccountMenu(false)}
+                      onClick={() => handleNavigate('/my-videos')}
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-xl bg-blue-100 text-blue-600">
