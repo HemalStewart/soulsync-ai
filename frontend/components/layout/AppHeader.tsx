@@ -130,13 +130,13 @@ const AppHeader = () => {
             ) : !user ? (
               <>
                 <button
-                  className="hidden sm:inline-block px-3 md:px-4 py-2 rounded-xl font-semibold text-gray-700 bg-gray-100/80 hover:bg-gray-200 transition-all duration-200 text-sm border border-gray-200/50 whitespace-nowrap"
+                  className="hidden sm:inline-block px-3 md:px-4 py-2 rounded-lg font-semibold text-gray-700 bg-gray-100/80 hover:bg-gray-200 transition-all duration-200 text-sm border border-gray-200/50 whitespace-nowrap"
                   onClick={() => openModal('login')}
                 >
                   Log in
                 </button>
                 <button
-                  className="hidden sm:inline-block px-3 md:px-4 py-2 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 text-sm whitespace-nowrap"
+                  className="hidden sm:inline-block px-3 md:px-4 py-2 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 text-sm whitespace-nowrap"
                   onClick={() => openModal('register')}
                 >
                   Sign up
