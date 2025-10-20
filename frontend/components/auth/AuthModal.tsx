@@ -17,6 +17,8 @@ interface AuthModalProps {
 const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
   const { login, verifyOtp, register, error: authError, setAuthError } = useAuth();
 
+  const [forceOpen, setForceOpen] = useState(false);
+  const isOpen = open || forceOpen;
   const [loginMobile, setLoginMobile] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
@@ -45,19 +47,24 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
 
   const previousOpenRef = useRef(false);
 
+  const handleClose = useCallback(() => {
+    setForceOpen(false);
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
-    if (open && !previousOpenRef.current) {
+    if (isOpen && !previousOpenRef.current) {
       resetLoginState();
       resetRegisterState();
       setAuthError(null);
     }
-    previousOpenRef.current = open;
-  }, [open, resetLoginState, resetRegisterState, setAuthError]);
+    previousOpenRef.current = isOpen;
+  }, [isOpen, resetLoginState, resetRegisterState, setAuthError]);
 
   const previousModeRef = useRef<AuthMode>(mode);
 
   useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       previousModeRef.current = mode;
       return;
     }
@@ -71,9 +78,9 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
       setAuthError(null);
       previousModeRef.current = mode;
     }
-  }, [mode, open, resetLoginState, resetRegisterState, setAuthError]);
+  }, [mode, isOpen, resetLoginState, resetRegisterState, setAuthError]);
 
-  if (!open) {
+  if (!isOpen) {
     return null;
   }
 
@@ -85,14 +92,46 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
     try {
       if (loginStep === 'credentials') {
         const response = await login(loginMobile, loginPassword);
+        const responseStatus =
+          typeof response.status === 'string'
+            ? response.status.toLowerCase()
+            : '';
 
         if (response.mode === 'login') {
-          onClose();
+          if (responseStatus === 'success' && response.user) {
+            handleClose();
+            return;
+          }
+
+          setAuthError(
+            response.message ?? 'Invalid mobile number or password.'
+          );
+          setForceOpen(true);
+          setLoginStep('credentials');
           return;
         }
 
         if (response.mode === 'otp') {
+          if (responseStatus !== 'success') {
+            setAuthError(
+              response.message ??
+                'Unable to send a verification code. Please try again.'
+            );
+            setForceOpen(true);
+            setLoginStep('credentials');
+            return;
+          }
+
           const ref = response.reference_no ?? response.referenceNo ?? '';
+          if (!ref) {
+            setAuthError(
+              'Verification reference is missing. Please restart login.'
+            );
+            setForceOpen(true);
+            setLoginStep('credentials');
+            return;
+          }
+
           setReferenceNo(ref);
           setRemainingAttempts(
             response.remaining_attempts ?? response.remainingAttempts ?? null
@@ -101,11 +140,9 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
           return;
         }
 
-        if (response.message) {
-          setAuthError(response.message);
-        } else {
-          setAuthError('Unexpected response. Please try again.');
-        }
+        setAuthError(
+          response.message ?? 'Unexpected response. Please try again.'
+        );
       } else {
         if (!referenceNo) {
           setAuthError('Verification reference is missing. Please restart login.');
@@ -113,11 +150,30 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
           return;
         }
 
-        await verifyOtp(loginMobile, loginPassword, referenceNo, otp);
-        onClose();
+        const response = await verifyOtp(
+          loginMobile,
+          loginPassword,
+          referenceNo,
+          otp
+        );
+        const responseStatus =
+          typeof response.status === 'string'
+            ? response.status.toLowerCase()
+            : '';
+
+        if (responseStatus === 'success' && response.user) {
+          handleClose();
+          return;
+        }
+
+        setAuthError(
+          response.message ?? 'OTP verification failed. Please try again.'
+        );
+        setForceOpen(true);
       }
     } catch (err) {
       setAuthError(err instanceof Error ? err.message : 'Something went wrong.');
+      setForceOpen(true);
     } finally {
       setSubmitting(false);
     }
@@ -129,10 +185,24 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
     setAuthError(null);
 
     try {
-      await register(registerEmail, registerPassword);
-      onClose();
+      const response = await register(registerEmail, registerPassword);
+      const responseStatus =
+        typeof response.status === 'string'
+          ? response.status.toLowerCase()
+          : '';
+
+      if (responseStatus === 'success' && response.user) {
+        handleClose();
+        return;
+      }
+
+      setAuthError(
+        response.message ?? 'Registration response was invalid. Please try again.'
+      );
+      setForceOpen(true);
     } catch (err) {
       setAuthError(err instanceof Error ? err.message : 'Something went wrong.');
+      setForceOpen(true);
     } finally {
       setSubmitting(false);
     }
@@ -233,7 +303,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
               {mode === 'login' ? 'Sign in with your mobile number' : 'Create your SoulFun account'}
             </h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="flex-shrink-0 text-gray-400 transition duration-200 hover:text-gray-600 hover:rotate-90"
             >
               ✕

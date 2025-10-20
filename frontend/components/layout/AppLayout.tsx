@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import AppHeader from './AppHeader';
 import AppSidebar from './AppSidebar';
 import AppMobileNav from './AppMobileNav';
+import AuthModalBoundary from '@/components/auth/AuthModalBoundary';
 
 export type ActiveTab = 'discover' | 'chats' | 'create' | 'video' | 'generate';
 
@@ -20,6 +21,7 @@ const AppLayout = ({ activeTab, children }: AppLayoutProps) => (
       </main>
     </div>
     <AppMobileNav activeTab={activeTab} />
+    <AuthModalBoundary />
   </div>
 );
 

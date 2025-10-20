@@ -45,6 +45,9 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const normaliseStatus = (status?: string) =>
+  typeof status === 'string' ? status.trim().toLowerCase() : '';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,11 +84,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const response = await requestLoginOtp(mobile, password);
-      if (response.user && response.mode !== 'otp') {
+      const status = normaliseStatus(response.status);
+      if (status === 'success' && response.user && response.mode !== 'otp') {
         setUser(response.user);
         setInitialized(true);
+        setError(null);
+      } else if (status === 'success') {
+        setError(null);
       }
-      setError(null);
       return response;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.');
@@ -100,11 +106,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       try {
         const response = await verifyLoginOtp(mobile, password, referenceNo, otp);
-        if (response.user) {
+        const status = normaliseStatus(response.status);
+        if (status === 'success' && response.user) {
           setUser(response.user);
           setInitialized(true);
+          setError(null);
+        } else if (status === 'success') {
+          setError(null);
         }
-        setError(null);
         return response;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'OTP verification failed.');
@@ -119,9 +128,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const response = await registerWithEmail(email, password);
-      setUser(response.user);
-      setError(null);
-      setInitialized(true);
+      const status = normaliseStatus(response.status);
+      if (status === 'success' && response.user) {
+        setUser(response.user);
+        setError(null);
+        setInitialized(true);
+      } else if (status === 'success') {
+        setError(null);
+      }
       return response;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
@@ -152,11 +166,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const openAuthModal = useCallback(
     (mode: AuthModalMode = 'login') => {
+      if (!isAuthModalOpen) {
+        console.log('[AuthContext] openAuthModal -> true', mode);
+      }
       setAuthError(null);
       setAuthModalMode(mode);
       setIsAuthModalOpen(true);
     },
-    [setAuthError]
+    [setAuthError, isAuthModalOpen]
   );
 
   const value = useMemo(
@@ -193,13 +210,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setAuthError,
     ]
   );
-
-  useEffect(() => {
-    if (user && isAuthModalOpen) {
-      setIsAuthModalOpen(false);
-      setAuthError(null);
-    }
-  }, [user, isAuthModalOpen, setAuthError]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

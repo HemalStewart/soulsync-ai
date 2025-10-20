@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { User, LogOut, Coins as CoinsIcon, ChevronDown } from 'lucide-react';
-import AuthModal from '@/components/auth/AuthModal';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useCoins } from '@/components/coins/CoinContext';
 import AccountSettingsModal from '@/components/account/AccountSettingsModal';
@@ -16,9 +15,6 @@ const AppHeader = () => {
     logout,
     loading,
     openAuthModal,
-    closeAuthModal,
-    authModalMode,
-    isAuthModalOpen,
     initialized,
   } = useAuth();
   const { balance, loading: coinLoading } = useCoins();
@@ -275,19 +271,11 @@ const AppHeader = () => {
       </header>
 
       {initialized && (
-        <>
-          <AuthModal
-            open={isAuthModalOpen}
-            mode={authModalMode}
-            onClose={closeAuthModal}
-            onSwitchMode={openAuthModal}
-          />
-          <AccountSettingsModal
-            open={showAccountSettings}
-            onClose={() => setShowAccountSettings(false)}
-            user={user}
-          />
-        </>
+        <AccountSettingsModal
+          open={showAccountSettings}
+          onClose={() => setShowAccountSettings(false)}
+          user={user}
+        />
       )}
     </>
   );

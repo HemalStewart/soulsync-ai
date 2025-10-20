@@ -14,7 +14,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 
 const DiscoverContent = () => {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, initialized } = useAuth();
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [characters, setCharacters] = useState<CharacterCard[]>([]);
   const [recentChats, setRecentChats] = useState<ChatSummary[]>([]);
@@ -101,7 +101,7 @@ const DiscoverContent = () => {
   };
 
   // Prevent rendering logged-out content while auth is loading
-  if (authLoading) {
+  if (authLoading && !initialized) {
     return (
       <AppLayout activeTab="discover">
         <div className="flex-1 overflow-auto px-4 py-8 space-y-8">
