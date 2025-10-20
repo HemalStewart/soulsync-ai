@@ -5,6 +5,7 @@ import { User, LogOut, Coins as CoinsIcon, ChevronDown } from 'lucide-react';
 import AuthModal from '@/components/auth/AuthModal';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useCoins } from '@/components/coins/CoinContext';
+import AccountSettingsModal from '@/components/account/AccountSettingsModal';
 import Link from 'next/link';
 // import HeaderPromoBanner from './HeaderPromoBanner';
 
@@ -17,15 +18,23 @@ const AppHeader = () => {
     closeAuthModal,
     authModalMode,
     isAuthModalOpen,
+    initialized,
   } = useAuth();
   const { balance, loading: coinLoading } = useCoins();
   const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setShowAccountSettings(false);
+    }
+  }, [user]);
 
   const formattedBalance = balance != null ? balance.toLocaleString() : '--';
 
@@ -52,6 +61,20 @@ const AppHeader = () => {
         .map((part) => part[0]?.toUpperCase())
         .join('') || user.email[0]?.toUpperCase()
     : null;
+
+  if (!initialized) {
+    return (
+      <header className="sticky top-0 z-50 border-b border-gray-100/40 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <div className="h-8 w-24 rounded-lg bg-gray-200/70 animate-pulse" />
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-20 rounded-xl bg-gray-200/70 animate-pulse" />
+            <div className="h-9 w-9 rounded-full bg-gray-200/70 animate-pulse" />
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>
@@ -208,7 +231,10 @@ const AppHeader = () => {
                     {/* Account */}
                     <button
                       className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-indigo-50/80 transition-all duration-200"
-                      onClick={() => setShowAccountMenu(false)}
+                      onClick={() => {
+                        setShowAccountMenu(false);
+                        setShowAccountSettings(true);
+                      }}
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600">
@@ -255,12 +281,21 @@ const AppHeader = () => {
 
       </header>
 
-      <AuthModal
-        open={isAuthModalOpen}
-        mode={authModalMode}
-        onClose={closeAuthModal}
-        onSwitchMode={openAuthModal}
-      />
+      {initialized && !loading && (
+        <>
+          <AuthModal
+            open={isAuthModalOpen && !user}
+            mode={authModalMode}
+            onClose={closeAuthModal}
+            onSwitchMode={openAuthModal}
+          />
+          <AccountSettingsModal
+            open={showAccountSettings}
+            onClose={() => setShowAccountSettings(false)}
+            user={user}
+          />
+        </>
+      )}
     </>
   );
 };
