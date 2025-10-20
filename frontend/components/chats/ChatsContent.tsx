@@ -329,6 +329,57 @@ const ChatsContent = () => {
     panelCharacter?.name ?? characterProfile?.name ?? '';
   const resolvedAvatar =
     panelCharacter?.avatar ?? characterProfile?.avatar ?? null;
+  const baseMessages = chatDetail?.messages ?? [];
+  const resolvedGreeting = useMemo(() => {
+    const candidates = [
+      characterProfile?.introLine,
+      panelCharacter?.intro_line,
+      characterProfile?.greeting,
+      panelCharacter?.greeting,
+    ];
+
+    for (const candidate of candidates) {
+      const trimmed =
+        typeof candidate === 'string' ? candidate.trim() : '';
+      if (trimmed) {
+        return trimmed;
+      }
+    }
+
+    return '';
+  }, [
+    characterProfile?.greeting,
+    characterProfile?.introLine,
+    panelCharacter?.greeting,
+    panelCharacter?.intro_line,
+  ]);
+  const messagesWithGreeting = useMemo(() => {
+    if (!resolvedGreeting) {
+      return baseMessages;
+    }
+
+    const normalize = (value: string) =>
+      value.replace(/\s+/g, ' ').trim().toLowerCase();
+
+    const normalizedGreeting = normalize(resolvedGreeting);
+    const hasGreeting = baseMessages.some(
+      (message) =>
+        message.sender === 'ai' &&
+        normalize(message.message) === normalizedGreeting
+    );
+
+    if (hasGreeting) {
+      return baseMessages;
+    }
+
+    const greetingMessage: ChatMessage = {
+      sender: 'ai',
+      message: resolvedGreeting,
+      created_at: `greeting-${selectedChat ?? 'chat'}`,
+    };
+
+    return [greetingMessage, ...baseMessages];
+  }, [baseMessages, resolvedGreeting, selectedChat]);
 
   if (authLoading) {
     return (
@@ -459,7 +510,7 @@ const ChatsContent = () => {
                     <ChatWindow
                       characterName={resolvedName}
                       characterAvatar={resolvedAvatar}
-                      messages={chatDetail?.messages ?? []}
+                      messages={messagesWithGreeting}
                       messageInput={messageInput}
                       onMessageInputChange={setMessageInput}
                       onSend={handleSendMessage}

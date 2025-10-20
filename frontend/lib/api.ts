@@ -94,6 +94,17 @@ const mapCharacter = (character: CharacterApiModel): CharacterCard => {
     : isUserSource
       ? ''
       : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop';
+  const rawIntroLine =
+    typeof character.intro_line === 'string' ? character.intro_line.trim() : '';
+  const rawGreeting =
+    typeof character.greeting === 'string' ? character.greeting.trim() : '';
+  const introLine = rawIntroLine !== '' ? rawIntroLine : rawGreeting;
+  const greeting =
+    rawGreeting !== ''
+      ? rawGreeting
+      : rawIntroLine !== ''
+        ? rawIntroLine
+        : null;
 
   return {
     id: character.id,
@@ -105,7 +116,8 @@ const mapCharacter = (character: CharacterApiModel): CharacterCard => {
     tags: tags.length ? tags : ['AI Companion'],
     videoUrl: character.video_url || undefined,
     source: character.source ?? 'global',
-    greeting: character.greeting ?? null,
+    greeting,
+    introLine: introLine || null,
   };
 };
 

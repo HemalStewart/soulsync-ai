@@ -163,11 +163,11 @@ const AppHeader = () => {
                     
                     {/* My Character */}
                     <button
-                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-purple-50/80 transition-all duration-200"
+                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-gray-50/80 transition-all duration-200"
                       onClick={() => handleNavigate('/my-characters')}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-purple-100 text-purple-600">
+                        <div className="p-2.5 rounded-xl bg-gray-100 text-gray-600">
                           <User size={18} />
                         </div>
                         <div className="flex flex-col items-start">
@@ -180,11 +180,11 @@ const AppHeader = () => {
 
                     {/* Video Gallery */}
                     <button
-                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-blue-50/80 transition-all duration-200"
+                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-gray-50/80 transition-all duration-200"
                       onClick={() => handleNavigate('/my-videos')}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-blue-100 text-blue-600">
+                        <div className="p-2.5 rounded-xl bg-gray-100 text-gray-600">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553 2.276a1 1 0 010 1.448L15 16V10z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h11v12H4z" />
@@ -219,14 +219,14 @@ const AppHeader = () => {
 
                     {/* Account */}
                     <button
-                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-indigo-50/80 transition-all duration-200"
+                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-gray-50/80 transition-all duration-200"
                       onClick={() => {
                         setShowAccountMenu(false);
                         setShowAccountSettings(true);
                       }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600">
+                        <div className="p-2.5 rounded-xl bg-gray-100 text-gray-600">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.5 6a1.5 1.5 0 013 0v3h3a1.5 1.5 0 010 3h-3v3a1.5 1.5 0 01-3 0v-3h-3a1.5 1.5 0 010-3h3V6z" />
                           </svg>

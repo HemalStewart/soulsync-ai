@@ -157,6 +157,8 @@ class Chats extends BaseController
             'avatar'    => $character['avatar'],
             'title'     => $character['title'],
             'video_url' => $character['video_url'] ?? null,
+            'intro_line'=> $character['intro_line'] ?? ($character['greeting'] ?? null),
+            'greeting'  => $character['greeting'] ?? null,
             'source'    => $characterSource,
         ];
 

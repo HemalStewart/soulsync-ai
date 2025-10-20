@@ -11,6 +11,7 @@ export interface CharacterApiModel {
   video_url?: string | null;
   bio?: string | null;
   greeting?: string | null;
+  intro_line?: string | null;
   source?: 'global' | 'user';
 }
 
@@ -25,6 +26,7 @@ export interface CharacterCard {
   videoUrl?: string;
   source?: 'global' | 'user';
   greeting?: string | null;
+  introLine?: string | null;
 }
 
 export interface ChatSummary {
@@ -52,6 +54,8 @@ export interface CharacterChatDetail {
     avatar: string | null;
     title: string | null;
     video_url: string | null;
+    intro_line?: string | null;
+    greeting?: string | null;
     source?: 'global' | 'user';
   };
   messages: ChatMessage[];

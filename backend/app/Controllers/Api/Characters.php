@@ -24,7 +24,7 @@ class Characters extends BaseController
         $hasUserTable = $db->tableExists('user_characters');
 
         $globalRows = $db->table('ai_characters')
-            ->select('id, name, slug, avatar, title, personality, expertise, tone, tags, video_url, created_at, is_active')
+            ->select('id, name, slug, avatar, title, personality, expertise, tone, tags, video_url, intro_line, created_at, is_active')
             ->where('is_active', 1)
             ->orderBy('created_at', 'DESC')
             ->get()
@@ -62,10 +62,25 @@ class Characters extends BaseController
      */
     private function mapGlobalCharacter(array $row): array
     {
-        $row['id'] = (string) $row['id'];
-        $row['source'] = 'global';
-        $row['greeting'] = $row['greeting'] ?? null;
-        return $row;
+        $introLine = $row['intro_line'] ?? null;
+
+        return [
+            'id'         => (string) $row['id'],
+            'name'       => $row['name'],
+            'slug'       => $row['slug'],
+            'avatar'     => $row['avatar'] ?? null,
+            'title'      => $row['title'] ?? null,
+            'personality'=> $row['personality'] ?? null,
+            'expertise'  => $row['expertise'] ?? null,
+            'tone'       => $row['tone'] ?? null,
+            'tags'       => $row['tags'] ?? null,
+            'video_url'  => $row['video_url'] ?? null,
+            'created_at' => $row['created_at'] ?? null,
+            'is_active'  => $row['is_active'] ?? 1,
+            'source'     => 'global',
+            'intro_line' => $introLine,
+            'greeting'   => $row['greeting'] ?? $introLine,
+        ];
     }
 
     /**
@@ -102,6 +117,7 @@ class Characters extends BaseController
             'is_active'   => $row['is_active'] ?? 1,
             'source'      => 'user',
             'greeting'    => $row['greeting'] ?? null,
+            'intro_line'  => $row['greeting'] ?? null,
         ];
     }
 }

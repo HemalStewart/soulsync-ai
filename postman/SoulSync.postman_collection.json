@@ -140,6 +140,7 @@
           "request": {
             "method": "GET",
             "header": [],
+            "description": "Returns all active characters. Each record now contains both `greeting` and `intro_line` so clients can show a consistent first message even when the chat history is empty.",
             "url": {
               "raw": "{{baseUrl}}/characters?include_user=true",
               "host": [
@@ -202,6 +203,7 @@
           "request": {
             "method": "GET",
             "header": [],
+            "description": "Returns the last 200 messages for the given chat. The `character` object includes `greeting` and `intro_line` so the UI can prepend the conversation opener when it isn't persisted.",
             "url": {
               "raw": "{{baseUrl}}/chats/{{chatId}}",
               "host": [
