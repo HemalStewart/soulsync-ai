@@ -20,6 +20,72 @@ export interface AuthResponse {
   response?: string;
 }
 
+const pickMessage = (value: unknown): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const candidate = pickMessage(item);
+      if (candidate) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  if (typeof value === 'object') {
+    for (const nested of Object.values(value as Record<string, unknown>)) {
+      const candidate = pickMessage(nested);
+      if (candidate) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
+};
+
+const normaliseErrorMessage = (
+  payload: unknown,
+  fallback: string
+): string => {
+  if (!payload) {
+    return fallback;
+  }
+
+  if (typeof payload === 'string') {
+    return payload.trim() || fallback;
+  }
+
+  if (typeof payload === 'object') {
+    const record = payload as Record<string, unknown>;
+    const directKeys = ['message', 'error', 'response', 'detail'];
+    for (const key of directKeys) {
+      const candidate = pickMessage(record[key]);
+      if (candidate) {
+        return candidate;
+      }
+    }
+
+    const nestedKeys = ['messages', 'errors', 'data'];
+    for (const key of nestedKeys) {
+      const candidate = pickMessage(record[key]);
+      if (candidate) {
+        return candidate;
+      }
+    }
+  }
+
+  return fallback;
+};
+
 const handleResponse = async (response: Response) => {
   const text = await response.text();
   const contentType = response.headers.get('content-type') ?? '';
@@ -29,10 +95,7 @@ const handleResponse = async (response: Response) => {
       : text;
 
   if (!response.ok) {
-    const message =
-      typeof data === 'string'
-        ? data
-        : data?.message ?? 'Authentication failed.';
+    const message = normaliseErrorMessage(data, 'Authentication failed.');
     throw new Error(message);
   }
 

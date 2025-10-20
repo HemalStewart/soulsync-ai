@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from './AuthContext';
 
@@ -15,11 +15,12 @@ interface AuthModalProps {
 }
 
 const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
-  const { login, verifyOtp, register } = useAuth();
+  const { login, verifyOtp, register, error: authError, setAuthError } = useAuth();
 
-  const [mobile, setMobile] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [loginMobile, setLoginMobile] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [referenceNo, setReferenceNo] = useState('');
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(
@@ -27,20 +28,50 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
   );
   const [loginStep, setLoginStep] = useState<LoginStep>('credentials');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const resetLoginState = useCallback(() => {
+    setLoginMobile('');
+    setLoginPassword('');
+    setOtp('');
+    setReferenceNo('');
+    setRemainingAttempts(null);
+    setLoginStep('credentials');
+  }, []);
+
+  const resetRegisterState = useCallback(() => {
+    setRegisterEmail('');
+    setRegisterPassword('');
+  }, []);
+
+  const previousOpenRef = useRef(false);
 
   useEffect(() => {
-    if (open) {
-      setMobile('');
-      setEmail('');
-      setPassword('');
-      setOtp('');
-      setReferenceNo('');
-      setRemainingAttempts(null);
-      setLoginStep('credentials');
-      setError(null);
+    if (open && !previousOpenRef.current) {
+      resetLoginState();
+      resetRegisterState();
+      setAuthError(null);
     }
-  }, [open, mode]);
+    previousOpenRef.current = open;
+  }, [open, resetLoginState, resetRegisterState, setAuthError]);
+
+  const previousModeRef = useRef<AuthMode>(mode);
+
+  useEffect(() => {
+    if (!open) {
+      previousModeRef.current = mode;
+      return;
+    }
+
+    if (previousModeRef.current !== mode) {
+      if (mode === 'login') {
+        resetLoginState();
+      } else {
+        resetRegisterState();
+      }
+      setAuthError(null);
+      previousModeRef.current = mode;
+    }
+  }, [mode, open, resetLoginState, resetRegisterState, setAuthError]);
 
   if (!open) {
     return null;
@@ -49,11 +80,11 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
   const handleLoginSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
-    setError(null);
+    setAuthError(null);
 
     try {
       if (loginStep === 'credentials') {
-        const response = await login(mobile, password);
+        const response = await login(loginMobile, loginPassword);
 
         if (response.mode === 'login') {
           onClose();
@@ -71,22 +102,22 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
         }
 
         if (response.message) {
-          setError(response.message);
+          setAuthError(response.message);
         } else {
-          setError('Unexpected response. Please try again.');
+          setAuthError('Unexpected response. Please try again.');
         }
       } else {
         if (!referenceNo) {
-          setError('Verification reference is missing. Please restart login.');
+          setAuthError('Verification reference is missing. Please restart login.');
           setLoginStep('credentials');
           return;
         }
 
-        await verifyOtp(mobile, password, referenceNo, otp);
+        await verifyOtp(loginMobile, loginPassword, referenceNo, otp);
         onClose();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setAuthError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setSubmitting(false);
     }
@@ -95,13 +126,13 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
   const handleRegisterSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
-    setError(null);
+    setAuthError(null);
 
     try {
-      await register(email, password);
+      await register(registerEmail, registerPassword);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setAuthError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setSubmitting(false);
     }
@@ -209,9 +240,9 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
             </button>
           </div>
 
-          {error && (
+          {authError && (
             <div className="mx-4 sm:mx-6 mt-4 animate-shake rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
-              {error}
+              {authError}
             </div>
           )}
 
@@ -226,8 +257,8 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                     <input
                       id="auth-mobile"
                       type="tel"
-                      value={mobile}
-                      onChange={(event) => setMobile(event.target.value)}
+                      value={loginMobile}
+                      onChange={(event) => setLoginMobile(event.target.value)}
                       required
                       className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                       placeholder="Enter your mobile"
@@ -242,8 +273,8 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                     <input
                       id="auth-password"
                       type="password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
+                      value={loginPassword}
+                      onChange={(event) => setLoginPassword(event.target.value)}
                       required
                       minLength={6}
                       className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
@@ -264,7 +295,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
               ) : (
                 <>
                   <p className="text-sm text-gray-600 animate-slide-down">
-                    We sent a verification code to <span className="font-semibold">{mobile}</span>. Enter the code to finish setting up your account.
+                    We sent a verification code to <span className="font-semibold">{loginMobile}</span>. Enter the code to finish setting up your account.
                   </p>
                   {remainingAttempts !== null && (
                     <p className="text-xs text-gray-500 animate-slide-down" style={{ animationDelay: '0.1s' }}>Attempts remaining: {remainingAttempts}</p>
@@ -298,6 +329,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                       setOtp('');
                       setReferenceNo('');
                       setRemainingAttempts(null);
+                      setAuthError(null);
                     }}
                     className="w-full animate-slide-down text-sm font-semibold text-blue-600 transition hover:underline hover:text-blue-700"
                     style={{ animationDelay: '0.4s' }}
@@ -316,8 +348,8 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                 <input
                   id="register-email"
                   type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  value={registerEmail}
+                  onChange={(event) => setRegisterEmail(event.target.value)}
                   required
                   className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                   placeholder="you@example.com"
@@ -332,8 +364,8 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                 <input
                   id="register-password"
                   type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  value={registerPassword}
+                  onChange={(event) => setRegisterPassword(event.target.value)}
                   required
                   minLength={6}
                   className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"

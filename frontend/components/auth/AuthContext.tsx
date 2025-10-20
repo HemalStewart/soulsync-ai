@@ -25,6 +25,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   error: string | null;
+  setAuthError: (value: string | null) => void;
   login: (mobile: string, password: string) => Promise<AuthResponse>;
   verifyOtp: (
     mobile: string,
@@ -39,6 +40,7 @@ interface AuthContextValue {
   closeAuthModal: () => void;
   authModalMode: AuthModalMode;
   isAuthModalOpen: boolean;
+  initialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -50,6 +52,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authModalMode, setAuthModalMode] =
     useState<AuthModalMode>('login');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  const setAuthError = useCallback((value: string | null) => {
+    setError(value);
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -62,6 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setError(err instanceof Error ? err.message : 'Unable to load session.');
     } finally {
       setLoading(false);
+      setInitialized(true);
     }
   }, []);
 
@@ -73,8 +81,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const response = await requestLoginOtp(mobile, password);
-      if (response.user) {
+      if (response.user && response.mode !== 'otp') {
         setUser(response.user);
+        setInitialized(true);
       }
       setError(null);
       return response;
@@ -93,6 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const response = await verifyLoginOtp(mobile, password, referenceNo, otp);
         if (response.user) {
           setUser(response.user);
+          setInitialized(true);
         }
         setError(null);
         return response;
@@ -111,6 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await registerWithEmail(email, password);
       setUser(response.user);
       setError(null);
+      setInitialized(true);
       return response;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
@@ -134,20 +145,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const openAuthModal = useCallback((mode: AuthModalMode = 'login') => {
-    setAuthModalMode(mode);
-    setIsAuthModalOpen(true);
-  }, []);
-
   const closeAuthModal = useCallback(() => {
     setIsAuthModalOpen(false);
-  }, []);
+    setAuthError(null);
+  }, [setAuthError]);
+
+  const openAuthModal = useCallback(
+    (mode: AuthModalMode = 'login') => {
+      setAuthError(null);
+      setAuthModalMode(mode);
+      setIsAuthModalOpen(true);
+    },
+    [setAuthError]
+  );
 
   const value = useMemo(
     () => ({
       user,
       loading,
       error,
+      setAuthError,
       login,
       verifyOtp,
       register,
@@ -157,6 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       closeAuthModal,
       authModalMode,
       isAuthModalOpen,
+      initialized,
     }),
     [
       user,
@@ -171,8 +189,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       closeAuthModal,
       authModalMode,
       isAuthModalOpen,
+      initialized,
+      setAuthError,
     ]
   );
+
+  useEffect(() => {
+    if (user && isAuthModalOpen) {
+      setIsAuthModalOpen(false);
+      setAuthError(null);
+    }
+  }, [user, isAuthModalOpen, setAuthError]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

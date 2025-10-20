@@ -281,10 +281,10 @@ const AppHeader = () => {
 
       </header>
 
-      {initialized && !loading && (
+      {initialized && (
         <>
           <AuthModal
-            open={isAuthModalOpen && !user}
+            open={isAuthModalOpen}
             mode={authModalMode}
             onClose={closeAuthModal}
             onSwitchMode={openAuthModal}
