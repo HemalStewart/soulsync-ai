@@ -1,0 +1,572 @@
+{
+  "info": {
+    "_postman_id": "b4bf0b1c-91a5-4bff-aa35-5e5a8db719ec",
+    "name": "SoulSync API",
+    "description": "Postman collection covering the public REST endpoints exposed by the SoulSync backend. All requests are rooted at `{{baseUrl}}`, which defaults to the local development server.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Session based authentication (cookie) flows. After a successful call the backend issues a session cookie that Postman will store automatically if the \"Automatically follow redirects\" and \"Enable Cookie Manager\" options are active.",
+      "item": [
+        {
+          "name": "Fetch Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request Login OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"0712345678\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/request-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "request-otp"
+              ]
+            },
+            "description": "Starts the mobile login flow. When the API responds with `{ \"mode\": \"otp\" }`, capture the `reference_no` to use with OTP verification."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Login OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"0712345678\",\n  \"password\": \"secret123\",\n  \"reference_no\": \"{{referenceNo}}\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-otp"
+              ]
+            },
+            "description": "Completes the OTP login flow. Replace `{{referenceNo}}` with the value returned by the OTP request."
+          },
+          "response": []
+        },
+        {
+          "name": "Register With Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register-email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Ends the current session and clears the server-side cookie."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Characters",
+      "item": [
+        {
+          "name": "List Characters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/characters?include_user=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "characters"
+              ],
+              "query": [
+                {
+                  "key": "include_user",
+                  "value": "true",
+                  "description": "Include characters created by the authenticated user."
+                },
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}",
+                  "description": "Optional explicit user id filter."
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chats",
+      "item": [
+        {
+          "name": "List Chats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chats?limit=20&user_id={{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chats"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}",
+                  "description": "Optional user id. Leave blank to use the authenticated user."
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Chat Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chats/{{chatId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chats",
+                "{{chatId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Chat Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hello there!\",\n  \"character_slug\": \"assistant-character\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chats/{{chatId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chats",
+                "{{chatId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Characters",
+      "item": [
+        {
+          "name": "List User Characters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-characters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-characters"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Character",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nova\",\n  \"slug\": \"nova\",\n  \"title\": \"AI Companion\",\n  \"personality\": \"Friendly, curious\",\n  \"tags\": [\"ai\", \"companion\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-characters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-characters"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Character",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Title\",\n  \"personality\": \"Supportive and thoughtful\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-characters/{{characterId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-characters",
+                "{{characterId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Coins",
+      "item": [
+        {
+          "name": "Get Coin Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/coins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "coins"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Generated Images",
+      "item": [
+        {
+          "name": "List Generated Images",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generated-images?limit=24",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "generated-images"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "24"
+                },
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}",
+                  "description": "Optional user filter."
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Generated Image Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remote_url\": \"https://example.com/render.png\",\n  \"prompt\": \"A futuristic cityscape at sunset\",\n  \"negative_prompt\": \"low quality, blurry\",\n  \"style\": \"realistic\",\n  \"aspect_ratio\": \"16:9\",\n  \"quality\": 4,\n  \"api_type\": \"replicate\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generated-images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "generated-images"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Generated Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generated-images/{{imageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "generated-images",
+                "{{imageId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Generated Images",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generated-images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "generated-images"
+              ]
+            },
+            "description": "Removes all generated image records for the authenticated user."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Generated Videos",
+      "item": [
+        {
+          "name": "List Generated Videos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generated-videos?limit=12",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "generated-videos"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "12"
+                },
+                {
+                  "key": "user_id",
+                  "value": "{{userId}}",
+                  "description": "Optional user filter."
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Generated Video Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remote_url\": \"https://example.com/video.mp4\",\n  \"prompt\": \"A cinematic drone shot over mountains\",\n  \"thumbnail_url\": \"https://example.com/video-thumb.jpg\",\n  \"model\": \"runway-gen2\",\n  \"duration_seconds\": 10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generated-videos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "generated-videos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Generated Video",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generated-videos/{{videoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "generated-videos",
+                "{{videoId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Generated Videos",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/generated-videos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "generated-videos"
+              ]
+            },
+            "description": "Removes all generated video records for the authenticated user."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8888/soulsync-full/backend/public/api",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "chatId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "characterId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "imageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "videoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "referenceNo",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
