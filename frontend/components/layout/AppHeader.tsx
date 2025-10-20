@@ -7,6 +7,8 @@ import { useCoins } from '@/components/coins/CoinContext';
 import AccountSettingsModal from '@/components/account/AccountSettingsModal';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ProBenefitsModal from '@/components/pro/ProBenefitsModal';
+import ProExclusiveOfferModal from '@/components/pro/ProExclusiveOfferModal';
 // import HeaderPromoBanner from './HeaderPromoBanner';
 
 const AppHeader = () => {
@@ -22,6 +24,9 @@ const AppHeader = () => {
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showProBenefits, setShowProBenefits] = useState(false);
+  const [showProOffer, setShowProOffer] = useState(false);
+  const [selectedProPlan, setSelectedProPlan] = useState<'monthly' | 'annual'>('annual');
   const router = useRouter();
 
   useEffect(() => {
@@ -53,6 +58,27 @@ const AppHeader = () => {
   const handleNavigate = (path: string) => {
     setShowAccountMenu(false);
     router.push(path);
+  };
+
+  const handleOpenPro = () => {
+    setSelectedProPlan('annual');
+    setShowProOffer(false);
+    setShowProBenefits(true);
+  };
+
+  const handleCloseProBenefits = () => {
+    setShowProBenefits(false);
+    setShowProOffer(true);
+  };
+
+  const handleCloseProOffer = () => {
+    setShowProOffer(false);
+  };
+
+  const handlePlanSelection = (planId: string) => {
+    if (planId === 'monthly' || planId === 'annual') {
+      setSelectedProPlan(planId);
+    }
   };
 
   const initials = user?.email
@@ -110,7 +136,11 @@ const AppHeader = () => {
             )}
 
             {/* Get Pro Button - Fixed width */}
-            <button className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
+            <button
+              className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
+              onClick={handleOpenPro}
+              type="button"
+            >
               <span className="relative z-10">Get Pro</span>
               <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
@@ -212,7 +242,14 @@ const AppHeader = () => {
                           <span className="text-xs text-gray-500">Low balance!</span>
                         </div>
                       </div>
-                      <button className="px-3 py-2 text-xs font-semibold text-white rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition">
+                      <button
+                        className="px-3 py-2 text-xs font-semibold text-white rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition"
+                        onClick={() => {
+                          setShowAccountMenu(false);
+                          handleOpenPro();
+                        }}
+                        type="button"
+                      >
                         Get PRO
                       </button>
                     </div>
@@ -277,6 +314,20 @@ const AppHeader = () => {
           user={user}
         />
       )}
+
+      <ProBenefitsModal
+        open={showProBenefits}
+        onClose={handleCloseProBenefits}
+        onSelectPlan={handlePlanSelection}
+        initialPlanId={selectedProPlan}
+      />
+
+      <ProExclusiveOfferModal
+        open={showProOffer}
+        onClose={handleCloseProOffer}
+        onActivate={handlePlanSelection}
+        initialPlanId={selectedProPlan}
+      />
     </>
   );
 };
