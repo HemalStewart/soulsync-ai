@@ -163,9 +163,12 @@ class Chats extends BaseController
         ];
 
         if (empty($messages)) {
-            $introLine = $character['intro_line']
-                ?? ($character['greeting'] ?? null)
-                ?? "Hey there! I'm {$character['name']}, {$character['title']}. How are you today?";
+            $defaultIntro = "Hey there! I'm {$character['name']}, {$character['title']}. How are you today?";
+            $introLine = $this->firstNonEmptyString([
+                $character['intro_line'] ?? null,
+                $character['greeting'] ?? null,
+                $defaultIntro,
+            ]);
 
             $messages[] = [
                 'sender'     => 'ai',
@@ -179,6 +182,27 @@ class Chats extends BaseController
             'character' => $characterData,
             'messages'  => $messages,
         ]);
+    }
+
+    /**
+     * Returns the first non-empty string value from the provided list.
+     *
+     * @param list<mixed> $values
+     */
+    private function firstNonEmptyString(array $values): string
+    {
+        foreach ($values as $value) {
+            if (! is_string($value)) {
+                continue;
+            }
+
+            $trimmed = trim($value);
+            if ($trimmed !== '') {
+                return $trimmed;
+            }
+        }
+
+        return '';
     }
 
     public function send(string $slug)

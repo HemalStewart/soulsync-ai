@@ -203,7 +203,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Returns the last 200 messages for the given chat. The `character` object includes `greeting` and `intro_line` so the UI can prepend the conversation opener when it isn't persisted.",
+            "description": "Returns the last 200 messages for the given chat. The `character` object includes `greeting` and `intro_line` so the UI can prepend the conversation opener when it isn't persisted. Empty strings are automatically skipped by the backend and the first non-empty greeting (or the default intro sentence) is returned as the initial AI message.",
             "url": {
               "raw": "{{baseUrl}}/chats/{{chatId}}",
               "host": [
