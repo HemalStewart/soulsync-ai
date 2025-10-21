@@ -34,7 +34,7 @@ const ProBenefitsModal = ({ open, onClose, onSelectPlan, initialPlanId }: ProBen
       rafId = window.requestAnimationFrame(() => setIsVisible(true));
     } else {
       setIsVisible(false);
-      timeoutId = window.setTimeout(() => setIsMounted(false), 200);
+      timeoutId = window.setTimeout(() => setIsMounted(false), 300);
     }
 
     return () => {
@@ -86,13 +86,13 @@ const ProBenefitsModal = ({ open, onClose, onSelectPlan, initialPlanId }: ProBen
   };
 
   return (
-    <div className={`fixed inset-0 z-[120] flex items-center justify-center px-3 py-6 sm:px-6 transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`fixed inset-0 z-[120] flex items-center justify-center px-3 py-6 sm:px-6 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
       <div
-        className={`absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
 
-      <div className={`relative flex w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-blue-200/40 bg-white shadow-2xl transition-all duration-200 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'} max-h-[90vh] overflow-y-auto`}>
+      <div className={`relative flex w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-blue-200/40 bg-white shadow-2xl ${isVisible ? 'animate-scale-up' : 'animate-scale-down'} max-h-[90vh] overflow-y-auto`}>
         <div className="absolute right-3 top-3 sm:right-4 sm:top-4">
           <button
             onClick={onClose}

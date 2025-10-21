@@ -31,7 +31,7 @@ const ProExclusiveOfferModal = ({ open, onClose, onActivate, initialPlanId }: Pr
       rafId = window.requestAnimationFrame(() => setIsVisible(true));
     } else {
       setIsVisible(false);
-      timeoutId = window.setTimeout(() => setIsMounted(false), 200);
+      timeoutId = window.setTimeout(() => setIsMounted(false), 300);
     }
 
     return () => {
@@ -89,13 +89,13 @@ const ProExclusiveOfferModal = ({ open, onClose, onActivate, initialPlanId }: Pr
   };
 
   return (
-    <div className={`fixed inset-0 z-[130] flex items-center justify-center px-2 py-3 transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`fixed inset-0 z-[130] flex items-center justify-center px-2 py-3 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
       <div
-        className={`absolute inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
 
-      <div className={`relative w-full max-w-sm overflow-hidden rounded-2xl border border-purple-200/40 bg-white shadow-2xl transition-all duration-200 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'} max-h-[95vh] overflow-y-auto`}>
+      <div className={`relative w-full max-w-sm overflow-hidden rounded-2xl border border-purple-200/40 bg-white shadow-2xl ${isVisible ? 'animate-scale-up' : 'animate-scale-down'} max-h-[95vh] overflow-y-auto`}>
         <div className="absolute right-2 top-2">
           <button
             onClick={onClose}
