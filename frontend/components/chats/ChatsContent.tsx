@@ -157,6 +157,17 @@ const ChatsContent = () => {
   }, [characterParam, defaultChatSlug, characters]);
 
   useEffect(() => {
+    if (!isMobileView) {
+      return;
+    }
+
+    if (characterParam) {
+      setShowMobileChat(true);
+      setShowInfoPanel(false);
+    }
+  }, [characterParam, isMobileView]);
+
+  useEffect(() => {
     if (!user || !selectedChat) {
       setShowMobileChat(false);
       setChatDetail(null);
