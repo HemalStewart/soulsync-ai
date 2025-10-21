@@ -106,7 +106,7 @@ const ProExclusiveOfferModal = ({ open, onClose, onActivate, initialPlanId }: Pr
           </button>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 px-4 py-5 text-white">
+        <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 px-4 py-5 text-white">
           <div className="flex flex-col gap-2.5 text-center">
             <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 shadow-lg">
               <Sparkles className="h-5 w-5" />
@@ -158,7 +158,7 @@ const ProExclusiveOfferModal = ({ open, onClose, onActivate, initialPlanId }: Pr
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
               onClick={handleActivate}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg transition hover:from-purple-700 hover:to-blue-700 sm:w-auto"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2.5 text-xs font-bold text-white shadow-lg transition hover:from-blue-700 hover:to-blue-600 sm:w-auto"
             >
               Activate 75% Off!
             </button>

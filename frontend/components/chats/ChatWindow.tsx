@@ -236,18 +236,20 @@ const ChatWindow = ({
                   <div className="group flex items-end justify-start gap-2">
                     <div
                       onClick={() => handleCopyMessage(message.message, index)}
-                      className="relative max-w-xs sm:max-w-md lg:max-w-2xl cursor-pointer rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-500 to-blue-600 px-4 sm:px-6 py-3 sm:py-4 text-white text-sm sm:text-base shadow-md transition-shadow duration-300 hover:shadow-xl"
+                      className="relative max-w-xs sm:max-w-md lg:max-w-2xl cursor-pointer rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-500 to-blue-600 px-4 sm:px-6 pt-3 pb-5 sm:pt-4 sm:pb-6 text-white text-sm sm:text-base shadow-md transition-shadow duration-300 hover:shadow-xl"
                     >
                       {message.message.split('\n').map((line, lineIndex) => (
                         <p key={`${lineIndex}-${line}`} className="my-1 whitespace-pre-wrap">
                           {line}
                         </p>
                       ))}
-                      <div className="absolute bottom-2 right-4 opacity-0 transition-opacity duration-300 group-hover:opacity-70">
-                        <span className="text-xs text-blue-50">
+                      <div className="absolute bottom-1 right-4 opacity-0 transition-opacity duration-300 group-hover:opacity-80">
+                        <span className="text-[11px] text-blue-100">
                           {copiedMessageIndex === index ? 'Copied!' : 'Click to copy'}
                         </span>
                       </div>
+
+
                     </div>
                     <div className="text-xs text-gray-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex-shrink-0">
                       {formatTimestamp(message.created_at)}
