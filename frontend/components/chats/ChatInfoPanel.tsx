@@ -27,28 +27,29 @@ const ChatInfoPanel = ({
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 sm:p-5 lg:p-6">
           {/* Video/Image Section */}
-          <div className="relative mb-4 sm:mb-5 h-48 sm:h-56 md:h-64 lg:h-80 w-full">
-            {videoUrl ? (
-              <video
-                src={videoUrl}
-                className="h-full w-full rounded-xl object-cover"
-                controls
-                {...videoPosterProps}
-              />
-            ) : avatar ? (
-              <Image
-                src={avatar}
-                alt={characterName}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
-                className="rounded-xl object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
-                <User className="h-12 sm:h-14 lg:h-16 w-12 sm:w-14 lg:w-16 text-white drop-shadow-lg" />
-              </div>
-            )}
-          </div>
+          <div className="relative mb-4 sm:mb-5 h-48 sm:h-56 md:h-64 lg:h-80 w-full rounded-xl overflow-hidden">
+  {videoUrl ? (
+    <video
+      src={videoUrl}
+      className="h-full w-full object-cover"
+      controls
+      {...videoPosterProps}
+    />
+  ) : avatar ? (
+    <Image
+      src={avatar}
+      alt={characterName}
+      fill
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
+      className="object-cover"
+    />
+  ) : (
+    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
+      <User className="h-12 sm:h-14 lg:h-16 w-12 sm:w-14 lg:w-16 text-white drop-shadow-lg" />
+    </div>
+  )}
+</div>
+
 
           {/* Action Buttons */}
           <div className="mb-4 sm:mb-5 lg:mb-6 flex flex-col gap-2 sm:gap-2.5">

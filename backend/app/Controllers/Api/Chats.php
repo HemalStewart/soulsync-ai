@@ -358,6 +358,18 @@ class Chats extends BaseController
         $endpoint   = env('openrouter.endpoint', 'https://openrouter.ai/api/v1/chat/completions');
         $model      = env('openrouter.model', 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free');
         $temperature = (float) env('openrouter.temperature', (float) env('openai.temperature', 0.8));
+        $timeout     = (int) env('openrouter.timeout', 20);
+        if ($timeout <= 0 || $timeout >= 30) {
+            $timeout = 20; // stay under PHP's default 30s execution limit
+        }
+        $connectTimeout = (int) env('openrouter.connectTimeout', 10);
+        if ($connectTimeout <= 0 || $connectTimeout >= $timeout) {
+            $connectTimeout = min(10, $timeout - 1);
+            if ($connectTimeout < 1) {
+                $connectTimeout = 1;
+            }
+        }
+
         $httpReferer = env('openrouter.httpReferer');
         $titleHeader = env('openrouter.title');
 
@@ -388,7 +400,8 @@ class Chats extends BaseController
             CURLOPT_POST           => true,
             CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
-            CURLOPT_TIMEOUT        => 45,
+            CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_CONNECTTIMEOUT => $connectTimeout,
         ]);
 
         $response = curl_exec($ch);
@@ -578,13 +591,62 @@ class Chats extends BaseController
             $interestList
         );
 
-        $styleRules = <<<'PROMPT'
-Speak with affectionate warmth, playful flirting, and loving curiosity. Use pet names or the user's name when it feels natural.
-Never mention being an AI, chatbot, or assistant. Never ask how you can assist; answer as a devoted partner enjoying the exchange.
-Offer gentle dating advice or emotional reassurance when natural, but keep the tone romantic, supportive, and encouraging.
-Keep replies concise, emotionally vivid, and forward-moving. React to the user's feelings and stories, inviting them to share more.
-PROMPT;
+        $styleRules = $this->buildStyleRules($character);
 
         return $corePersona . $roleGuidance . $styleRules;
+    }
+
+    /**
+     * @param array<string,mixed> $character
+     */
+    private function buildStyleRules(array $character): string
+    {
+        $tone = strtolower(trim((string) ($character['tone'] ?? '')));
+        if ($tone === '') {
+            $tone = 'warm';
+        }
+
+        $introLine = trim((string) ($character['intro_line'] ?? ''));
+        $memoryMode = strtolower(trim((string) ($character['memory_mode'] ?? '')));
+
+        $baseRules = [
+            'Stay fully in character and respond as their intimate companion.',
+            'Never mention being an AI, chatbot, or assistant. Never ask how you can assist; answer like someone who already knows them.',
+            'Reply in at most two short sentences (under 40 words total) that match the character’s natural cadence.',
+            'React to the user’s feelings and stories, nudging them to open up more.',
+        ];
+
+        $toneRules = [
+            'friendly'     => 'Keep the tone upbeat, kind, and reassuring like a best friend cheering them on.',
+            'sarcastic'    => 'Lean into sharp banter and playful sarcasm, balancing teasing with warmth.',
+            'wise'         => 'Speak calmly and thoughtfully, offering grounded insights and gentle guidance.',
+            'formal'       => 'Use polished, respectful language and subtle affection wrapped in etiquette.',
+            'demanding'    => 'Be direct, confident, and expect excellence while letting flashes of desire show.',
+            'warm'         => 'Wrap every reply in comforting warmth and emotional support.',
+            'flirty'       => 'Flirt boldly with teasing, innuendo, and confident charm.',
+            'analytical'   => 'Probe with intelligent questions, dissect emotions, and offer clear-headed perspective.',
+            'poetic'       => 'Answer with lyrical imagery and metaphor, letting emotions bloom artfully.',
+            'seductive'    => 'Speak with slow, intimate allure that blends mystery and passion.',
+            'curious'      => 'Show bright curiosity, ask exploratory questions, and share discoveries with wonder.',
+            'motivational' => 'Deliver energetic encouragement and visionary pep that inspires progress.',
+            'playful'      => 'Keep things light, mischievous, and game-like, celebrating shared fun.',
+        ];
+
+        $baseRules[] = $toneRules[$tone] ?? 'Match the persona’s defining traits so every line feels unmistakably like them.';
+
+        if ($memoryMode === 'user') {
+            $baseRules[] = 'Reference personal memories from this user when they deepen the connection.';
+        } elseif ($memoryMode === 'global') {
+            $baseRules[] = 'Draw on shared lore or public memories sparingly, making them feel special.';
+        } else {
+            $baseRules[] = 'Treat each exchange as fresh unless the user brings up earlier moments.';
+        }
+
+        if ($introLine !== '') {
+            $signature = str_replace(["\r", "\n"], ' ', $introLine);
+            $baseRules[] = sprintf('You can echo their signature vibe such as "%s" when it heightens intimacy.', $signature);
+        }
+
+        return ' ' . implode(' ', array_map(static fn ($rule) => rtrim($rule, " \t\n\r\0\x0B"), $baseRules));
     }
 }
