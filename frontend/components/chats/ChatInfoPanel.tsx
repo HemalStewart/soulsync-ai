@@ -6,6 +6,8 @@ interface ChatInfoPanelProps {
   characterName: string;
   characterAvatar: string | null;
   characterTitle?: string | null;
+  characterRole?: string | null;
+  characterAge?: number | null;
   videoUrl?: string | null;
   tags?: string[];
   description?: string;
@@ -15,12 +17,25 @@ const ChatInfoPanel = ({
   characterName,
   characterAvatar,
   characterTitle,
+  characterRole,
+  characterAge,
   videoUrl,
   tags = [],
   description,
 }: ChatInfoPanelProps) => {
   const avatar = characterAvatar?.trim() ?? '';
   const videoPosterProps = avatar ? { poster: avatar } : {};
+  const showRole =
+    !!characterRole &&
+    (!characterTitle ||
+      characterTitle.localeCompare(characterRole, undefined, { sensitivity: 'accent' }) !== 0);
+  const metaDetails: string[] = [];
+  if (showRole && characterRole) {
+    metaDetails.push(characterRole);
+  }
+  if (typeof characterAge === 'number' && characterAge > 0) {
+    metaDetails.push(`${characterAge} yrs old`);
+  }
 
   return (
     <div className="flex flex-col bg-white h-full overflow-hidden w-full lg:w-80">
@@ -69,6 +84,11 @@ const ChatInfoPanel = ({
           <h2 className="mb-1 text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{characterName}</h2>
           {characterTitle && (
             <p className="mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600">{characterTitle}</p>
+          )}
+          {!!metaDetails.length && (
+            <p className="mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600">
+              {metaDetails.join(' • ')}
+            </p>
           )}
 
           {/* Tags */}

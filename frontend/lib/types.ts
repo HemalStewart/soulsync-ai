@@ -13,6 +13,8 @@ export interface CharacterApiModel {
   greeting?: string | null;
   intro_line?: string | null;
   source?: 'global' | 'user';
+  age?: number | null;
+  role?: string | null;
 }
 
 export interface CharacterCard {
@@ -27,6 +29,8 @@ export interface CharacterCard {
   source?: 'global' | 'user';
   greeting?: string | null;
   introLine?: string | null;
+  age?: number | null;
+  role?: string | null;
 }
 
 export interface ChatSummary {
@@ -35,6 +39,8 @@ export interface ChatSummary {
   character_name: string;
   character_avatar: string | null;
   character_title: string | null;
+  character_role?: string | null;
+  character_age?: number | null;
   sender: 'user' | 'ai';
   message: string;
   created_at: string;
@@ -57,6 +63,8 @@ export interface CharacterChatDetail {
     intro_line?: string | null;
     greeting?: string | null;
     source?: 'global' | 'user';
+    role?: string | null;
+    age?: number | null;
   };
   messages: ChatMessage[];
 }
@@ -104,4 +112,6 @@ export interface UserCharacterRecord {
   created_at: string;
   updated_at: string | null;
   source: 'user';
+  age?: number | null;
+  role?: string | null;
 }

@@ -282,6 +282,15 @@ const CharacterGrid = ({
           const hasAvatar = Boolean(character.avatar && character.avatar.trim() !== '');
           const imageTransitionClass =
             hoveredCard === index && hasVideo ? 'opacity-0 scale-95' : 'opacity-100 scale-100';
+          const trimmedRole = (character.role ?? '').trim();
+          const metaDetails: string[] = [];
+          if (typeof character.age === 'number' && character.age > 0) {
+            metaDetails.push(`${character.age} yrs`);
+          }
+          if (trimmedRole !== '') {
+            metaDetails.push(trimmedRole);
+          }
+          const metaLine = metaDetails.join(' • ');
 
           return (
             <div
@@ -344,7 +353,7 @@ const CharacterGrid = ({
               )}
 
               <div className="absolute inset-x-0 bottom-0 p-3 sm:p-6 card-content">
-                <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="mb-1 flex items-center justify-between gap-2">
                   <h3 className="text-lg sm:text-2xl font-bold text-white drop-shadow-lg group-hover:translate-y-0 transition-all duration-300 truncate">
                     {character.name}
                   </h3>
@@ -357,6 +366,11 @@ const CharacterGrid = ({
                     </button>
                   </div>
                 </div>
+                {metaLine && (
+                  <p className="mb-2 text-xs sm:text-sm text-white/80 drop-shadow-lg truncate">
+                    {metaLine}
+                  </p>
+                )}
 
                 {hoveredCard === index && (
                   <p className="mb-3 text-xs sm:text-sm text-white drop-shadow-lg animate-fade-in-up line-clamp-2">

@@ -83,6 +83,16 @@ class UserCharacters extends BaseController
             $errors['avatar'] = 'Avatar payload is too large.';
         }
 
+        $age = null;
+        $rawAge = $payload['age'] ?? null;
+        if ($rawAge !== null && $rawAge !== '') {
+            if (is_numeric($rawAge) && (int) $rawAge > 0) {
+                $age = (int) $rawAge;
+            } else {
+                $errors['age'] = 'Age must be a positive whole number.';
+            }
+        }
+
         if (! empty($errors)) {
             return $this->failValidationErrors($errors);
         }
@@ -141,6 +151,10 @@ class UserCharacters extends BaseController
             'created_at'  => $now,
             'updated_at'  => $now,
         ];
+
+        if ($db->fieldExists('age', 'user_characters')) {
+            $data['age'] = $age;
+        }
 
         try {
             $builder->insert($data);
@@ -266,6 +280,12 @@ class UserCharacters extends BaseController
             'created_at'  => $row['created_at'],
             'updated_at'  => $row['updated_at'] ?? null,
             'source'      => 'user',
+            'age'         => array_key_exists('age', $row) && $row['age'] !== null
+                ? (int) $row['age']
+                : null,
+            'role'        => isset($row['role']) && trim((string) $row['role']) !== ''
+                ? trim((string) $row['role'])
+                : null,
         ];
     }
 
@@ -300,6 +320,25 @@ class UserCharacters extends BaseController
             ])->setStatusCode(404);
         }
 
+        $errors = [];
+        $rawAge = $input['age'] ?? null;
+        $age = null;
+        if (array_key_exists('age', $input)) {
+            if ($rawAge === null || $rawAge === '') {
+                $age = null;
+            } elseif (is_numeric($rawAge) && (int) $rawAge > 0) {
+                $age = (int) $rawAge;
+            } else {
+                $errors['age'] = 'Age must be a positive whole number.';
+            }
+        } elseif (array_key_exists('age', $character) && $character['age'] !== null) {
+            $age = (int) $character['age'];
+        }
+
+        if (! empty($errors)) {
+            return $this->failValidationErrors($errors);
+        }
+
         $data = [
             'name'        => $input['name'] ?? $character['name'],
             'title'       => $input['title'] ?? $character['title'],
@@ -314,12 +353,18 @@ class UserCharacters extends BaseController
             'updated_at'  => date('Y-m-d H:i:s'),
         ];
 
+        if ($db->fieldExists('age', 'user_characters')) {
+            $data['age'] = $age;
+        }
+
         $builder->where('id', $id)->update($data);
+
+        $updatedRecord = array_merge($character, $data);
 
         return $this->response->setJSON([
             'status' => 'success',
             'message' => 'Character updated successfully',
-            'data' => $data,
+            'data' => $this->formatRow($updatedRecord),
         ]);
     }
 

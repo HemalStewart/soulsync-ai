@@ -85,6 +85,7 @@ const mapCharacter = (character: CharacterApiModel): CharacterCard => {
   const description =
     character.personality ||
     character.title ||
+    character.role ||
     'Always ready for a great conversation.';
 
   const isUserSource = character.source === 'user';
@@ -94,6 +95,14 @@ const mapCharacter = (character: CharacterApiModel): CharacterCard => {
     : isUserSource
       ? ''
       : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop';
+  const rawRole = typeof character.role === 'string' ? character.role.trim() : '';
+  const role = rawRole !== '' ? rawRole : null;
+  const age =
+    typeof character.age === 'number'
+      ? character.age
+      : typeof character.age === 'string' && character.age.trim() !== ''
+        ? Number.isFinite(Number(character.age)) ? Number(character.age) : null
+        : null;
   const rawIntroLine =
     typeof character.intro_line === 'string' ? character.intro_line.trim() : '';
   const rawGreeting =
@@ -105,19 +114,26 @@ const mapCharacter = (character: CharacterApiModel): CharacterCard => {
       : rawIntroLine !== ''
         ? rawIntroLine
         : null;
+  const rawTitle = typeof character.title === 'string' ? character.title.trim() : '';
+  const title =
+    rawTitle !== ''
+      ? rawTitle
+      : role ?? 'AI Companion';
 
   return {
     id: character.id,
     name: character.name,
     slug: character.slug,
     avatar,
-    title: character.title || 'AI Companion',
+    title,
     description,
     tags: tags.length ? tags : ['AI Companion'],
     videoUrl: character.video_url || undefined,
     source: character.source ?? 'global',
     greeting,
     introLine: introLine || null,
+    role,
+    age: age ?? null,
   };
 };
 
@@ -363,6 +379,7 @@ export interface CreateUserCharacterPayload {
   voice?: string;
   memory_mode: 'user' | 'global' | 'none';
   visibility: 'private' | 'public';
+  age?: number | null;
 }
 
 export const getUserCharacters = async (): Promise<UserCharacterRecord[]> => {

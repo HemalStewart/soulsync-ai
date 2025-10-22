@@ -340,6 +340,10 @@ const ChatsContent = () => {
     panelCharacter?.name ?? characterProfile?.name ?? '';
   const resolvedAvatar =
     panelCharacter?.avatar ?? characterProfile?.avatar ?? null;
+  const resolvedRole =
+    panelCharacter?.role ?? characterProfile?.role ?? null;
+  const resolvedAge =
+    panelCharacter?.age ?? characterProfile?.age ?? null;
   const baseMessages = chatDetail?.messages ?? [];
   const resolvedGreeting = useMemo(() => {
     const candidates = [
@@ -561,6 +565,8 @@ const ChatsContent = () => {
                               characterTitle={
                                 panelCharacter?.title ?? characterProfile?.title ?? null
                               }
+                              characterRole={resolvedRole}
+                              characterAge={resolvedAge}
                               videoUrl={panelCharacter?.video_url ?? characterProfile?.videoUrl}
                               tags={characterProfile?.tags}
                               description={characterProfile?.description}
@@ -574,6 +580,8 @@ const ChatsContent = () => {
                             characterTitle={
                               panelCharacter?.title ?? characterProfile?.title ?? null
                             }
+                            characterRole={resolvedRole}
+                            characterAge={resolvedAge}
                             videoUrl={panelCharacter?.video_url ?? characterProfile?.videoUrl}
                             tags={characterProfile?.tags}
                             description={characterProfile?.description}

@@ -71,6 +71,7 @@ interface CharacterFormState {
   tone: string;
   voice: string;
   greeting: string;
+  age: string;
 }
 
 const sampleCharacters: CreatedCharacter[] = [
@@ -150,6 +151,7 @@ const CreateContent = () => {
     tone: '',
     voice: '',
     greeting: '',
+    age: '',
   });
   const [traitInput, setTraitInput] = useState('');
   const [characters, setCharacters] = useState<CreatedCharacter[]>([]);
@@ -225,6 +227,7 @@ const CreateContent = () => {
       expertise: '',
       tone: '',
       greeting: '',
+      age: '',
     });
     setTraitInput('');
     if (clearStatus) {
@@ -307,6 +310,7 @@ const CreateContent = () => {
       tone: record.tone ?? '',
       voice: record.voice ?? '',
       greeting: record.greeting ?? '',
+      age: typeof record.age === 'number' && record.age > 0 ? String(record.age) : '',
     });
 
     setTraitInput('');
@@ -369,6 +373,17 @@ const CreateContent = () => {
       return;
     }
 
+    const trimmedAge = formState.age.trim();
+    let parsedAge: number | null = null;
+    if (trimmedAge !== '') {
+      const candidate = Number.parseInt(trimmedAge, 10);
+      if (Number.isNaN(candidate) || candidate <= 0) {
+        setSaveError('Age must be a positive whole number.');
+        return;
+      }
+      parsedAge = candidate;
+    }
+
     if (!editingCharacterId && balance !== null && balance < CHARACTER_CREATION_COST) {
       setSaveError('You need more coins to publish a new character.');
       setShowCoinModal(true);
@@ -394,6 +409,7 @@ const CreateContent = () => {
         voice: formState.voice.trim(),
         memory_mode: 'user' as const,
         visibility: 'private' as const,
+        age: parsedAge ?? undefined,
       };
 
       let resultRecord: UserCharacterRecord;
@@ -593,6 +609,23 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="e.g. Enigmatic Storyteller"
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-primary focus:outline-none focus:ring-brand"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs sm:text-sm font-medium text-gray-700">
+                          Age <span className="text-gray-400">(optional)</span>
+                        </label>
+                        <input
+                          value={formState.age}
+                          onChange={(event) =>
+                            setFormState((prev) => ({
+                              ...prev,
+                              age: event.target.value.replace(/[^0-9]/g, '').slice(0, 3),
+                            }))
+                          }
+                          inputMode="numeric"
+                          placeholder="e.g. 28"
                           className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-primary focus:outline-none focus:ring-brand"
                         />
                       </div>

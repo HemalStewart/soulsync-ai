@@ -24,7 +24,7 @@ class Characters extends BaseController
         $hasUserTable = $db->tableExists('user_characters');
 
         $globalRows = $db->table('ai_characters')
-            ->select('id, name, slug, avatar, title, personality, expertise, tone, tags, video_url, intro_line, created_at, is_active')
+            ->select('id, name, slug, avatar, title, personality, expertise, tone, tags, video_url, intro_line, created_at, is_active, age, role')
             ->where('is_active', 1)
             ->orderBy('created_at', 'DESC')
             ->get()
@@ -32,9 +32,35 @@ class Characters extends BaseController
 
         $data = array_map([$this, 'mapGlobalCharacter'], $globalRows);
 
+        $userTableHasAge = $hasUserTable && $db->fieldExists('age', 'user_characters');
+        $userTableHasRole = $hasUserTable && $db->fieldExists('role', 'user_characters');
+
         if ($includeUser && $userId && $hasUserTable) {
+            $userSelect = [
+                'id',
+                'name',
+                'slug',
+                'avatar',
+                'title',
+                'personality',
+                'expertise',
+                'tone',
+                'traits',
+                'created_at',
+                'is_active',
+                'greeting',
+            ];
+
+            if ($userTableHasAge) {
+                $userSelect[] = 'age';
+            }
+
+            if ($userTableHasRole) {
+                $userSelect[] = 'role';
+            }
+
             $userRows = $db->table('user_characters')
-                ->select('id, name, slug, avatar, title, personality, expertise, tone, traits, created_at, is_active, greeting')
+                ->select(implode(', ', $userSelect))
                 ->where('user_id', $userId)
                 ->where('is_active', 1)
                 ->orderBy('created_at', 'DESC')
@@ -63,13 +89,18 @@ class Characters extends BaseController
     private function mapGlobalCharacter(array $row): array
     {
         $introLine = $row['intro_line'] ?? null;
+        $rawTitle = isset($row['title']) ? trim((string) $row['title']) : '';
+        $rawRole = isset($row['role']) ? trim((string) $row['role']) : '';
+        $title = $rawTitle !== '' ? $rawTitle : ($rawRole !== '' ? $rawRole : null);
+        $role = $rawRole !== '' ? $rawRole : null;
+        $age = isset($row['age']) && $row['age'] !== null ? (int) $row['age'] : null;
 
         return [
             'id'         => (string) $row['id'],
             'name'       => $row['name'],
             'slug'       => $row['slug'],
             'avatar'     => $row['avatar'] ?? null,
-            'title'      => $row['title'] ?? null,
+            'title'      => $title,
             'personality'=> $row['personality'] ?? null,
             'expertise'  => $row['expertise'] ?? null,
             'tone'       => $row['tone'] ?? null,
@@ -80,6 +111,8 @@ class Characters extends BaseController
             'source'     => 'global',
             'intro_line' => $introLine,
             'greeting'   => $row['greeting'] ?? $introLine,
+            'age'        => $age,
+            'role'       => $role,
         ];
     }
 
@@ -101,6 +134,9 @@ class Characters extends BaseController
         }
 
         $tags = $traits ? implode(', ', $traits) : null;
+        $age = array_key_exists('age', $row) && $row['age'] !== null ? (int) $row['age'] : null;
+        $rawRole = isset($row['role']) ? trim((string) $row['role']) : '';
+        $role = $rawRole !== '' ? $rawRole : null;
 
         return [
             'id'          => 'user-' . $row['id'],
@@ -118,6 +154,8 @@ class Characters extends BaseController
             'source'      => 'user',
             'greeting'    => $row['greeting'] ?? null,
             'intro_line'  => $row['greeting'] ?? null,
+            'age'         => $age,
+            'role'        => $role,
         ];
     }
 }

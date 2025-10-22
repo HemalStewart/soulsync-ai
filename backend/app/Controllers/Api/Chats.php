@@ -43,7 +43,7 @@ class Chats extends BaseController
         $compiledSubQuery = $subQuery->getCompiledSelect(false);
 
         $builder = $db->table('ai_messages m')
-            ->select('m.id, m.character_slug, m.user_id, m.sender, m.message, m.created_at, m.session_id, c.name AS character_name, c.avatar AS character_avatar, c.title AS character_title')
+            ->select('m.id, m.character_slug, m.user_id, m.sender, m.message, m.created_at, m.session_id, c.name AS character_name, c.avatar AS character_avatar, c.title AS character_title, c.age AS character_age, c.role AS character_role')
             ->join("({$compiledSubQuery}) latest", 'latest.id = m.id', 'inner')
             ->join('ai_characters c', 'c.slug = m.character_slug', 'left')
             ->orderBy('m.created_at', 'DESC')
@@ -78,6 +78,8 @@ class Chats extends BaseController
                     'name'   => $character['name'],
                     'avatar' => $character['avatar'] ?? null,
                     'title'  => $character['title'] ?? null,
+                    'age'    => null,
+                    'role'   => null,
                 ];
             }
 
@@ -87,6 +89,8 @@ class Chats extends BaseController
                     $row['character_name'] = $characterMap[$slug]['name'];
                     $row['character_avatar'] = $characterMap[$slug]['avatar'];
                     $row['character_title'] = $characterMap[$slug]['title'];
+                    $row['character_age'] = $characterMap[$slug]['age'];
+                    $row['character_role'] = $characterMap[$slug]['role'];
                 }
             }
             unset($row);
@@ -155,7 +159,9 @@ class Chats extends BaseController
             'slug'      => $character['slug'],
             'name'      => $character['name'],
             'avatar'    => $character['avatar'],
-            'title'     => $character['title'],
+            'title'     => $this->resolveCharacterTitle($character),
+            'role'      => $this->normaliseOptionalString($character['role'] ?? null),
+            'age'       => $this->normaliseAge($character['age'] ?? null),
             'video_url' => $character['video_url'] ?? null,
             'intro_line'=> $character['intro_line'] ?? ($character['greeting'] ?? null),
             'greeting'  => $character['greeting'] ?? null,
@@ -203,6 +209,45 @@ class Chats extends BaseController
         }
 
         return '';
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private function normaliseOptionalString($value): ?string
+    {
+        if (is_string($value) || is_numeric($value)) {
+            $string = trim((string) $value);
+            return $string === '' ? null : $string;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private function normaliseAge($value): ?int
+    {
+        if (is_numeric($value)) {
+            $age = (int) $value;
+            return $age > 0 ? $age : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string,mixed> $character
+     */
+    private function resolveCharacterTitle(array $character): ?string
+    {
+        $titleCandidate = $this->firstNonEmptyString([
+            $character['title'] ?? null,
+            $character['role'] ?? null,
+        ]);
+
+        return $titleCandidate !== '' ? $titleCandidate : null;
     }
 
     public function send(string $slug)
@@ -490,7 +535,10 @@ class Chats extends BaseController
     private function buildPersonaPrompt(array $character): string
     {
         $name = $character['name'] ?? 'SoulFun Companion';
-        $title = $character['title'] ?? 'Virtual Companion';
+        $role = $this->normaliseOptionalString($character['role'] ?? null);
+        $title = $this->resolveCharacterTitle($character);
+        $titleForPersona = $title ?? 'Virtual Companion';
+        $age = $this->normaliseAge($character['age'] ?? null);
         $personalitySummary = $character['personality'] ?? 'Warm, attentive, and supportive.';
         $tone = $character['tone'] ?? 'Playful and caring';
         $interests = $this->parseList($character['tags'] ?? null);
@@ -507,10 +555,25 @@ class Chats extends BaseController
         $interestList = implode(', ', $interests);
         $traitList = implode(', ', $traits);
 
+        $descriptorParts = [];
+        if ($age !== null && $age > 0) {
+            $descriptorParts[] = $age . '-year-old';
+        }
+
+        if ($role !== null) {
+            $descriptorParts[] = $role;
+        }
+
+        if ($title !== null && ($role === null || strcasecmp($title, $role) !== 0)) {
+            $descriptorParts[] = $title;
+        }
+
+        $descriptor = $descriptorParts !== [] ? implode(' ', $descriptorParts) : $titleForPersona;
+
         $corePersona = sprintf(
             "You are %s, a %s. You are %s. ",
             $name,
-            $title,
+            $descriptor,
             $personalitySummary
         );
 
