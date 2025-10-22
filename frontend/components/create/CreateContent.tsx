@@ -451,8 +451,9 @@ const CreateContent = () => {
   return (
     <>
     <AppLayout activeTab="create">
-      <div className="flex flex-col bg-gray-50">
-        <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 sm:py-10">
+      <div className="flex flex-1 flex-col bg-gray-50 min-h-0">
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 sm:py-10">
           
 
           <section
@@ -1004,9 +1005,9 @@ const CreateContent = () => {
               )}
             </div>
           </section>
-
         </div>
       </div>
+    </div>
     </AppLayout>
     <CoinLimitModal
       open={showCoinModal}

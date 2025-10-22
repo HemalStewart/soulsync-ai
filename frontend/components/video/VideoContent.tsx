@@ -407,7 +407,8 @@ const VideoContent = () => {
   return (
     <>
     <AppLayout activeTab="video">
-      <div className="flex flex-col bg-gray-50">
+      <div className="flex flex-1 flex-col bg-gray-50 min-h-0">
+        <div className="flex-1 overflow-y-auto">
         <style>{`
           @keyframes fadeUp {
             0% { opacity: 0; transform: translateY(24px); }
@@ -707,9 +708,9 @@ const VideoContent = () => {
               </div>
             )}
           </section>
-
         </div>
       </div>
+    </div>
     </AppLayout>
     <CoinLimitModal
       open={showCoinModal}

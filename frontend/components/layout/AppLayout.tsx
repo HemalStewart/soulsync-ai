@@ -83,7 +83,7 @@ const AppLayout = ({ activeTab, children }: AppLayoutProps) => {
       <div className="flex h-[calc(100dvh-80px)] min-h-0">
         <AppSidebar activeTab={activeTab} />
         <main
-          className={`flex min-h-0 flex-1 flex-col overflow-hidden lg:overflow-y-auto lg:pb-0 ${mainPaddingClass}`}
+          className={`flex min-h-0 flex-1 flex-col overflow-y-auto lg:pb-0 ${mainPaddingClass}`}
         >
           {children}
         </main>
