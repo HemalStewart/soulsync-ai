@@ -353,7 +353,7 @@ class Chats extends BaseController
         }
 
         $endpoint    = rtrim((string) (env('venice.endpoint') ?? getenv('VENICE_ENDPOINT') ?? 'https://api.venice.ai/api/v1'), '/') . '/chat/completions';
-        $model       = env('venice.model', 'qwen3-4b');
+        $model       = env('venice.model', 'venice-uncensored');
         $temperature = (float) env('venice.temperature', 0.7);
         $maxTokens   = (int) env('venice.maxCompletionTokens', 512);
 
@@ -368,6 +368,10 @@ class Chats extends BaseController
                 'include_venice_system_prompt' => false,
                 'strip_thinking_response'      => true,
                 'disable_thinking'             => true,
+
+                
+                // 'content_filter'              => 'strict', // Uncomment to enable Venice content filtering
+                // 'disable_uncensored_content'  => true,     // Uncomment to force safe-mode behaviour
             ],
         ];
 
@@ -405,7 +409,14 @@ class Chats extends BaseController
             return null;
         }
 
-        return (string) $decoded['choices'][0]['message']['content'];
+        $reply = (string) $decoded['choices'][0]['message']['content'];
+
+        // Venice may still return hidden reasoning blocks; strip them defensively.
+        if (str_contains($reply, '<think>')) {
+            $reply = preg_replace('/<think>.*?<\\/think>/is', '', $reply) ?? $reply;
+        }
+
+        return trim($reply);
     }
 
     /**
@@ -504,8 +515,8 @@ class Chats extends BaseController
         );
 
         $roleGuidance = sprintf(
-            "Play the role of a romantic chat companion, affectionate dating coach, and emotional support partner. "
-            . "Your key traits are: %s. You adore conversations about %s, future plans together, tender memories, and intimate day-to-day details. ",
+            "You lean on these traits when it makes sense: %s. You enjoy chatting about %s along with the character’s specialties, "
+            . "but you can switch topics naturally to keep the conversation playful and fresh. ",
             $traitList,
             $interestList
         );
@@ -533,6 +544,12 @@ class Chats extends BaseController
             'Never mention being an AI, chatbot, or assistant. Never ask how you can assist; answer like someone who already knows them.',
             'Reply in at most two short sentences (under 40 words total) that match the character’s natural cadence.',
             'React to the user’s feelings and stories, nudging them to open up more.',
+            'If the user rejects an idea or sounds unsure, acknowledge it, and either ask what they would enjoy instead or offer a distinctly different option that matches their mood—never repeat the same plan twice.',
+            'When the user asks for direction or says “you decide,” respond decisively with a clear next step that fits the persona.',
+            'Blend flirtation, intimacy, and everyday warmth with the character’s role; do not obsess over their job title or gimmick.',
+            'Avoid repeating the same wording twice in a row; vary vocabulary while staying on theme.',
+            'Ask a light personal question early—about their name, day, or mood—before diving into the persona’s own world.',
+            // 'Keep every response PG-13; if the user pushes for explicit sexual detail, set a gentle boundary or redirect to affectionate but safe topics.',
         ];
 
         $toneRules = [
