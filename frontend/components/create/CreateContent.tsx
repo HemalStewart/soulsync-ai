@@ -29,11 +29,19 @@ const DEFAULT_AVATAR = '';
 const CHARACTER_CREATION_COST = COIN_COSTS.createCharacter;
 
 const toneOptions = [
-  { id: 'romantic', label: 'Romantic & warm' },
-  { id: 'playful', label: 'Playful & witty' },
-  { id: 'supportive', label: 'Supportive & empathetic' },
-  { id: 'mysterious', label: 'Mysterious & intriguing' },
-  { id: 'serious', label: 'Serious & thoughtful' },
+  { id: 'friendly', label: 'Friendly & reassuring' },
+  { id: 'flirty', label: 'Flirty & teasing' },
+  { id: 'sarcastic', label: 'Sarcastic banter' },
+  { id: 'wise', label: 'Wise & thoughtful' },
+  { id: 'formal', label: 'Polished & proper' },
+  { id: 'demanding', label: 'Commanding & intense' },
+  { id: 'warm', label: 'Warm & nurturing' },
+  { id: 'analytical', label: 'Analytical & curious' },
+  { id: 'poetic', label: 'Poetic & dreamy' },
+  { id: 'seductive', label: 'Seductive & alluring' },
+  { id: 'curious', label: 'Curious & adventurous' },
+  { id: 'motivational', label: 'Motivational coach' },
+  { id: 'playful', label: 'Playful & light-hearted' },
 ];
 
 const voiceOptions = [
