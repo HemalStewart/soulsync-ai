@@ -265,7 +265,7 @@ class Chats extends BaseController
             ->get()
             ->getResultArray();
 
-        $reply = $this->generateReplyFromOpenAI($character, $history, $message);
+        $reply = $this->generateReplyFromVenice($character, $history, $message);
 
         if ($reply === null) {
             return $this->fail('Unable to generate a reply at this time.', 503);
@@ -338,117 +338,37 @@ class Chats extends BaseController
     }
 
     /**
-     * Generates an AI response using OpenRouter's OpenAI-compatible chat API.
+     * Generates an AI response using Venice.ai chat API.
      *
-     * The previous OpenAI integration has been kept in comments below so we can easily restore it
-     * if we need to switch back.
-     *
-     * @param array<string,mixed>             $character
-     * @param list<array<string,mixed>>       $history
+     * @param array<string,mixed>       $character
+     * @param list<array<string,mixed>> $history
      */
-    private function generateReplyFromOpenAI(array $character, array $history, string $latestUserMessage): ?string
+    private function generateReplyFromVenice(array $character, array $history, string $latestUserMessage): ?string
     {
-        $openRouterKey = env('openrouter.apiKey') ?? getenv('OPENROUTER_API_KEY');
+        $apiKey = env('venice.apiKey') ?? getenv('VENICE_API_KEY');
 
-        if (! $openRouterKey) {
-            log_message('error', 'OPENROUTER_API_KEY is not configured.');
-            return null;
-        }
-
-        $endpoint   = env('openrouter.endpoint', 'https://openrouter.ai/api/v1/chat/completions');
-        $model      = env('openrouter.model', 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free');
-        $temperature = (float) env('openrouter.temperature', (float) env('openai.temperature', 0.8));
-        $timeout     = (int) env('openrouter.timeout', 20);
-        if ($timeout <= 0 || $timeout >= 30) {
-            $timeout = 20; // stay under PHP's default 30s execution limit
-        }
-        $connectTimeout = (int) env('openrouter.connectTimeout', 10);
-        if ($connectTimeout <= 0 || $connectTimeout >= $timeout) {
-            $connectTimeout = min(10, $timeout - 1);
-            if ($connectTimeout < 1) {
-                $connectTimeout = 1;
-            }
-        }
-
-        $httpReferer = env('openrouter.httpReferer');
-        $titleHeader = env('openrouter.title');
-
-        $messages = $this->formatHistoryForChat($character, $history, $latestUserMessage);
-
-        $payload = [
-            'model'       => $model,
-            'messages'    => $messages,
-            'temperature' => $temperature,
-        ];
-
-        $headers = [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $openRouterKey,
-        ];
-
-        if ($httpReferer) {
-            $headers[] = 'HTTP-Referer: ' . $httpReferer;
-        }
-
-        if ($titleHeader) {
-            $headers[] = 'X-Title: ' . $titleHeader;
-        }
-
-        $ch = curl_init($endpoint);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => $headers,
-            CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
-            CURLOPT_TIMEOUT        => $timeout,
-            CURLOPT_CONNECTTIMEOUT => $connectTimeout,
-        ]);
-
-        $response = curl_exec($ch);
-        $error    = curl_error($ch);
-        $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($error) {
-            log_message('error', 'OpenRouter chat request failed: ' . $error);
-            return null;
-        }
-
-        if ($status < 200 || $status >= 300) {
-            log_message(
-                'error',
-                sprintf('OpenRouter chat request returned status %s. Response: %s', (string) $status, (string) $response)
-            );
-            return null;
-        }
-
-        $decoded = json_decode((string) $response, true);
-
-        if (! is_array($decoded) || empty($decoded['choices'][0]['message']['content'])) {
-            log_message('error', 'OpenRouter response missing choices or message content.');
-            return null;
-        }
-
-        return (string) $decoded['choices'][0]['message']['content'];
-
-        /*
-        // --- Previous OpenAI integration kept for quick rollback ---
-        $apiKey = env('openai.apiKey') ?? getenv('OPENAI_API_KEY');
         if (! $apiKey) {
-            log_message('error', 'OPENAI_API_KEY is not configured.');
+            log_message('error', 'VENICE_API_KEY is not configured.');
             return null;
         }
 
-        $model = env('openai.model', 'gpt-4o-mini');
-        $temperature = (float) env('openai.temperature', 0.8);
-        $endpoint = env('openai.endpoint', 'https://api.openai.com/v1/chat/completions');
+        $endpoint    = rtrim((string) (env('venice.endpoint') ?? getenv('VENICE_ENDPOINT') ?? 'https://api.venice.ai/api/v1'), '/') . '/chat/completions';
+        $model       = env('venice.model', 'qwen3-4b');
+        $temperature = (float) env('venice.temperature', 0.7);
+        $maxTokens   = (int) env('venice.maxCompletionTokens', 512);
 
         $messages = $this->formatHistoryForChat($character, $history, $latestUserMessage);
 
         $payload = [
-            'model'       => $model,
-            'messages'    => $messages,
-            'temperature' => $temperature,
+            'model'                => $model,
+            'messages'             => $messages,
+            'temperature'          => $temperature,
+            'max_completion_tokens'=> $maxTokens,
+            'venice_parameters'    => [
+                'include_venice_system_prompt' => false,
+                'strip_thinking_response'      => true,
+                'disable_thinking'             => true,
+            ],
         ];
 
         $ch = curl_init($endpoint);
@@ -460,7 +380,7 @@ class Chats extends BaseController
                 'Authorization: Bearer ' . $apiKey,
             ],
             CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
-            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_TIMEOUT        => 45,
         ]);
 
         $response = curl_exec($ch);
@@ -469,24 +389,23 @@ class Chats extends BaseController
         curl_close($ch);
 
         if ($error) {
-            log_message('error', 'OpenAI chat request failed: ' . $error);
+            log_message('error', 'Venice chat request failed: ' . $error);
             return null;
         }
 
-        $decoded = json_decode($response ?? '', true);
-        if (! is_array($decoded)) {
-            log_message('error', 'OpenAI chat returned non-JSON response (status ' . $status . ').');
+        if ($status < 200 || $status >= 300) {
+            log_message('error', sprintf('Venice chat request returned status %s. Response: %s', (string) $status, (string) $response));
             return null;
         }
 
-        $choices = $decoded['choices'] ?? [];
-        if (empty($choices) || empty($choices[0]['message']['content'])) {
-            log_message('error', 'OpenAI chat response missing message content: ' . json_encode($decoded));
+        $decoded = json_decode((string) $response, true);
+
+        if (! is_array($decoded) || empty($decoded['choices'][0]['message']['content'])) {
+            log_message('error', 'Venice response missing choices or message content.');
             return null;
         }
 
-        return trim((string) $choices[0]['message']['content']);
-        */
+        return (string) $decoded['choices'][0]['message']['content'];
     }
 
     /**
