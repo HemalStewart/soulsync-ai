@@ -9,6 +9,7 @@ import {
 } from 'react';
 import Image from 'next/image';
 import {
+  Coins,
   Download,
   Film,
   ImagePlus,
@@ -67,7 +68,7 @@ const GuestPrompt = () => {
   return (
     <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
       <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-6 sm:px-12 py-8 sm:py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105 max-w-sm">
-        <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg flex-shrink-0">
+        <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl brand-gradient shadow-brand flex-shrink-0">
           <svg
             className="h-7 sm:h-8 w-7 sm:w-8 text-white"
             fill="none"
@@ -88,7 +89,7 @@ const GuestPrompt = () => {
         </p>
         <button
           onClick={() => openAuthModal('login')}
-          className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+          className="mt-6 rounded-xl brand-gradient px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-brand hover:scale-105 active:scale-95"
         >
           Get Started
         </button>
@@ -390,7 +391,10 @@ const VideoContent = () => {
     return (
       <AppLayout activeTab="video">
         <div className="flex flex-1 items-center justify-center bg-gray-50">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+          <div
+            className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200"
+            style={{ borderTopColor: 'var(--brand-primary)' }}
+          />
         </div>
       </AppLayout>
     );
@@ -441,13 +445,18 @@ const VideoContent = () => {
                   Pick a starting point, adjust the prompt, and generate a polished clip in seconds.
                 </p>
               </div>
-              <div className="self-start md:self-auto inline-block rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white shadow">
-                {VIDEO_GENERATION_COST} coins per video
+              <div className="coin-pill inline-flex">
+                <span className="coin-pill__icon">
+                  <Coins className="h-3.5 w-3.5" />
+                </span>
+                <span className="coin-pill__text">
+                  {VIDEO_GENERATION_COST} coins per video
+                </span>
               </div>
             </div>
 
 
-            <div className="grid gap-3 rounded-2xl bg-blue-50/40 p-3 sm:grid-cols-3">
+            <div className="grid gap-3 rounded-2xl brand-gradient-soft p-3 sm:grid-cols-3">
               {builderTabs.map((tab, index) => {
                 const isActive = tab.id === activeTab;
                 return (
@@ -456,8 +465,8 @@ const VideoContent = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex flex-col items-start rounded-xl border px-4 py-3 text-left transition ${
                       isActive
-                        ? 'border-blue-600 bg-gradient-to-br from-blue-600 to-blue-500 text-white shadow-lg'
-                        : 'border-transparent bg-white text-gray-800 shadow-sm hover:border-blue-200'
+                        ? 'border-brand-primary brand-gradient text-white shadow-brand'
+                        : 'border-transparent bg-white text-gray-800 shadow-sm hover:border-brand-primary'
                     } animate-fade-up`}
                     style={{ animationDelay: `${0.18 + index * 0.06}s` }}
                   >
@@ -467,7 +476,7 @@ const VideoContent = () => {
                     </span>
                     {tab.comingSoon && (
                       <span className={`mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                        isActive ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'
+                        isActive ? 'bg-white/20 text-white' : 'bg-brand-soft text-brand-primary'
                       }`}>
                         Coming soon
                       </span>
@@ -480,12 +489,12 @@ const VideoContent = () => {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className="space-y-6 animate-fade-up" style={{ animationDelay: '0.22s' }}>
                 {modeComingSoon && (
-                  <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-blue-200 bg-blue-50/40 p-8 text-center text-sm text-blue-600">
-                    <Sparkles className="mb-3 h-8 w-8 text-blue-500" />
+                  <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-brand-soft brand-gradient-soft p-8 text-center text-sm text-brand-primary">
+                    <Sparkles className="mb-3 h-8 w-8 text-brand-primary" />
                     <p className="font-semibold">
                       {activeTabMeta?.label} mode is coming soon.
                     </p>
-                    <p className="mt-1 text-blue-500/80">
+                    <p className="mt-1 text-brand-primary/80">
                       We&apos;re still polishing this workflow. Switch to Text to Video to render clips right now.
                     </p>
                   </div>
@@ -498,7 +507,7 @@ const VideoContent = () => {
                         Looks like (optional)
                       </label>
                       <div className="flex items-center gap-4">
-                        <button className="relative flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-blue-200 bg-white text-blue-500 transition hover:border-blue-500 hover:text-blue-700">
+                        <button className="relative flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-brand-soft bg-white text-brand-primary transition hover:border-brand-primary hover:text-brand-strong">
                           <ImagePlus className="h-6 w-6" />
                           <span className="absolute -top-2 -right-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                             Pro
@@ -519,7 +528,7 @@ const VideoContent = () => {
                           value={textPrompt}
                           onChange={(event) => setTextPrompt(event.target.value.slice(0, 800))}
                           placeholder="Summon a sweeping cityscape, neon reflections, and slow pan..."
-                          className="h-36 w-full rounded-2xl border border-gray-200 bg-blue-50/40 p-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="h-36 w-full rounded-2xl border border-gray-200 brand-gradient-soft p-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-brand-primary focus:bg-white focus:outline-none focus:ring-brand"
                           maxLength={800}
                         />
                         <span className="absolute bottom-3 right-4 text-xs text-gray-500">
@@ -531,17 +540,17 @@ const VideoContent = () => {
                 )}
               </div>
 
-              <div className="flex flex-col rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 p-6 text-white shadow-xl animate-fade-up" style={{ animationDelay: '0.25s' }}>
+              <div className="flex flex-col rounded-2xl brand-gradient p-6 text-white shadow-brand animate-fade-up" style={{ animationDelay: '0.25s' }}>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs uppercase tracking-widest text-blue-100/80">Preview</p>
+                    <p className="text-xs uppercase tracking-widest text-white/70">Preview</p>
                     <h3 className="text-xl font-semibold">Hero story reel</h3>
                   </div>
                   <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">
                     1080p
                   </span>
                 </div>
-                <div className="mt-4 flex-1 overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600/80 p-2 shadow-inner">
+                <div className="mt-4 flex-1 overflow-hidden rounded-xl brand-gradient-soft p-2 shadow-inner">
                   {latestVideo ? (
                     <video
                       key={latestVideo.id}
@@ -550,13 +559,13 @@ const VideoContent = () => {
                       src={latestVideo.remote_url}
                     />
                   ) : (
-                    <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center text-sm text-blue-50">
+                    <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center text-sm text-white/85">
                       <Sparkles className="h-8 w-8 text-white drop-shadow" />
                       <p>Your next masterpiece will appear here once rendered.</p>
                     </div>
                   )}
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2 text-xs text-blue-50">
+                <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/85">
                   <span className="rounded-full bg-white/20 px-3 py-1">Motion boost</span>
                   <span className="rounded-full bg-white/20 px-3 py-1">Camera pan</span>
                   <span className="rounded-full bg-white/20 px-3 py-1">Loop safe</span>
@@ -564,7 +573,7 @@ const VideoContent = () => {
                 <button
                   onClick={handleGenerateVideo}
                   disabled={isGenerating || !canGenerate}
-                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-sm font-semibold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg brand-gradient px-5 py-4 text-sm font-semibold text-white shadow-brand transition hover:shadow-xl disabled:cursor-not-allowed disabled:bg-brand-soft disabled:bg-none disabled:text-brand-primary disabled:shadow-none"
                 >
                   {modeComingSoon ? (
                     <>
@@ -610,7 +619,7 @@ const VideoContent = () => {
                 </button>
                 <button
                   onClick={handleRefreshVideos}
-                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                  className="inline-flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-primary-strong"
                 >
                   <RefreshCw className={`h-4 w-4 ${loadingVideos ? 'animate-spin' : ''}`} />
                   Refresh
@@ -629,7 +638,10 @@ const VideoContent = () => {
             {showGallery ? (
               loadingVideos ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 py-12 text-center text-sm text-gray-500">
-                  <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+                  <div
+                    className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-200"
+                    style={{ borderTopColor: 'var(--brand-primary)' }}
+                  />
                   Loading your recent videos…
                 </div>
               ) : videos.length === 0 ? (
@@ -664,7 +676,10 @@ const VideoContent = () => {
                             controls
                           />
                         )}
-                        <span className="absolute top-3 left-3 rounded-full bg-blue-600/80 px-3 py-1 text-xs font-medium text-white">
+                        <span
+                          className="absolute top-3 left-3 rounded-full px-3 py-1 text-xs font-medium text-white"
+                          style={{ backgroundColor: 'var(--brand-primary)' }}
+                        >
                           {video.duration_seconds ?? 6}s
                         </span>
                       </div>

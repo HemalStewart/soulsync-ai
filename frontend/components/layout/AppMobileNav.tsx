@@ -30,9 +30,9 @@ const AppMobileNav = ({ activeTab }: AppMobileNavProps) => {
   );
 
   const activeTileClasses =
-    'w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 shadow-lg shadow-blue-500/30';
+    'w-11 h-11 rounded-xl flex items-center justify-center brand-gradient text-white shadow-brand';
   const inactiveTileClasses =
-    'w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-gray-100/80 hover:shadow-sm';
+    'w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-brand-tint hover:shadow-sm';
 
   return (
     <>
@@ -80,7 +80,7 @@ const AppMobileNav = ({ activeTab }: AppMobileNavProps) => {
       `}</style>
 
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200/60 bg-white/80 backdrop-blur-xl shadow-[0_-4px_12px_rgba(15,23,42,0.08)] lg:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/30 bg-white/80 backdrop-blur-xl shadow-[0_-4px_18px_rgba(79,70,229,0.15)] lg:hidden"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}
       >
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 pt-2">

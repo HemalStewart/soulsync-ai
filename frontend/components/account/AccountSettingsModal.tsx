@@ -28,7 +28,7 @@ const providerConfig: Record<
   },
   email: {
     label: 'Email',
-    badge: 'bg-blue-500/10 text-blue-600 border border-blue-200',
+    badge: 'bg-brand-soft text-brand-primary border border-brand-soft',
     text: '@',
   },
 };
@@ -92,8 +92,8 @@ const AccountSettingsModal = ({
     >
       <div
         className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-[32px]
-                   bg-gradient-to-b from-[#f0f6ff] via-white to-[#f3f8ff]
-                   shadow-[0_40px_80px_-40px_rgba(59,130,246,0.35)]
+                   bg-gradient-to-b from-[#f4efff] via-white to-[#f0f9ff]
+                   shadow-[0_40px_80px_-40px_rgba(99,102,241,0.35)]
                    border border-white/70
                    scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent
                    [@supports(-webkit-touch-callout:none)]:[-webkit-overflow-scrolling:touch]"
@@ -176,7 +176,7 @@ const AccountSettingsModal = ({
                 <button
                   type="button"
                   onClick={() => console.info('Delete account requested')}
-                  className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-5 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:shadow-blue-500/50 hover:scale-[1.01]"
+                  className="rounded-xl brand-gradient px-5 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold text-white shadow-brand transition hover:shadow-lg hover:scale-[1.01]"
                 >
                   Delete Account
                 </button>
@@ -193,7 +193,7 @@ const AccountSettingsModal = ({
                 </span>
                 <button
                   type="button"
-                  className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:shadow-blue-500/50 hover:scale-[1.01]"
+                  className="rounded-xl brand-gradient px-5 py-2 text-sm font-semibold text-white shadow-brand transition hover:shadow-lg hover:scale-[1.01]"
                 >
                   Subscribe
                 </button>

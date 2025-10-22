@@ -204,10 +204,10 @@ const RecentChats = ({
           {hasMore && onViewAll && (
             <button
               onClick={onViewAll}
-              className="hidden items-center space-x-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 md:inline-flex animate-slide-in-right shadow-sm hover:shadow-md"
+              className="hidden items-center space-x-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-brand-primary hover:text-brand-primary hover:bg-brand-tint md:inline-flex animate-slide-in-right shadow-sm hover:shadow-brand"
             >
               <span>View all chats</span>
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-xs font-bold text-white shadow-md">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full brand-gradient text-xs font-bold text-white shadow-brand">
                 {chats.length - visibleChats.length}
               </span>
             </button>
@@ -258,7 +258,7 @@ const RecentChats = ({
                           className="h-full w-full rounded-full object-cover transition-transform duration-300 hover:scale-110"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 transition-transform duration-300 hover:scale-110">
+                        <div className="flex h-full w-full items-center justify-center rounded-full brand-gradient transition-transform duration-300 hover:scale-110">
                           <User className="h-6 w-6 text-white" />
                         </div>
                       )}
@@ -279,7 +279,7 @@ const RecentChats = ({
                   onClick={onViewAll}
                   className="flex flex-col items-center justify-center space-y-2 text-gray-500 w-full"
                 >
-                  <div className="view-all-circle flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 text-lg font-semibold text-gray-600 transition-all duration-300 hover:border-blue-400 hover:bg-blue-50 shadow-sm flex-shrink-0">
+                  <div className="view-all-circle flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-brand-soft brand-gradient-soft text-lg font-semibold text-brand-primary transition-all duration-300 hover:border-brand-primary hover:bg-brand-tint shadow-sm flex-shrink-0">
                     +{chats.length - visibleChats.length}
                   </div>
                   <span className="text-xs font-semibold transition-all duration-300">View all</span>

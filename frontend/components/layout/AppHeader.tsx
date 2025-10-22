@@ -101,10 +101,10 @@ const AppHeader = () => {
             href="/"
             className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 cursor-pointer select-none hover:opacity-90 transition"
           >
-            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 shadow-lg hover:scale-105 transition-transform duration-200">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg brand-gradient shadow-brand hover:scale-105 transition-transform duration-200">
               <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-md bg-white/20 backdrop-blur-sm" />
             </div>
-            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
+            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#0ea5e9] bg-clip-text text-transparent whitespace-nowrap">
               SoulFun
             </span>
           </Link>
@@ -137,12 +137,12 @@ const AppHeader = () => {
 
             {/* Get Pro Button - Fixed width */}
             <button
-              className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0"
+              className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 brand-gradient hover:shadow-brand hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 get-pro-pulse"
               onClick={handleOpenPro}
               type="button"
             >
               <span className="relative z-10">Get Pro</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 brand-gradient opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
 
             {loading ? (
@@ -162,13 +162,13 @@ const AppHeader = () => {
                   Log in
                 </button>
                 <button
-                  className="hidden sm:inline-block px-3 md:px-4 py-2 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 text-sm whitespace-nowrap"
+                  className="hidden sm:inline-block px-3 md:px-4 py-2 rounded-lg font-semibold text-white brand-gradient hover:shadow-brand transition-all duration-200 text-sm whitespace-nowrap"
                   onClick={() => openModal('register')}
                 >
                   Sign up
                 </button>
                 <button
-                  className="sm:hidden p-2 text-gray-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                  className="sm:hidden p-2 text-gray-700 hover:bg-brand-tint rounded-lg transition-all duration-200"
                   onClick={() => openModal('login')}
                 >
                   <User size={20} />
@@ -180,7 +180,7 @@ const AppHeader = () => {
                   className="flex items-center gap-2 px-2.5 sm:px-3 py-2 rounded-xl border border-gray-200/60 hover:border-gray-300 bg-white/50 backdrop-blur-sm hover:bg-gray-50 font-medium text-sm text-gray-700 transition-all duration-200 hover:scale-105"
                   onClick={() => setShowAccountMenu((prev) => !prev)}
                 >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 text-xs font-bold text-white shadow-md">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg brand-gradient text-xs font-bold text-white shadow-brand">
                     {initials ?? 'U'}
                   </span>
                   <span className="hidden lg:inline-block max-w-[120px] truncate text-sm">{user.email || user.mobile || 'Account'}</span>
@@ -191,13 +191,13 @@ const AppHeader = () => {
                 <div className="absolute right-0 mt-3 w-72 rounded-2xl border border-gray-100 bg-white shadow-xl backdrop-blur-md z-50 overflow-hidden">
                   <div className="flex flex-col divide-y divide-gray-100">
                     
-                    {/* My Character */}
+                    {/* My Characters */}
                     <button
-                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-gray-50/80 transition-all duration-200"
+                      className="flex items-center justify-between w-full px-4 py-3 text-left transition-all duration-200 hover:bg-brand-tint"
                       onClick={() => handleNavigate('/my-characters')}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-gray-100 text-gray-600">
+                        <div className="p-2.5 rounded-xl bg-brand-tint text-brand-primary">
                           <User size={18} />
                         </div>
                         <div className="flex flex-col items-start">
@@ -205,16 +205,16 @@ const AppHeader = () => {
                           <span className="text-xs text-gray-500">Manage AI companions</span>
                         </div>
                       </div>
-                      <ChevronDown size={16} className="text-gray-400 rotate-270" />
+                      <ChevronDown size={16} className="text-brand-primary rotate-270" />
                     </button>
 
                     {/* Video Gallery */}
                     <button
-                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-gray-50/80 transition-all duration-200"
+                      className="flex items-center justify-between w-full px-4 py-3 text-left transition-all duration-200 hover:bg-brand-tint"
                       onClick={() => handleNavigate('/my-videos')}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-gray-100 text-gray-600">
+                        <div className="p-2.5 rounded-xl bg-brand-tint text-brand-primary">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553 2.276a1 1 0 010 1.448L15 16V10z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h11v12H4z" />
@@ -225,7 +225,7 @@ const AppHeader = () => {
                           <span className="text-xs text-gray-500">Your video collection</span>
                         </div>
                       </div>
-                      <ChevronDown size={16} className="text-gray-400 rotate-270" />
+                      <ChevronDown size={16} className="text-brand-primary rotate-270" />
                     </button>
 
                     {/* Coins Summary */}
@@ -243,7 +243,7 @@ const AppHeader = () => {
                         </div>
                       </div>
                       <button
-                        className="px-3 py-2 text-xs font-semibold text-white rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition"
+                        className="px-3 py-2 text-xs font-semibold text-white rounded-lg brand-gradient transition get-pro-pulse"
                         onClick={() => {
                           setShowAccountMenu(false);
                           handleOpenPro();
@@ -256,24 +256,24 @@ const AppHeader = () => {
 
                     {/* Account */}
                     <button
-                      className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-gray-50/80 transition-all duration-200"
+                      className="flex items-center justify-between w-full px-4 py-3 text-left transition-all duration-200 hover:bg-brand-tint"
                       onClick={() => {
                         setShowAccountMenu(false);
                         setShowAccountSettings(true);
                       }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-gray-100 text-gray-600">
+                        <div className="p-2.5 rounded-xl bg-brand-tint text-brand-primary">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.5 6a1.5 1.5 0 013 0v3h3a1.5 1.5 0 010 3h-3v3a1.5 1.5 0 01-3 0v-3h-3a1.5 1.5 0 010-3h3V6z" />
                           </svg>
                         </div>
                         <div className="flex flex-col items-start">
                           <span className="text-sm font-semibold text-gray-900">Account</span>
-                          <span className="text-xs text-gray-500">Account settings</span>
+                          <span className="text-xs font-medium text-gray-500">Account settings</span>
                         </div>
                       </div>
-                      <ChevronDown size={16} className="text-gray-400 rotate-270" />
+                      <ChevronDown size={16} className="text-brand-primary rotate-270" />
                     </button>
 
                     {/* Log Out */}
@@ -306,6 +306,22 @@ const AppHeader = () => {
         </div>
 
       </header>
+
+      <style jsx>{`
+        @keyframes pulseScale {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.08); }
+        }
+
+        .get-pro-pulse {
+          animation: pulseScale 2.4s ease-in-out infinite;
+        }
+
+        .get-pro-pulse:hover {
+          animation-play-state: paused;
+          transform: scale(1.08);
+        }
+      `}</style>
 
       {initialized && (
         <AccountSettingsModal

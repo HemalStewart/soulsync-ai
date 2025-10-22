@@ -51,8 +51,8 @@ const ChatList = ({ chats, selectedChat, onSelect, loading, fullWidth }: ChatLis
               onClick={() => onSelect(chat.character_slug)}
               className={`flex w-full items-center space-x-2.5 sm:space-x-3 border-b p-3 sm:p-4 text-left transition-all duration-200 ${
                 selectedChat === chat.character_slug
-                  ? 'bg-blue-50 border-l-4 border-l-blue-600'
-                  : 'hover:bg-gray-50 border-l-4 border-l-transparent'
+                  ? 'bg-brand-soft border-l-4 border-l-brand-primary'
+                  : 'hover:bg-brand-tint border-l-4 border-l-transparent'
               }`}
             >
               <div className="relative h-11 sm:h-12 md:h-14 w-11 sm:w-12 md:w-14 flex-shrink-0">
@@ -65,7 +65,7 @@ const ChatList = ({ chats, selectedChat, onSelect, loading, fullWidth }: ChatLis
                     className="rounded-xl object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
+                  <div className="flex h-full w-full items-center justify-center rounded-xl brand-gradient">
                     <User className="h-5 sm:h-6 w-5 sm:w-6 text-white" />
                   </div>
                 )}

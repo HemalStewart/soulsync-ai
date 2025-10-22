@@ -6,6 +6,14 @@
   --font-geist-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
     "Helvetica Neue", Arial, sans-serif;
   --font-geist-mono: "Menlo", "Monaco", "Courier New", monospace;
+  --brand-primary: #7c3aed;
+  --brand-primary-strong: #5b21b6;
+  --brand-primary-soft: #efe9ff;
+  --brand-primary-tint: #f6f3ff;
+  --brand-accent: #1dbad6;
+  --brand-gradient-from: #7c3aed;
+  --brand-gradient-via: #6366f1;
+  --brand-gradient-to: #0ea5e9;
 }
 
 @theme inline {
@@ -42,6 +50,171 @@ body {
   textarea,
   select {
     font-size: 16px !important;
+  }
+}
+
+@layer utilities {
+  .brand-gradient {
+    background-image: linear-gradient(
+      120deg,
+      var(--brand-gradient-from),
+      var(--brand-gradient-via),
+      var(--brand-gradient-to)
+    );
+  }
+
+  .brand-gradient-soft {
+    background-image: linear-gradient(
+      140deg,
+      rgba(124, 58, 237, 0.12),
+      rgba(99, 102, 241, 0.12),
+      rgba(14, 165, 233, 0.12)
+    );
+  }
+
+  .bg-brand-primary {
+    background-color: var(--brand-primary);
+  }
+
+  .bg-brand-primary-strong {
+    background-color: var(--brand-primary-strong);
+  }
+
+  .bg-brand-soft {
+    background-color: var(--brand-primary-soft);
+  }
+
+  .bg-brand-tint {
+    background-color: var(--brand-primary-tint);
+  }
+
+  .text-brand-primary {
+    color: var(--brand-primary);
+  }
+
+  .text-brand-strong {
+    color: var(--brand-primary-strong);
+  }
+
+  .border-brand-primary {
+    border-color: var(--brand-primary);
+  }
+
+  .border-brand-soft {
+    border-color: var(--brand-primary-soft);
+  }
+
+  .shadow-brand {
+    box-shadow: 0 18px 36px -16px rgba(99, 102, 241, 0.45);
+  }
+
+  .hover\:bg-brand-primary-strong:hover {
+    background-color: var(--brand-primary-strong);
+  }
+
+  .hover\:bg-brand-soft:hover {
+    background-color: var(--brand-primary-soft);
+  }
+
+  .hover\:bg-brand-tint:hover {
+    background-color: var(--brand-primary-tint);
+  }
+
+  .hover\:text-brand-primary:hover {
+    color: var(--brand-primary);
+  }
+
+  .hover\:border-brand-primary:hover {
+    border-color: var(--brand-primary);
+  }
+
+  .ring-brand {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
+  }
+
+  .focus\:ring-brand:focus {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.35);
+  }
+
+  .focus-within\:ring-brand:focus-within {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
+  }
+
+  .border-l-brand-primary {
+    border-left-color: var(--brand-primary);
+  }
+
+  .brand-chat-ai {
+    background-image: linear-gradient(
+      130deg,
+      rgba(124, 58, 237, 0.98),
+      rgba(99, 102, 241, 0.95),
+      rgba(14, 165, 233, 0.92)
+    );
+    color: #fff;
+    box-shadow: 0 24px 48px -32px rgba(99, 102, 241, 0.65);
+  }
+
+  .brand-chat-ai:hover {
+    box-shadow: 0 26px 60px -28px rgba(99, 102, 241, 0.75);
+  }
+
+  .brand-chat-ai__hint {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .brand-chat-user {
+    background-image: linear-gradient(
+      135deg,
+      rgba(124, 58, 237, 0.12),
+      rgba(99, 102, 241, 0.1),
+      rgba(14, 165, 233, 0.08)
+    );
+    color: var(--brand-primary-strong);
+    border: 1px solid rgba(124, 58, 237, 0.18);
+    box-shadow: 0 18px 36px -28px rgba(124, 58, 237, 0.4);
+  }
+
+  .brand-chat-user:hover {
+    box-shadow: 0 20px 40px -26px rgba(124, 58, 237, 0.48);
+  }
+
+  .coin-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 0.75rem;
+    background: #fff7db;
+    color: #d97706;
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 12px 24px -20px rgba(217, 119, 6, 0.6);
+    border: 1px solid rgba(250, 204, 21, 0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.7rem;
+    width: -moz-fit-content;
+    width: fit-content;
+  }
+
+  .coin-pill__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 0.6rem;
+    background: #facc15;
+    color: #b45309;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .coin-pill__text {
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    color: #b45309;
   }
 }
 

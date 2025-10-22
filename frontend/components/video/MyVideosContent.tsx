@@ -136,7 +136,7 @@ const MyVideosContent = () => {
           </p>
           <button
             onClick={handleCreateNew}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-blue-700"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg brand-gradient px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-brand-primary-strong"
           >
             <Video className="h-4 w-4" />
             Create video
@@ -169,7 +169,10 @@ const MyVideosContent = () => {
                   controls
                 />
               )}
-              <span className="absolute top-3 left-3 rounded-full bg-blue-600/80 px-3 py-1 text-xs font-medium text-white">
+              <span
+                className="absolute top-3 left-3 rounded-full px-3 py-1 text-xs font-semibold text-white shadow-sm"
+                style={{ backgroundColor: 'var(--brand-primary)' }}
+              >
                 {video.duration_seconds ?? 6}s
               </span>
             </div>
@@ -238,7 +241,7 @@ const MyVideosContent = () => {
               )}
               <button
                 onClick={handleCreateNew}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow transition hover:bg-blue-700"
+                className="inline-flex items-center gap-2 rounded-lg brand-gradient px-3 py-2 text-sm font-semibold text-white shadow transition hover:bg-brand-primary-strong"
               >
                 <Video className="h-4 w-4" />
                 New video

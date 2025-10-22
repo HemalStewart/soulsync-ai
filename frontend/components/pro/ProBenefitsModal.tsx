@@ -213,7 +213,7 @@ const ProBenefitsModal = ({ open, onClose, onSelectPlan, initialPlanId }: ProBen
                         </span>
                       </div>
                       {plan.savings && (
-                        <span className="mt-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                        <span className="mt-2 inline-flex items-center rounded-full bg-brand-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-primary">
                           {plan.savings}
                         </span>
                       )}

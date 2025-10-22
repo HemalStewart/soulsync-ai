@@ -16,9 +16,9 @@ const AppSidebar = ({ activeTab }: AppSidebarProps) => {
     tab === activeTab ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900';
 
   const activeTileClasses =
-    'w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 shadow-lg shadow-blue-500/30';
+    'w-11 h-11 rounded-xl flex items-center justify-center brand-gradient text-white shadow-brand';
   const inactiveTileClasses =
-    'w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-gray-100/80 hover:shadow-sm';
+    'w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 hover:bg-brand-tint hover:shadow-sm';
 
   return (
     <>

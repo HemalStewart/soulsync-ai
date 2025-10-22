@@ -279,8 +279,8 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
         }
 
         input:focus {
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          border-color: var(--brand-primary);
+          box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
         }
 
         button {
@@ -288,23 +288,23 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
         }
 
         button:hover:not(:disabled) {
-          box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
+          box-shadow: 0 10px 26px rgba(99, 102, 241, 0.22);
         }
 
         button:active:not(:disabled) {
-          box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
+          box-shadow: 0 6px 18px rgba(99, 102, 241, 0.2);
         }
       `}</style>
 
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm modal-backdrop">
-        <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl modal-content max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 flex items-center justify-between border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 bg-white">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 px-4 backdrop-blur-sm modal-backdrop">
+        <div className="w-full max-w-md rounded-2xl bg-white shadow-[0_40px_80px_-30px_rgba(99,102,241,0.35)] modal-content max-h-[90vh] overflow-y-auto border border-brand-soft">
+          <div className="sticky top-0 flex items-center justify-between border-b border-brand-soft/80 px-4 sm:px-6 py-3 sm:py-4 bg-white/95 backdrop-blur">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 pr-2">
               {mode === 'login' ? 'Sign in with your mobile number' : 'Create your SoulFun account'}
             </h2>
             <button
               onClick={handleClose}
-              className="flex-shrink-0 text-gray-400 transition duration-200 hover:text-gray-600 hover:rotate-90"
+              className="flex-shrink-0 text-gray-400 transition duration-200 hover:text-brand-primary hover:rotate-90"
             >
               ✕
             </button>
@@ -330,7 +330,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                       value={loginMobile}
                       onChange={(event) => setLoginMobile(event.target.value)}
                       required
-                      className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                      className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-brand focus:border-brand-primary"
                       placeholder="Enter your mobile"
                       autoComplete="tel"
                     />
@@ -347,7 +347,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                       onChange={(event) => setLoginPassword(event.target.value)}
                       required
                       minLength={6}
-                      className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                      className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-brand focus:border-brand-primary"
                       placeholder="Enter password"
                       autoComplete="current-password"
                     />
@@ -356,7 +356,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full animate-slide-up rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 font-semibold text-white shadow-md transition hover:shadow-lg hover:from-blue-700 hover:to-blue-600 disabled:cursor-not-allowed disabled:from-blue-300 disabled:to-blue-300 disabled:shadow-none"
+                    className="w-full animate-slide-up rounded-lg brand-gradient px-4 py-2 font-semibold text-white shadow-brand transition hover:shadow-xl disabled:cursor-not-allowed disabled:bg-brand-soft disabled:bg-none disabled:text-brand-primary disabled:shadow-none"
                     style={{ animationDelay: '0.2s' }}
                   >
                     {submitting ? 'Signing in…' : 'Sign In'}
@@ -378,7 +378,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                     required
                     inputMode="numeric"
                     maxLength={6}
-                    className="w-full animate-slide-down rounded-lg border border-gray-200 px-4 py-2 text-center text-2xl font-semibold tracking-widest text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    className="w-full animate-slide-down rounded-lg border border-gray-200 px-4 py-2 text-center text-2xl font-semibold tracking-widest text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-brand focus:border-brand-primary"
                     placeholder="000000"
                     style={{ animationDelay: '0.2s' }}
                   />
@@ -386,7 +386,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full animate-slide-down rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 font-semibold text-white shadow-md transition hover:shadow-lg hover:from-blue-700 hover:to-blue-600 disabled:cursor-not-allowed disabled:from-blue-300 disabled:to-blue-300 disabled:shadow-none"
+                    className="w-full animate-slide-down rounded-lg brand-gradient px-4 py-2 font-semibold text-white shadow-brand transition hover:shadow-xl disabled:cursor-not-allowed disabled:bg-brand-soft disabled:bg-none disabled:text-brand-primary disabled:shadow-none"
                     style={{ animationDelay: '0.3s' }}
                   >
                     {submitting ? 'Verifying…' : 'Verify & Continue'}
@@ -401,7 +401,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                       setRemainingAttempts(null);
                       setAuthError(null);
                     }}
-                    className="w-full animate-slide-down text-sm font-semibold text-blue-600 transition hover:underline hover:text-blue-700"
+                    className="w-full animate-slide-down text-sm font-semibold text-brand-primary transition hover:underline hover:text-brand-strong"
                     style={{ animationDelay: '0.4s' }}
                   >
                     Back to mobile login
@@ -421,7 +421,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                   value={registerEmail}
                   onChange={(event) => setRegisterEmail(event.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-brand focus:border-brand-primary"
                   placeholder="you@example.com"
                   autoComplete="email"
                 />
@@ -438,7 +438,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                   onChange={(event) => setRegisterPassword(event.target.value)}
                   required
                   minLength={6}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-brand focus:border-brand-primary"
                   placeholder="Create a password"
                   autoComplete="new-password"
                 />
@@ -447,7 +447,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full animate-slide-up rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2 font-semibold text-white shadow-md transition hover:shadow-lg hover:from-blue-700 hover:to-blue-600 disabled:cursor-not-allowed disabled:from-blue-300 disabled:to-blue-300 disabled:shadow-none"
+                className="w-full animate-slide-up rounded-lg brand-gradient px-4 py-2 font-semibold text-white shadow-brand transition hover:shadow-xl disabled:cursor-not-allowed disabled:bg-brand-soft disabled:bg-none disabled:text-brand-primary disabled:shadow-none"
                 style={{ animationDelay: '0.2s' }}
               >
                 {submitting ? 'Creating account…' : 'Create Account'}
@@ -493,7 +493,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                 Want to create an account instead?{' '}
                 <button
                   onClick={() => onSwitchMode('register')}
-                  className="font-semibold text-blue-600 transition hover:underline hover:text-blue-700"
+                  className="font-semibold text-brand-primary transition hover:underline hover:text-brand-strong"
                 >
                   Register
                 </button>
@@ -503,7 +503,7 @@ const AuthModal = ({ open, mode, onClose, onSwitchMode }: AuthModalProps) => {
                 Already have an account?{' '}
                 <button
                   onClick={() => onSwitchMode('login')}
-                  className="font-semibold text-blue-600 transition hover:underline hover:text-blue-700"
+                  className="font-semibold text-brand-primary transition hover:underline hover:text-brand-strong"
                 >
                   Log in
                 </button>

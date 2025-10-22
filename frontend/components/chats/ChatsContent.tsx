@@ -397,7 +397,7 @@ const ChatsContent = () => {
       <AppLayout activeTab="chats">
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-10 sm:h-12 w-10 sm:w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
+            <div className="mx-auto mb-4 h-10 sm:h-12 w-10 sm:w-12 animate-spin rounded-full border-4 border-gray-200" style={{ borderTopColor: 'var(--brand-primary)' }}></div>
             <p className="text-xs sm:text-sm font-medium text-gray-600 animate-pulse">Loading your chats…</p>
           </div>
         </div>
@@ -408,9 +408,9 @@ const ChatsContent = () => {
   if (!user) {
     return (
       <AppLayout activeTab="chats">
-        <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
-          <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-6 sm:px-12 py-8 sm:py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105 max-w-sm">
-            <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg flex-shrink-0">
+        <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-white px-4">
+          <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-brand-soft bg-white px-6 sm:px-12 py-8 sm:py-10 text-center shadow-brand transition-all hover:shadow-xl hover:scale-105 max-w-sm">
+            <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl brand-gradient shadow-brand flex-shrink-0">
               <svg
                 className="h-7 sm:h-8 w-7 sm:w-8 text-white"
                 fill="none"
@@ -431,7 +431,7 @@ const ChatsContent = () => {
             </p>
             <button
               onClick={() => openAuthModal('login')}
-              className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+              className="mt-6 rounded-xl brand-gradient px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-brand transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
             >
               Get Started
             </button>

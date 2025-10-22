@@ -33,10 +33,10 @@ const FloatingChatButton = () => {
 
         @keyframes pulse-glow {
           0%, 100% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.35);
           }
           50% {
-            box-shadow: 0 0 0 12px rgba(59, 130, 246, 0);
+            box-shadow: 0 0 0 12px rgba(124, 58, 237, 0);
           }
         }
 
@@ -84,7 +84,7 @@ const FloatingChatButton = () => {
 
         .floating-button:hover {
           transform: scale(1.15) rotate(-15deg);
-          box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+          box-shadow: 0 16px 36px rgba(124, 58, 237, 0.35);
         }
 
         .floating-button:active {
@@ -113,7 +113,7 @@ const FloatingChatButton = () => {
         onClick={() => router.push('/chats')}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition animate-slide-up animate-float floating-button"
+        className="fixed bottom-6 right-6 w-14 h-14 brand-gradient rounded-full flex items-center justify-center shadow-brand hover:shadow-2xl transition animate-slide-up animate-float floating-button animate-pulse-glow"
         aria-label="Open chats"
       >
         <MessageCircle 

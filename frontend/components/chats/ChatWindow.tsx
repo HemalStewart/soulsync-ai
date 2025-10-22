@@ -190,7 +190,7 @@ const ChatWindow = ({
                     className="rounded-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
+                  <div className="flex h-full w-full items-center justify-center rounded-full brand-gradient shadow-brand">
                     <User className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
                   </div>
                 )}
@@ -204,16 +204,16 @@ const ChatWindow = ({
           )}
         </div>
         <div className="flex items-center space-x-0.5 sm:space-x-1 flex-shrink-0">
-          <button className="rounded-full p-1.5 sm:p-2 text-gray-700 transition-all hover:bg-gray-100" title="Call">
+          <button className="rounded-full p-1.5 sm:p-2 text-gray-600 transition-all hover:bg-brand-tint" title="Call">
             <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
-          <button className="rounded-full p-1.5 sm:p-2 text-gray-700 transition-all hover:bg-gray-100" title="Video call">
+          <button className="rounded-full p-1.5 sm:p-2 text-gray-600 transition-all hover:bg-brand-tint" title="Video call">
             <Video className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
           {onToggleInfoPanel && (
             <button 
               onClick={onToggleInfoPanel}
-              className="rounded-full p-1.5 sm:p-2 text-gray-700 transition-all hover:bg-gray-100"
+              className="rounded-full p-1.5 sm:p-2 text-gray-600 transition-all hover:bg-brand-tint"
               title={showInfoPanel ? 'Hide details' : 'Show details'}
             >
               {showInfoPanel ? (
@@ -223,16 +223,16 @@ const ChatWindow = ({
               )}
             </button>
           )}
-          <button className="hidden sm:block rounded-full p-1.5 sm:p-2 text-gray-700 transition-all hover:bg-gray-100" title="More options">
+          <button className="hidden sm:block rounded-full p-1.5 sm:p-2 text-gray-600 transition-all hover:bg-brand-tint" title="More options">
             <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
       </div>
 
       {/* Info Banner - Fixed */}
-      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-3 sm:px-4 py-2 sm:py-2.5 text-center text-xs sm:text-sm text-gray-700 flex-shrink-0">
+      <div className="brand-gradient-soft px-3 sm:px-4 py-2 sm:py-2.5 text-center text-xs sm:text-sm text-gray-700 flex-shrink-0 border-b border-brand-soft">
         Mention: The chat memories of free users are preserved for only 30 days.{' '}
-        <button className="font-semibold text-blue-600 transition-all duration-200 hover:text-blue-700 hover:underline">
+        <button className="font-semibold text-brand-primary transition-all duration-200 hover:text-brand-strong hover:underline">
           Get PRO
         </button>
       </div>
@@ -259,7 +259,7 @@ const ChatWindow = ({
                   <div className="group flex items-end justify-start gap-2">
                     <div
                       onClick={() => handleCopyMessage(message.message, index)}
-                      className="relative max-w-xs sm:max-w-md lg:max-w-2xl cursor-pointer rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-500 to-blue-600 px-4 sm:px-6 pt-3 pb-5 sm:pt-4 sm:pb-6 text-white text-sm sm:text-base shadow-md transition-shadow duration-300 hover:shadow-xl"
+                      className="relative max-w-xs sm:max-w-md lg:max-w-2xl cursor-pointer rounded-2xl sm:rounded-3xl brand-chat-ai px-4 sm:px-6 pt-3 pb-5 sm:pt-4 sm:pb-6 text-sm sm:text-base text-white transition-shadow duration-300"
                     >
                       {message.message.split('\n').map((line, lineIndex) => (
                         <p key={`${lineIndex}-${line}`} className="my-1 whitespace-pre-wrap">
@@ -267,7 +267,7 @@ const ChatWindow = ({
                         </p>
                       ))}
                       <div className="absolute bottom-1 right-4 opacity-0 transition-opacity duration-300 group-hover:opacity-80">
-                        <span className="text-[11px] text-blue-100">
+                        <span className="text-[11px] brand-chat-ai__hint">
                           {copiedMessageIndex === index ? 'Copied!' : 'Click to copy'}
                         </span>
                       </div>
@@ -283,7 +283,7 @@ const ChatWindow = ({
                     <div className="text-xs text-gray-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex-shrink-0">
                       {formatTimestamp(message.created_at)}
                     </div>
-                    <div className="max-w-xs sm:max-w-md lg:max-w-md rounded-2xl sm:rounded-3xl bg-blue-100 px-4 sm:px-6 py-3 sm:py-4 text-gray-900 text-sm sm:text-base shadow-md transition-shadow duration-300 hover:shadow-xl">
+                    <div className="max-w-xs sm:max-w-md lg:max-w-md rounded-2xl sm:rounded-3xl brand-chat-user px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-base transition-all duration-300">
                       {message.message}
                     </div>
                   </div>
@@ -295,7 +295,7 @@ const ChatWindow = ({
           {isSending && (
             <div className="flex justify-start animate-in fade-in slide-in-from-bottom-4 duration-300">
               <div className="group flex items-end justify-start gap-2">
-                <div className="relative max-w-xs sm:max-w-md lg:max-w-2xl rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-500 to-blue-600 px-4 sm:px-6 py-3 sm:py-4 text-white shadow-md">
+                <div className="relative max-w-xs sm:max-w-md lg:max-w-2xl rounded-2xl sm:rounded-3xl brand-chat-ai px-4 sm:px-6 py-3 sm:py-4 text-white">
                   <div className="flex items-center space-x-2">
                     <span className="h-2.5 w-2.5 rounded-full bg-white/90 animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="h-2.5 w-2.5 rounded-full bg-white/90 animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -321,7 +321,7 @@ const ChatWindow = ({
               onKeyDown={handleKeyDown}
               onFocus={() => setIsInputFocused(true)}
               onBlur={() => setIsInputFocused(false)}
-              className={`w-full rounded-full bg-gray-100 px-4 py-2 sm:py-3 text-base sm:text-lg text-gray-900 placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white ${
+              className={`w-full rounded-full bg-gray-100 px-4 py-2 sm:py-3 text-base sm:text-lg text-gray-900 placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-brand focus:border-brand-primary focus:bg-white ${
                 isInputFocused ? 'shadow-md' : ''
               }`}
               disabled={isSending}
@@ -333,7 +333,7 @@ const ChatWindow = ({
             )}
           </div>
           <button
-            className={`rounded-full bg-gradient-to-r from-blue-600 to-blue-700 p-2.5 sm:p-3 text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:from-blue-300 disabled:to-blue-300 disabled:shadow-none flex-shrink-0 ${
+            className={`rounded-full brand-gradient p-2.5 sm:p-3 text-white shadow-brand transition-all duration-300 hover:shadow-xl hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none flex-shrink-0 ${
               messageInput.trim() ? 'animate-in zoom-in duration-200' : ''
             }`}
             onClick={() => {

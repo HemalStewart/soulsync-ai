@@ -162,7 +162,7 @@ const MyCharactersContent = () => {
           </p>
           <button
             onClick={handleCreateNew}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-blue-700"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-brand-primary-strong"
           >
             <Plus className="h-4 w-4" />
             Create character
@@ -176,7 +176,7 @@ const MyCharactersContent = () => {
         {characters.map((character) => (
           <div
             key={character.id}
-            className="group rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-blue-300 hover:-translate-y-1 hover:shadow-md"
+            className="group rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:border-brand-primary hover:-translate-y-1 hover:shadow-brand"
           >
             <div className="flex items-center gap-3">
               <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-white shadow">
@@ -189,7 +189,7 @@ const MyCharactersContent = () => {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
+                  <div className="flex h-full w-full items-center justify-center brand-gradient">
                     <User className="h-6 w-6 text-white" />
                   </div>
                 )}
@@ -212,7 +212,7 @@ const MyCharactersContent = () => {
               </button>
               <button
                 onClick={() => handleLaunch(character)}
-                className="flex-1 rounded-lg bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-200"
+                className="flex-1 rounded-lg bg-brand-soft px-3 py-2 text-sm font-semibold text-brand-primary transition hover:bg-brand-tint"
               >
                 Launch
               </button>
@@ -258,7 +258,7 @@ const MyCharactersContent = () => {
               </button>
               <button
                 onClick={handleCreateNew}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow transition hover:bg-blue-700"
+                className="inline-flex items-center gap-2 rounded-lg brand-gradient px-3 py-2 text-sm font-semibold text-white shadow transition hover:bg-brand-primary-strong"
               >
                 <Plus className="h-4 w-4" />
                 New character

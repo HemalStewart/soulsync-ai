@@ -10,7 +10,7 @@ import {
   useRef,
 } from 'react';
 import Image from 'next/image';
-import { RefreshCw, Wand2, User } from 'lucide-react';
+import { RefreshCw, Wand2, User, Coins } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -103,7 +103,7 @@ const GuestPrompt = () => {
   return (
     <div className="flex flex-1 items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
       <div className="animate-in fade-in zoom-in duration-500 rounded-2xl border border-gray-200 bg-white px-6 sm:px-12 py-8 sm:py-10 text-center shadow-xl transition-all hover:shadow-2xl hover:scale-105 max-w-sm">
-        <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg flex-shrink-0">
+        <div className="mx-auto mb-4 flex h-14 sm:h-16 w-14 sm:w-16 items-center justify-center rounded-xl brand-gradient shadow-brand flex-shrink-0">
           <svg
             className="h-7 sm:h-8 w-7 sm:w-8 text-white"
             fill="none"
@@ -124,7 +124,7 @@ const GuestPrompt = () => {
         </p>
         <button
           onClick={() => openAuthModal('login')}
-          className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+          className="mt-6 rounded-xl brand-gradient px-6 sm:px-8 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-brand hover:scale-105 active:scale-95"
         >
           Get Started
         </button>
@@ -442,7 +442,10 @@ const CreateContent = () => {
     return (
       <AppLayout activeTab="create">
         <div id="create-page-root" className="flex flex-1 items-center justify-center bg-gray-50">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+          <div
+            className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200"
+            style={{ borderTopColor: 'var(--brand-primary)' }}
+          />
         </div>
       </AppLayout>
     );
@@ -461,12 +464,34 @@ const CreateContent = () => {
     <AppLayout activeTab="create">
       <div className="flex flex-1 flex-col bg-gray-50 min-h-0">
         <div className="flex-1 overflow-y-auto">
+          <style>{`
+            @keyframes fadeUp {
+              0% { opacity: 0; transform: translateY(24px); }
+              100% { opacity: 1; transform: translateY(0); }
+            }
+
+            @keyframes fadeIn {
+              0% { opacity: 0; }
+              100% { opacity: 1; }
+            }
+
+            .animate-fade-up {
+              opacity: 0;
+              animation: fadeUp 0.5s ease forwards;
+            }
+
+            .animate-fade-in {
+              opacity: 0;
+              animation: fadeIn 0.4s ease forwards;
+            }
+          `}</style>
           <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 sm:py-10">
           
 
           <section
   ref={formSectionRef}
-  className="space-y-6 sm:space-y-8 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm"
+  className="space-y-6 sm:space-y-8 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm animate-fade-up"
+  style={{ animationDelay: '0.12s' }}
 >
 
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -486,19 +511,24 @@ const CreateContent = () => {
                 </div>
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
                   
-                  <span className="font-semibold text-blue-600">
+                  <span className="font-semibold text-brand-primary">
                     Step {currentStep}
                   </span>
                   <div className="h-2 w-32 sm:w-40 rounded-full bg-gray-200">
                     <div
-                      className="h-2 rounded-full bg-blue-600 transition-all"
+                      className="h-2 rounded-full bg-brand-primary transition-all"
                       style={{ width: progressPercent }}
                     />
                   </div>
                   <span className="text-gray-600">{progressPercent}</span>
                   {!editingCharacterId && (
-                    <span className="rounded-full bg-blue-600 px-2.5 sm:px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white shadow">
-                      {CHARACTER_CREATION_COST} coins per character
+                    <span className="coin-pill">
+                      <span className="coin-pill__icon">
+                        <Coins className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="coin-pill__text">
+                        {CHARACTER_CREATION_COST} coins per character
+                      </span>
                     </span>
                   )}
                 </div>
@@ -530,7 +560,7 @@ const CreateContent = () => {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
+                          <div className="flex h-full w-full items-center justify-center brand-gradient">
                             <User className="h-14 sm:h-16 w-14 sm:w-16 text-white" />
                           </div>
                         )}
@@ -549,7 +579,7 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="Enter character name"
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-primary focus:outline-none focus:ring-brand"
                         />
                       </div>
                       <div>
@@ -563,7 +593,7 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="e.g. Enigmatic Storyteller"
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-primary focus:outline-none focus:ring-brand"
                         />
                       </div>
                       <div>
@@ -587,7 +617,7 @@ const CreateContent = () => {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
+                            <div className="flex h-full w-full items-center justify-center brand-gradient">
                               <User className="h-8 sm:h-10 w-8 sm:w-10 text-white" />
                             </div>
                           )}
@@ -613,19 +643,19 @@ const CreateContent = () => {
                     <div className="lg:col-span-2 space-y-4 sm:space-y-6 rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
                       <form
                         onSubmit={handleTraitSubmit}
-                        className="rounded-lg border border-gray-300 px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200"
+                        className="rounded-lg border border-gray-300 px-3 py-2 focus-within:border-brand-primary focus-within:ring-brand"
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           {formState.traits.map((trait) => (
                             <span
                               key={trait}
-                              className="flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 sm:px-3 py-1 text-xs font-semibold text-blue-700"
+                              className="flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 sm:px-3 py-1 text-xs font-semibold text-brand-primary"
                             >
                               {trait}
                               <button
                                 type="button"
                                 onClick={() => removeTrait(trait)}
-                                className="text-blue-600 hover:text-blue-800 font-bold"
+                                className="text-brand-primary hover:text-brand-strong font-bold"
                               >
                                 ×
                               </button>
@@ -654,7 +684,7 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="Describe how this character thinks, feels, and speaks."
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-primary focus:outline-none focus:ring-brand"
                         />
                       </div>
 
@@ -672,7 +702,7 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="Write a short backstory..."
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-primary focus:outline-none focus:ring-brand"
                         />
                       </div>
 
@@ -690,7 +720,7 @@ const CreateContent = () => {
                             }))
                           }
                           placeholder="List focus areas or conversation topics they love."
-                          className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-primary focus:outline-none focus:ring-brand"
                         />
                       </div>
                     </div>
@@ -718,8 +748,8 @@ const CreateContent = () => {
                             }
                             className={`rounded-full border px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition ${
                               formState.tone === option.id
-                                ? 'border-blue-500 bg-blue-100 text-blue-700'
-                                : 'border-gray-300 bg-white text-gray-700 hover:border-blue-300 hover:text-blue-600'
+                                ? 'border-brand-primary bg-brand-soft text-brand-primary'
+                                : 'border-gray-300 bg-white text-gray-700 hover:border-brand-primary hover:text-brand-primary'
                             }`}
                           >
                             {option.label}
@@ -744,8 +774,8 @@ const CreateContent = () => {
                             }
                             className={`flex items-center justify-between rounded-lg border px-3 sm:px-4 py-3 sm:py-4 text-left transition ${
                               formState.voice === option.id
-                                ? 'border-blue-500 bg-blue-50 shadow-sm'
-                                : 'border-gray-300 bg-white hover:border-blue-300 hover:bg-blue-50'
+                                ? 'border-brand-primary bg-brand-tint shadow-sm'
+                                : 'border-gray-300 bg-white hover:border-brand-primary hover:bg-brand-tint'
                             }`}
                           >
                             <div>
@@ -756,7 +786,7 @@ const CreateContent = () => {
                                 {option.description}
                               </p>
                             </div>
-                            <Wand2 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                            <Wand2 className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary flex-shrink-0" />
                           </button>
                         ))}
                       </div>
@@ -776,7 +806,7 @@ const CreateContent = () => {
                           }))
                         }
                         placeholder="The first thing your character says when a chat begins."
-                        className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        className="mt-2 w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-primary focus:outline-none focus:ring-brand"
                       />
                     </div>
                   </div>
@@ -788,7 +818,7 @@ const CreateContent = () => {
                       Review
                     </h3>
                     <div className="mt-6 grid gap-4 sm:gap-6 lg:grid-cols-3">
-                      <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50 to-white p-4 sm:p-6 text-center shadow-sm">
+                      <div className="rounded-lg border border-gray-200 brand-gradient-soft p-4 sm:p-6 text-center shadow-sm">
                         <div className="mx-auto h-28 sm:h-32 w-28 sm:w-32 overflow-hidden rounded-full border-4 border-white shadow">
                         {formState.image ? (
                           <Image
@@ -799,7 +829,7 @@ const CreateContent = () => {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
+                          <div className="flex h-full w-full items-center justify-center brand-gradient">
                             <User className="h-12 sm:h-14 w-12 sm:w-14 text-white" />
                           </div>
                         )}
@@ -840,7 +870,7 @@ const CreateContent = () => {
                               formState.traits.map((trait) => (
                                 <span
                                   key={trait}
-                                  className="rounded-full bg-blue-100 px-2.5 sm:px-3 py-1 text-xs font-semibold text-blue-700"
+                                  className="rounded-full bg-brand-soft px-2.5 sm:px-3 py-1 text-xs font-semibold text-brand-primary"
                                 >
                                   {trait}
                                 </span>
@@ -884,7 +914,7 @@ const CreateContent = () => {
                         <button
                           onClick={handleFinish}
                           disabled={saving}
-                          className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-md transition hover:from-blue-700 hover:to-blue-800 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg brand-gradient px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-md transition hover:shadow-brand disabled:cursor-not-allowed disabled:opacity-70"
                         >
                           {saving && (
                             <span className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-white/50 border-t-white" />
@@ -894,7 +924,7 @@ const CreateContent = () => {
                       </div>
                     </div>
                     {!editingCharacterId && (
-                      <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wider text-blue-600">
+                      <p className="mt-4 text-center text-xs font-semibold uppercase tracking-wider text-brand-primary">
                         Costs {CHARACTER_CREATION_COST} coins to publish.
                       </p>
                     )}
@@ -913,7 +943,7 @@ const CreateContent = () => {
                   </button>
                   <button
                     onClick={nextStep}
-                    className="rounded-lg bg-blue-600 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg"
+                    className="rounded-lg brand-gradient px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-md transition hover:bg-brand-primary-strong hover:shadow-brand"
                   >
                     Next
                   </button>
@@ -962,7 +992,7 @@ const CreateContent = () => {
                   {characters.map((character) => (
                     <div
                       key={character.id}
-                      className="group rounded-lg border border-gray-200 bg-white p-3 sm:p-4 shadow-sm transition hover:border-blue-300 hover:-translate-y-1 hover:shadow-md"
+                      className="group rounded-lg border border-gray-200 bg-white p-3 sm:p-4 shadow-sm transition hover:border-brand-primary hover:-translate-y-1 hover:shadow-brand"
                     >
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div className="h-12 sm:h-14 w-12 sm:w-14 overflow-hidden rounded-full border-2 border-white shadow">
@@ -975,7 +1005,7 @@ const CreateContent = () => {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700">
+                            <div className="flex h-full w-full items-center justify-center brand-gradient">
                               <User className="h-5 sm:h-6 w-5 sm:w-6 text-white" />
                             </div>
                           )}
@@ -998,7 +1028,7 @@ const CreateContent = () => {
                         </button>
                         <button
                           onClick={() => handleLaunch(character)}
-                          className="flex-1 rounded-lg bg-blue-100 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-blue-700 transition hover:bg-blue-200"
+                          className="flex-1 rounded-lg bg-brand-soft px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-brand-primary transition hover:bg-brand-tint"
                         >
                           Launch
                         </button>
