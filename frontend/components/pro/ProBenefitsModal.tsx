@@ -127,13 +127,19 @@ const ProBenefitsModal = ({ open, onClose, onSelectPlan, initialPlanId }: ProBen
   };
 
   return (
-    <div className={`fixed inset-0 z-[130] flex items-center justify-center px-2 py-3 sm:px-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+    <div
+      className={`fixed inset-0 z-[130] flex items-center justify-center px-2 py-3 sm:px-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+      role="dialog"
+      aria-modal="true"
+    >
       <div
         className={`absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
 
-      <div className={`relative flex w-full max-w-2xl flex-col overflow-hidden overflow-y-auto sm:overflow-y-visible rounded-3xl border border-purple-200/40 bg-white shadow-2xl ${isVisible ? 'animate-scale-up' : 'animate-scale-down'} max-h-[95vh]`}>
+      <div
+        className={`relative flex w-full max-w-2xl flex-col overflow-hidden overflow-y-auto sm:overflow-y-visible rounded-3xl border border-purple-200/40 bg-white shadow-2xl ${isVisible ? 'animate-scale-up' : 'animate-scale-down'} max-h-[90vh] sm:max-h-[95vh]`}
+      >
         <div className="absolute right-2 top-2 sm:right-3 sm:top-3">
           <button
             onClick={onClose}
@@ -144,7 +150,7 @@ const ProBenefitsModal = ({ open, onClose, onSelectPlan, initialPlanId }: ProBen
           </button>
         </div>
 
-        <div className="flex-shrink-0 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 px-4 py-5 text-white sm:px-6">
+        <div className="flex-shrink-0 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 px-4 py-4 sm:py-5 text-white sm:px-6">
           <div className="flex flex-col gap-2.5 text-center sm:text-left">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 shadow-xl sm:mx-0">
               <Sparkles className="h-6 w-6" />

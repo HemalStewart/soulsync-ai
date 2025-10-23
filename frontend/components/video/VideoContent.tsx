@@ -364,6 +364,15 @@ const VideoContent = () => {
   }, [user]);
 
   const handleDeleteVideo = useCallback(async (id: number) => {
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm(
+        'Delete this video from your library? This cannot be undone.'
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
     try {
       await deleteGeneratedVideo(id);
       setVideos((prev) => prev.filter((video) => video.id !== id));
@@ -376,6 +385,15 @@ const VideoContent = () => {
   }, []);
 
   const handleClearVideos = useCallback(async () => {
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm(
+        'Remove every generated video from your library? This cannot be undone.'
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
     try {
       await clearGeneratedVideos();
       setVideos([]);

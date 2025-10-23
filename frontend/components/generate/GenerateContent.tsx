@@ -774,6 +774,15 @@ const GenerateContent = () => {
   }, [user]);
 
   const handleClearGallery = async () => {
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm(
+        'Remove every generated image from your gallery? This cannot be undone.'
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
     try {
       await clearGeneratedImages();
       setImages([]);
@@ -786,6 +795,15 @@ const GenerateContent = () => {
   };
 
   const handleDeleteImage = async (id: number) => {
+    if (typeof window !== 'undefined') {
+      const confirmed = window.confirm(
+        'Delete this image from your gallery? This cannot be undone.'
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
     try {
       await deleteGeneratedImage(id);
       setImages((prev) => prev.filter((image) => image.id !== id));

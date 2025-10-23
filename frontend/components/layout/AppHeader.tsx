@@ -105,7 +105,7 @@ const AppHeader = () => {
               <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-md bg-white/20 backdrop-blur-sm" />
             </div>
             <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#0ea5e9] bg-clip-text text-transparent whitespace-nowrap">
-              SoulFun
+              SoulSync
             </span>
           </Link>
 
@@ -137,7 +137,7 @@ const AppHeader = () => {
 
             {/* Get Pro Button - Fixed width */}
             <button
-              className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 hover:shadow-brand hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 get-pro-pulse"
+              className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 shadow-[0_14px_28px_-12px_rgba(37,99,235,0.55)] hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 hover:shadow-[0_18px_36px_-14px_rgba(37,128,235,0.65)] hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 get-pro-pulse"
               onClick={handleOpenPro}
               type="button"
             >
@@ -243,7 +243,7 @@ const AppHeader = () => {
                         </div>
                       </div>
                       <button
-                        className="px-3 py-2 text-xs font-semibold text-white rounded-lg bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 transition get-pro-pulse"
+                        className="px-3 py-2 text-xs font-semibold text-white rounded-lg bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 shadow-[0_10px_24px_-12px_rgba(37,99,235,0.55)] hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 hover:shadow-[0_14px_30px_-14px_rgba(37,128,235,0.65)] transition get-pro-pulse"
                         onClick={() => {
                           setShowAccountMenu(false);
                           handleOpenPro();
