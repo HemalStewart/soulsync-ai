@@ -2,13 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import AppLayout from '@/components/layout/AppLayout';
 import ChatList from './ChatList';
+import ChatWindow from './ChatWindow';
 import ChatInfoPanel from './ChatInfoPanel';
 import ChatEmptyState from './ChatEmptyState';
 
-const ChatWindow = dynamic(() => import('./ChatWindow'), { ssr: false });
 import {
   getCharacters,
   getChatSummaries,
@@ -588,12 +587,18 @@ useEffect(
     })();
 
     try {
-      const messageRecord = await shareChatMedia(selectedChat, {
+      const { message: messageRecord, coinBalance } = await shareChatMedia(selectedChat, {
         type,
         url: item.url,
         title: item.label ?? null,
         thumbnailUrl: item.thumbnailUrl ?? null,
       });
+
+      if (typeof coinBalance === 'number') {
+        setBalance(coinBalance);
+      } else {
+        void refreshCoinBalance();
+      }
 
       setChatDetail((previous) => {
         if (!previous) {

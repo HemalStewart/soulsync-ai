@@ -444,18 +444,45 @@ class Chats extends BaseController
             $mediaPayload['thumbnailUrl'] = $thumbnailUrl;
         }
 
+        $coinManager = service('coinManager');
+        $spendReason = $type === 'image' ? 'chat_media_image' : 'chat_media_video';
+        $spendAmount = $type === 'image'
+            ? CoinManager::COST_CHAT_MEDIA_IMAGE
+            : CoinManager::COST_CHAT_MEDIA_VIDEO;
+
+        try {
+            $updatedBalance = $coinManager->spend(
+                (string) $userId,
+                $spendAmount,
+                $spendReason
+            );
+        } catch (CoinManagerException $exception) {
+            $status = str_contains($exception->getMessage(), 'table') ? 500 : 402;
+            return $this->fail($exception->getMessage(), $status);
+        }
+
         $sessionId = session_id();
         $encoded = $this->encodeMediaMessage($mediaPayload);
 
         $builder = $db->table('ai_messages');
 
-        $builder->insert([
-            'character_slug' => $slug,
-            'user_id'        => $userId,
-            'session_id'     => $sessionId,
-            'sender'         => 'ai',
-            'message'        => $encoded,
-        ]);
+        try {
+            $builder->insert([
+                'character_slug' => $slug,
+                'user_id'        => $userId,
+                'session_id'     => $sessionId,
+                'sender'         => 'ai',
+                'message'        => $encoded,
+            ]);
+        } catch (\Throwable $throwable) {
+            try {
+                $coinManager->refund((string) $userId, $spendAmount, $spendReason . '_refund');
+            } catch (CoinManagerException $refundException) {
+                log_message('error', 'Failed to refund coins after media error: ' . $refundException->getMessage());
+            }
+
+            return $this->fail('Failed to persist media message. ' . $throwable->getMessage(), 500);
+        }
 
         $insertId = (int) $db->insertID();
 
@@ -466,14 +493,21 @@ class Chats extends BaseController
             ->getRowArray();
 
         if (! $record) {
+            try {
+                $coinManager->refund((string) $userId, $spendAmount, $spendReason . '_refund');
+            } catch (CoinManagerException $refundException) {
+                log_message('error', 'Failed to refund coins after missing media record: ' . $refundException->getMessage());
+            }
+
             return $this->fail('Failed to persist media message.', 500);
         }
 
         $message = $this->transformMessageRow($record);
 
         return $this->respondCreated([
-            'status'  => 'success',
-            'message' => $message,
+            'status'        => 'success',
+            'message'       => $message,
+            'coin_balance'  => $updatedBalance,
         ]);
     }
 

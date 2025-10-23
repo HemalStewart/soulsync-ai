@@ -13,6 +13,8 @@ class CoinManager
     public const COST_SEND_MESSAGE = 1;
     public const COST_GENERATE_VIDEO = 75;
     public const COST_CREATE_CHARACTER = 25;
+    public const COST_CHAT_MEDIA_IMAGE = 15;
+    public const COST_CHAT_MEDIA_VIDEO = 30;
 
     private ?BaseConnection $db = null;
 

@@ -242,8 +242,8 @@ export interface ShareChatMediaPayload {
 export const shareChatMedia = async (
   slug: string,
   payload: ShareChatMediaPayload
-): Promise<ChatMessage> => {
-  const response = await fetchJson<{ message: ChatMessage }>(
+): Promise<{ message: ChatMessage; coinBalance?: number }> => {
+  const response = await fetchJson<{ message: ChatMessage; coin_balance?: number }>(
     `/chats/${slug}/media`,
     {
       method: 'POST',
@@ -251,7 +251,13 @@ export const shareChatMedia = async (
     }
   );
 
-  return response.message;
+  return {
+    message: response.message,
+    coinBalance:
+      typeof response.coin_balance === 'number'
+        ? response.coin_balance
+        : undefined,
+  };
 };
 
 export const apiConfig = {
