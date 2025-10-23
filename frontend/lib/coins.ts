@@ -1,7 +1,7 @@
 export const COIN_COSTS = {
-  generateImage: 5,
+  generateImage: 25,
   chatMessage: 1,
-  generateVideo: 25,
+  generateVideo: 75,
   createCharacter: 25,
 } as const;
 
