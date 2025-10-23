@@ -463,7 +463,7 @@ const CharacterGrid = ({
 
               {/* Hover Action Buttons */}
               <div
-                className={`absolute top-3 right-3 flex gap-1 sm:gap-2 transition-all duration-300 ${
+                className={`absolute top-5 right-5 flex gap-1 sm:gap-2 transition-all duration-300 ${
                   hoveredCard === index
                     ? 'opacity-100 translate-y-0 pointer-events-auto'
                     : 'opacity-0 -translate-y-4 pointer-events-none'
