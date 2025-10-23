@@ -82,6 +82,14 @@ export interface GeneratedImageRecord {
   created_at: string;
 }
 
+export type GeneratedImageReportReason =
+  | 'sexual_content'
+  | 'violent_content'
+  | 'hate_speech'
+  | 'self_harm'
+  | 'spam'
+  | 'other';
+
 export interface GeneratedVideoRecord {
   id: number;
   user_id: string;

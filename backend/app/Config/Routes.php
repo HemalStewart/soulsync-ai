@@ -22,6 +22,7 @@ $routes->group('api', static function ($routes) {
     $routes->post('generated-images', 'Api\GeneratedImages::store');
     $routes->delete('generated-images', 'Api\GeneratedImages::clear');
     $routes->delete('generated-images/(:num)', 'Api\GeneratedImages::destroy/$1');
+    $routes->post('generated-images/(:num)/report', 'Api\GeneratedImageReports::store/$1');
 
     $routes->get('generated-videos', 'Api\GeneratedVideos::index');
     $routes->post('generated-videos', 'Api\GeneratedVideos::store');

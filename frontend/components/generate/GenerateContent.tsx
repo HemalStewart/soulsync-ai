@@ -2,6 +2,7 @@
 
 import {
   ChangeEvent,
+  FormEvent,
   JSX,
   useCallback,
   useEffect,
@@ -11,21 +12,25 @@ import {
 } from 'react';
 import Image from 'next/image';
 import {
+  AlertCircle,
   Camera,
+  CheckCircle2,
   Coins,
   Download,
+  Flag,
   Image as ImageIcon,
   ImagePlus,
   Maximize2,
   Monitor,
   Palette,
+  RefreshCw,
   Sparkles,
   Square,
   Sword,
   Trash2,
   Tv,
   Wand2,
-  RefreshCw,
+  X,
 } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -38,8 +43,12 @@ import {
   createGeneratedImage,
   deleteGeneratedImage,
   listGeneratedImages,
+  reportGeneratedImage,
 } from '@/lib/api';
-import { GeneratedImageRecord } from '@/lib/types';
+import {
+  GeneratedImageRecord,
+  GeneratedImageReportReason,
+} from '@/lib/types';
 
 const IMAGE_GENERATION_COST = COIN_COSTS.generateImage;
 
@@ -49,6 +58,260 @@ type AspectRatioId = '1:1' | '9:16' | '16:9' | '3:4' | '4:3';
 type StoredImage = Omit<GeneratedImageRecord, 'style' | 'aspect_ratio'> & {
   style: StyleId;
   aspect_ratio: AspectRatioId;
+};
+
+const REPORT_DETAILS_MAX_LENGTH = 400;
+
+const REPORT_REASON_OPTIONS: Array<{
+  value: GeneratedImageReportReason;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: 'sexual_content',
+    label: 'Sexual or explicit content',
+    description:
+      'Includes nudity, sexual activity, or content involving minors.',
+  },
+  {
+    value: 'violent_content',
+    label: 'Violence or graphic injury',
+    description: 'Depicts physical harm, gore, or extreme violence.',
+  },
+  {
+    value: 'hate_speech',
+    label: 'Hate speech or harassment',
+    description:
+      'Targets a protected group or individual with hateful language.',
+  },
+  {
+    value: 'self_harm',
+    label: 'Self-harm or suicide',
+    description: 'Encourages self-harm, suicide, or eating disorders.',
+  },
+  {
+    value: 'spam',
+    label: 'Spam, scams, or misleading content',
+    description: 'Appears deceptive, fraudulent, or promotional spam.',
+  },
+  {
+    value: 'other',
+    label: 'Other',
+    description: "Doesn't fit the categories above.",
+  },
+];
+
+interface ReportImageModalProps {
+  open: boolean;
+  image: StoredImage | null;
+  reason: GeneratedImageReportReason;
+  details: string;
+  submitting: boolean;
+  error: string | null;
+  message: string | null;
+  onClose: () => void;
+  onReasonChange: (value: GeneratedImageReportReason) => void;
+  onDetailsChange: (value: string) => void;
+  onSubmit: () => void;
+}
+
+const ReportImageModal = ({
+  open,
+  image,
+  reason,
+  details,
+  submitting,
+  error,
+  message,
+  onClose,
+  onReasonChange,
+  onDetailsChange,
+  onSubmit,
+}: ReportImageModalProps) => {
+  if (!open || !image) {
+    return null;
+  }
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (message) {
+      onClose();
+      return;
+    }
+
+    if (submitting) {
+      return;
+    }
+
+    onSubmit();
+  };
+
+  const formatStyleLabel = (value: string) =>
+    value.charAt(0).toUpperCase() + value.slice(1);
+
+  return (
+    <div className="fixed inset-0 z-[140] flex items-center justify-center px-4">
+      <div
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+        onClick={() => {
+          if (!submitting) {
+            onClose();
+          }
+        }}
+      />
+
+      <div className="relative z-[141] w-full max-w-lg overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
+        <button
+          type="button"
+          onClick={() => {
+            if (!submitting) {
+              onClose();
+            }
+          }}
+          className="absolute right-3 top-3 rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+          aria-label="Close report modal"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <form
+          onSubmit={handleSubmit}
+          className="max-h-[85vh] overflow-y-auto px-6 py-7 sm:px-8"
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft text-brand-primary">
+              <Flag className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Report image
+              </h2>
+              <p className="text-sm text-gray-500">
+                Tell us why this image breaks the guidelines.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-gray-200 bg-gray-50 p-3">
+            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-gray-200 aspect-square">
+              {image.remote_url.startsWith('data:') ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={image.remote_url}
+                  alt={image.prompt}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={image.remote_url}
+                  alt={image.prompt}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                  unoptimized
+                />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="line-clamp-2 text-sm font-semibold text-gray-900">
+                {image.prompt}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Style: {formatStyleLabel(image.style)} | Ratio: {image.aspect_ratio}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Reason
+            </p>
+            <div className="grid gap-2">
+              {REPORT_REASON_OPTIONS.map((option) => {
+                const isActive = option.value === reason;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => onReasonChange(option.value)}
+                    className={`w-full rounded-xl border px-4 py-3 text-left transition ${
+                      isActive
+                        ? 'border-brand-primary bg-brand-soft text-brand-primary shadow-sm'
+                        : 'border-gray-200 text-gray-700 hover:border-brand-primary/50 hover:bg-brand-soft/40'
+                    }`}
+                  >
+                    <p className="text-sm font-semibold">{option.label}</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {option.description}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Additional details <span className="text-gray-400">(optional)</span>
+            </label>
+            <textarea
+              value={details}
+              onChange={(event) =>
+                onDetailsChange(
+                  event.target.value.slice(0, REPORT_DETAILS_MAX_LENGTH)
+                )
+              }
+              placeholder="Share any extra context we should know..."
+              rows={3}
+              className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-soft"
+            />
+            <div className="mt-1 text-right text-[11px] text-gray-400">
+              {details.length}/{REPORT_DETAILS_MAX_LENGTH}
+            </div>
+          </div>
+
+          {error && (
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <AlertCircle className="mt-0.5 h-4 w-4" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {message && (
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              <CheckCircle2 className="mt-0.5 h-4 w-4" />
+              <span>{message}</span>
+            </div>
+          )}
+
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+            {!message && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!submitting) {
+                    onClose();
+                  }
+                }}
+                className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-300 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={submitting}
+              >
+                Cancel
+              </button>
+            )}
+            <button
+              type="submit"
+              className="rounded-xl brand-gradient px-4 py-3 text-sm font-semibold text-white shadow-brand transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+              disabled={submitting}
+            >
+              {message ? 'Close' : submitting ? 'Submitting...' : 'Submit report'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 };
 
 const DATA_URL_PATTERN = /^data:([^;,]+);base64,/i;
@@ -282,6 +545,13 @@ const GenerateContent = () => {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [showCoinModal, setShowCoinModal] = useState(false);
   const [imagesLoading, setImagesLoading] = useState(false);
+  const [reportingImage, setReportingImage] = useState<StoredImage | null>(null);
+  const [reportReason, setReportReason] =
+    useState<GeneratedImageReportReason>('sexual_content');
+  const [reportDetails, setReportDetails] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportMessage, setReportMessage] = useState<string | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
   const generationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const promptCount = useMemo(() => prompt.length, [prompt]);
@@ -297,6 +567,53 @@ const GenerateContent = () => {
     const next = event.target.value.slice(0, 200);
     setNegativePrompt(next);
   };
+
+  const handleOpenReport = useCallback((image: StoredImage) => {
+    setReportingImage(image);
+    setReportReason('sexual_content');
+    setReportDetails('');
+    setReportMessage(null);
+    setReportError(null);
+  }, []);
+
+  const handleCloseReportModal = useCallback(() => {
+    if (reportSubmitting) {
+      return;
+    }
+
+    setReportingImage(null);
+    setReportReason('sexual_content');
+    setReportDetails('');
+    setReportMessage(null);
+    setReportError(null);
+  }, [reportSubmitting]);
+
+  const handleSubmitReport = useCallback(async () => {
+    if (!reportingImage) {
+      return;
+    }
+
+    try {
+      setReportSubmitting(true);
+      setReportError(null);
+
+      const trimmedDetails = reportDetails.trim();
+      const response = await reportGeneratedImage(reportingImage.id, {
+        reason: reportReason,
+        details: trimmedDetails !== '' ? trimmedDetails : undefined,
+      });
+
+      setReportMessage(response.message);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to submit the report right now.';
+      setReportError(message);
+    } finally {
+      setReportSubmitting(false);
+    }
+  }, [reportDetails, reportReason, reportingImage]);
 
   const handleGenerate = useCallback(async () => {
     const trimmedPrompt = prompt.trim();
@@ -791,6 +1108,7 @@ const GenerateContent = () => {
                       >
                         <div className="relative w-full overflow-hidden aspect-square">
                           {image.remote_url.startsWith('data:') ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
                             <img
                               src={image.remote_url}
                               alt={image.prompt}
@@ -821,6 +1139,14 @@ const GenerateContent = () => {
                                 title="Upscale"
                               >
                                 <Maximize2 className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleOpenReport(image)}
+                                className="rounded bg-white px-2 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold text-amber-600 transition hover:bg-amber-50"
+                                title="Report"
+                                aria-label="Report image"
+                              >
+                                <Flag className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteImage(image.id)}
@@ -860,7 +1186,20 @@ const GenerateContent = () => {
         </div>
       </div>
     </AppLayout>
-    <CoinLimitModal
+    <ReportImageModal
+        open={Boolean(reportingImage)}
+        image={reportingImage}
+        reason={reportReason}
+        details={reportDetails}
+        submitting={reportSubmitting}
+        error={reportError}
+        message={reportMessage}
+        onClose={handleCloseReportModal}
+        onReasonChange={(value) => setReportReason(value)}
+        onDetailsChange={(value) => setReportDetails(value)}
+        onSubmit={handleSubmitReport}
+      />
+      <CoinLimitModal
         open={showCoinModal}
         onClose={() => setShowCoinModal(false)}
       />

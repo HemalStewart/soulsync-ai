@@ -5,6 +5,7 @@ import {
   ChatMessage,
   ChatSummary,
   GeneratedImageRecord,
+  GeneratedImageReportReason,
   GeneratedVideoRecord,
   UserCharacterRecord,
 } from './types';
@@ -352,6 +353,31 @@ export const createGeneratedImage = async (
         ? response.coin_balance
         : undefined,
   };
+};
+
+export interface ReportGeneratedImagePayload {
+  reason: GeneratedImageReportReason;
+  details?: string | null;
+}
+
+export const reportGeneratedImage = async (
+  id: number,
+  payload: ReportGeneratedImagePayload
+): Promise<{ message: string }> => {
+  const response = await fetchJson<{ message?: string }>(
+    `/generated-images/${id}/report`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const message =
+    typeof response.message === 'string' && response.message.trim() !== ''
+      ? response.message.trim()
+      : 'Report submitted.';
+
+  return { message };
 };
 
 export const deleteGeneratedImage = async (id: number): Promise<void> => {
