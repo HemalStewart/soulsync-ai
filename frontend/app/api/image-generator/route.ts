@@ -358,9 +358,9 @@ export async function POST(request: NextRequest) {
 
 
     
-    // pg_rating: 'pg-13', // Uncomment to nudge Venice to stay within PG-13 content
-    // content_filter: 'strict', // Uncomment to enable Venice content filtering
-    // disable_uncensored_content: true, // Uncomment to force Venice safe-mode behaviour
+    pg_rating: 'pg-13', // Uncomment to nudge Venice to stay within PG-13 content
+    content_filter: 'strict', // Uncomment to enable Venice content filtering
+    disable_uncensored_content: true, // Uncomment to force Venice safe-mode behaviour
   };
 
   if (negativePrompt) {

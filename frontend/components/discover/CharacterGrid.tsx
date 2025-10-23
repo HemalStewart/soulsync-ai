@@ -15,7 +15,7 @@ interface CharacterGridProps {
 
 // SkeletonCard from V2 (Unchanged)
 const SkeletonCard = () => (
-  <div className="h-80 sm:h-96 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
+  <div className="h-[28rem] sm:h-[26rem] rounded-2xl sm:rounded-3xl bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
 );
 
 const CharacterGrid = ({
@@ -366,7 +366,7 @@ const CharacterGrid = ({
       <div className="mx-auto px-4 grid max-w-7xl grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         
         {/* Promo Card from V2 (Unchanged) */}
-        <div className="relative h-80 sm:h-96 cursor-pointer overflow-hidden rounded-2xl sm:rounded-3xl grid-item shadow-lg hover:shadow-3xl transition-shadow duration-300">
+        <div className="relative h-[28rem] sm:h-[26rem] cursor-pointer overflow-hidden rounded-2xl sm:rounded-3xl grid-item shadow-lg hover:shadow-3xl transition-shadow duration-300">
           <video autoPlay loop muted playsInline className="h-full w-full object-cover">
             <source
               src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
@@ -405,7 +405,7 @@ const CharacterGrid = ({
           return (
             <div
               key={character.slug}
-              className="character-card gradient-border relative h-80 sm:h-96 cursor-pointer overflow-hidden rounded-3xl card-item group shadow-xl"
+              className="character-card gradient-border relative h-[28rem] sm:h-[26rem] cursor-pointer overflow-hidden rounded-3xl card-item group shadow-xl"
               onMouseEnter={() => onCardHover(index)}
               onMouseLeave={handleMouseLeave}
               style={{ animationDelay: `${(index + 1) * 0.1}s` }}
@@ -455,31 +455,44 @@ const CharacterGrid = ({
 
               {/* Gradient Overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-              <div className={`absolute inset-0 bg-gradient-to-br from-purple-600/20 via-transparent to-blue-600/20 transition-opacity duration-500 ${
-                hoveredCard === index ? 'opacity-100' : 'opacity-0'
-              }`} />
+              <div
+                className={`absolute inset-0 bg-gradient-to-br from-purple-600/20 via-transparent to-blue-600/20 transition-opacity duration-500 ${
+                  hoveredCard === index ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+
+              {/* Hover Action Buttons */}
+              <div
+                className={`absolute top-3 right-3 flex gap-1 sm:gap-2 transition-all duration-300 ${
+                  hoveredCard === index
+                    ? 'opacity-100 translate-y-0 pointer-events-auto'
+                    : 'opacity-0 -translate-y-4 pointer-events-none'
+                }`}
+              >
+                <button className="action-btn flex h-10 sm:h-12 w-10 sm:w-12 items-center justify-center rounded-full glass-effect">
+                  <Video size={18} className="sm:w-5 sm:h-5 text-white" />
+                </button>
+                <button className="action-btn flex h-10 sm:h-12 w-10 sm:w-12 items-center justify-center rounded-full glass-effect">
+                  <Phone size={18} className="sm:w-5 sm:h-5 text-white" />
+                </button>
+                
+                <button
+                  onClick={() => onOpenChat(character.slug)}
+                  className="action-btn flex h-10 sm:h-12 w-10 sm:w-12 items-center justify-center rounded-full glass-effect"
+                >
+                  <MessageCircle size={18} className="sm:w-5 sm:h-5 text-white" />
+                </button>
+              </div>
+
+              
 
               {/* Content */}
               <div className="absolute inset-x-0 bottom-0 p-3 sm:p-6 space-y-2 sm:space-y-3">
-                {/* Name and Actions Row */}
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-lg sm:text-2xl font-bold text-white text-glow leading-tight truncate flex-1 group-hover:scale-105 transition-transform duration-300">
+                {/* Name */}
+                <div className="flex items-start gap-3">
+                  <h3 className="text-lg sm:text-2xl font-bold text-white leading-tight truncate flex-1 group-hover:scale-105 transition-transform duration-300">
                     {character.name}
                   </h3>
-                  <div className="flex gap-1 sm:gap-2 flex-shrink-0">
-                    <button 
-                      onClick={() => onOpenChat(character.slug)}
-                      className="action-btn flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full glass-effect"
-                    >
-                      <MessageCircle size={16} className="sm:w-5 sm:h-5 text-white" />
-                    </button>
-                    <button className="action-btn flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full glass-effect">
-                      <Phone size={16} className="sm:w-5 sm:h-5 text-white" />
-                    </button>
-                    <button className="action-btn flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full glass-effect">
-                      <Video size={16} className="sm:w-5 sm:h-5 text-white" />
-                    </button>
-                  </div>
                 </div>
 
                 {/* Meta Info */}
