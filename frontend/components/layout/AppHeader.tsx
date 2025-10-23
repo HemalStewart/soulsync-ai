@@ -344,13 +344,13 @@ const AppHeader = () => {
           inset: 0;
           border-radius: inherit;
           background-size: 200% 200%;
-          animation: flowingGradient 4s ease-in-out infinite;
+          animation: flowingGradient 3s ease-in-out infinite;
         }
 
         .animate-gradient-text {
           display: inline-block;
           background-size: 200% 200%;
-          animation: flowingGradient 4s ease-in-out infinite;
+          animation: flowingGradient 3s ease-in-out infinite;
         }
       `}</style>
 
