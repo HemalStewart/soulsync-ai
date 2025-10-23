@@ -355,6 +355,12 @@ export async function POST(request: NextRequest) {
     hide_watermark: true,
     safe_mode: payload.safe_mode === true,
     embed_exif_metadata: false,
+
+
+    
+    // pg_rating: 'pg-13', // Uncomment to nudge Venice to stay within PG-13 content
+    // content_filter: 'strict', // Uncomment to enable Venice content filtering
+    // disable_uncensored_content: true, // Uncomment to force Venice safe-mode behaviour
   };
 
   if (negativePrompt) {
@@ -397,11 +403,34 @@ export async function POST(request: NextRequest) {
       | null;
 
     if (!response.ok) {
-      const detail =
+      // Normalise Venice errors so we can surface on-brand messaging.
+      const veniceDetailRaw =
         sanitizeString(payloadJson?.error) ||
-        sanitizeString(payloadJson?.message) ||
-        `Venice request failed with status ${response.status}`;
-      return buildError(detail, response.status);
+        sanitizeString(payloadJson?.message);
+
+      let detail = veniceDetailRaw;
+      const status = response.status;
+
+      if (status === 400 || status === 403) {
+        const normalized = veniceDetailRaw.toLowerCase();
+        const looksLikeContentBlock =
+          normalized === '' ||
+          /safety|policy|content\s*filter|uncensored|explicit|nsfw|nudity/.test(
+            normalized
+          );
+
+        if (looksLikeContentBlock) {
+          // Friendly copy when Venice blocks explicit or unsafe content.
+          detail =
+            'We could not generate that image because the prompt may violate our community guidelines. Try adjusting the description to keep it friendly.';
+        }
+      }
+
+      if (!detail) {
+        detail = `Venice request failed with status ${response.status}`;
+      }
+
+      return buildError(detail, status);
     }
 
     const images = Array.isArray(payloadJson?.images)

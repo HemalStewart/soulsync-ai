@@ -396,7 +396,37 @@
               "path": [
                 "generated-images"
               ]
-            }
+            },
+            "description": "Persists metadata for an image the user generated. Deducts 25 coins from the authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "Report Generated Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"sexual_content\",\n  \"details\": \"Contains explicit nudity\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/generated-images/{{imageId}}/report",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "generated-images",
+                "{{imageId}}",
+                "report"
+              ]
+            },
+            "description": "Flags an image for moderation review. Each user can report a given image once."
           },
           "response": []
         },
@@ -491,7 +521,8 @@
               "path": [
                 "generated-videos"
               ]
-            }
+            },
+            "description": "Persists metadata for a generated video and deducts 75 coins from the authenticated user."
           },
           "response": []
         },
