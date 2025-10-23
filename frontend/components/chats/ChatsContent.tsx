@@ -2,16 +2,19 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import AppLayout from '@/components/layout/AppLayout';
 import ChatList from './ChatList';
-import ChatWindow from './ChatWindow';
 import ChatInfoPanel from './ChatInfoPanel';
 import ChatEmptyState from './ChatEmptyState';
+
+const ChatWindow = dynamic(() => import('./ChatWindow'), { ssr: false });
 import {
   getCharacters,
   getChatSummaries,
   getCharacterChat,
   sendChatMessage,
+  shareChatMedia,
 } from '@/lib/api';
 import {
   CharacterCard,
@@ -25,6 +28,53 @@ import CoinLimitModal from '@/components/coins/CoinLimitModal';
 import { COIN_COSTS } from '@/lib/coins';
 
 const MESSAGE_COST = COIN_COSTS.chatMessage;
+
+type MediaKind = 'image' | 'video';
+
+type PredefinedMediaItem = {
+  url: string;
+  label: string | null;
+  thumbnailUrl?: string | null;
+  placeholder?: string | null;
+};
+
+type PredefinedMediaState = {
+  characterId: string;
+  images: PredefinedMediaItem[];
+  videos: PredefinedMediaItem[];
+};
+
+const countMediaMessages = (
+  messages: ChatMessage[] | null | undefined,
+  type: MediaKind
+): number =>
+  (messages ?? []).reduce(
+    (total, message) => (message.media?.type === type ? total + 1 : total),
+    0
+  );
+
+const pickNextPredefinedItem = (
+  media: PredefinedMediaState | null,
+  history: ChatMessage[] | null | undefined,
+  type: MediaKind
+): PredefinedMediaItem | null => {
+  if (!media) {
+    return null;
+  }
+
+  const pool =
+    type === 'image'
+      ? media.images ?? []
+      : media.videos ?? [];
+
+  if (!pool.length) {
+    return null;
+  }
+
+  const count = countMediaMessages(history, type);
+  const index = count % pool.length;
+  return pool[index];
+};
 
 const ChatsContent = () => {
   const router = useRouter();
@@ -47,7 +97,43 @@ const ChatsContent = () => {
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showCoinModal, setShowCoinModal] = useState(false);
   const [showInfoPanel, setShowInfoPanel] = useState(false);
+  const [predefinedMedia, setPredefinedMedia] =
+    useState<PredefinedMediaState | null>(null);
+  const [pendingMedia, setPendingMedia] = useState<{
+    type: MediaKind;
+    item: PredefinedMediaItem;
+  } | null>(null);
   const previousDesktopOpenRef = useRef<boolean>(true);
+  const mediaGenerationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const selectedChatRef = useRef<string | null>(null);
+
+  const clearPendingMediaGeneration = () => {
+    if (mediaGenerationTimeoutRef.current) {
+      clearTimeout(mediaGenerationTimeoutRef.current);
+      mediaGenerationTimeoutRef.current = null;
+    }
+    setPendingMedia(null);
+  };
+
+  const scrollChatToBottom = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const container = document.querySelector<HTMLDivElement>('[data-chat-messages]');
+    if (container) {
+      try {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth',
+        });
+      } catch {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+  };
 
   const defaultChatSlug = useMemo(
     () => chatSummaries[0]?.character_slug ?? null,
@@ -167,10 +253,23 @@ const ChatsContent = () => {
     }
   }, [characterParam, isMobileView]);
 
+useEffect(() => {
+  selectedChatRef.current = selectedChat;
+  clearPendingMediaGeneration();
+}, [selectedChat]);
+
+useEffect(
+  () => () => {
+    clearPendingMediaGeneration();
+  },
+  []
+);
+
   useEffect(() => {
     if (!user || !selectedChat) {
       setShowMobileChat(false);
       setChatDetail(null);
+      clearPendingMediaGeneration();
       return;
     }
 
@@ -410,6 +509,211 @@ const ChatsContent = () => {
     return [greetingMessage, ...baseMessages];
   }, [chatDetail?.messages, resolvedGreeting, selectedChat]);
 
+  useEffect(() => {
+    if (!user) {
+      setPredefinedMedia(null);
+      return;
+    }
+
+    const characterId = characterProfile?.id ?? null;
+
+    if (!characterId) {
+      setPredefinedMedia(null);
+      return;
+    }
+
+    let isSubscribed = true;
+
+    const loadMedia = async () => {
+      try {
+        const response = await fetch(`/api/predefined-media/${characterId}`);
+
+        if (!isSubscribed) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const payload = (await response.json()) as PredefinedMediaState;
+        if (isSubscribed) {
+          setPredefinedMedia({
+            characterId: payload.characterId,
+            images: Array.isArray(payload.images) ? payload.images : [],
+            videos: Array.isArray(payload.videos) ? payload.videos : [],
+          });
+        }
+      } catch (error) {
+        if (isSubscribed) {
+          console.warn('Unable to load predefined media', error);
+          setPredefinedMedia({
+            characterId,
+            images: [],
+            videos: [],
+          });
+        }
+      } finally {
+      }
+    };
+
+    loadMedia();
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [characterProfile?.id, user]);
+
+  const handleInsertPredefinedMedia = async (
+    item: PredefinedMediaItem,
+    type: MediaKind
+  ) => {
+    if (mediaGenerationTimeoutRef.current) {
+      clearTimeout(mediaGenerationTimeoutRef.current);
+      mediaGenerationTimeoutRef.current = null;
+    }
+
+    if (!chatDetail || !selectedChat) {
+      setErrorMessage('Please select a chat before sharing media.');
+      setIsErrorVisible(true);
+      return;
+    }
+
+    const summaryText = (() => {
+      const label = item.label?.trim();
+      if (type === 'image') {
+        return label ? `Shared image: ${label}` : 'Shared an image';
+      }
+      return label ? `Shared video: ${label}` : 'Shared a video';
+    })();
+
+    try {
+      const messageRecord = await shareChatMedia(selectedChat, {
+        type,
+        url: item.url,
+        title: item.label ?? null,
+        thumbnailUrl: item.thumbnailUrl ?? null,
+      });
+
+      setChatDetail((previous) => {
+        if (!previous) {
+          return previous;
+        }
+
+        return {
+          ...previous,
+          messages: [...previous.messages, messageRecord],
+        };
+      });
+
+      setChatSummaries((previous) =>
+        previous.map((entry) =>
+          entry.character_slug === selectedChat
+            ? {
+                ...entry,
+                message: summaryText,
+                created_at: messageRecord.created_at,
+                sender: 'ai',
+              }
+            : entry
+        )
+      );
+
+      setErrorMessage(null);
+      setIsErrorVisible(false);
+      setTimeout(() => {
+        scrollChatToBottom();
+      }, 0);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Failed to share media in the chat.'
+      );
+      setIsErrorVisible(true);
+    } finally {
+      setPendingMedia(null);
+    }
+  };
+
+  const schedulePredefinedMedia = (type: MediaKind, delayMs: number) => {
+    if (!selectedChat) {
+      setErrorMessage('Please select a chat before generating media.');
+      setIsErrorVisible(true);
+      return;
+    }
+
+    if (!chatDetail) {
+      setErrorMessage('Please wait for the chat to finish loading.');
+      setIsErrorVisible(true);
+      return;
+    }
+
+    if (pendingMedia) {
+      setErrorMessage('Please wait for the current generation to finish.');
+      setIsErrorVisible(true);
+      return;
+    }
+
+    const nextItem = pickNextPredefinedItem(
+      predefinedMedia,
+      chatDetail.messages,
+      type
+    );
+
+    if (!nextItem) {
+      setErrorMessage(
+        type === 'image'
+          ? 'No predefined images available for this character yet.'
+          : 'No predefined videos available for this character yet.'
+      );
+      setIsErrorVisible(true);
+      return;
+    }
+
+    clearPendingMediaGeneration();
+    setPendingMedia({ type, item: nextItem });
+    setErrorMessage(null);
+    setIsErrorVisible(false);
+    scrollChatToBottom();
+
+    const targetSlug = selectedChatRef.current;
+    mediaGenerationTimeoutRef.current = setTimeout(() => {
+      if (targetSlug && targetSlug === selectedChatRef.current) {
+        void handleInsertPredefinedMedia(nextItem, type);
+      } else {
+        clearPendingMediaGeneration();
+      }
+    }, delayMs);
+  };
+
+  const handleRequestPredefinedMedia = (type: MediaKind) => {
+    const hasPool =
+      type === 'image'
+        ? Boolean(predefinedMedia?.images?.length)
+        : Boolean(predefinedMedia?.videos?.length);
+
+    if (!hasPool) {
+      setErrorMessage(
+        type === 'image'
+          ? 'No predefined images available for this character yet.'
+          : 'No predefined videos available for this character yet.'
+      );
+      setIsErrorVisible(true);
+      return;
+    }
+
+    if (type === 'image') {
+      schedulePredefinedMedia('image', 10_000);
+      return;
+    }
+
+    schedulePredefinedMedia('video', 30_000);
+  };
+
+  const hasPresetImages = Boolean(predefinedMedia?.images?.length);
+  const hasPresetVideos = Boolean(predefinedMedia?.videos?.length);
+
   if (authLoading) {
     return (
       <AppLayout activeTab="chats">
@@ -536,7 +840,7 @@ const ChatsContent = () => {
                 {selectedChat ? (
                   <>
                     {/* Chat window */}
-                    <ChatWindow
+                            <ChatWindow
                       characterName={resolvedName}
                       characterAvatar={resolvedAvatar}
                       messages={messagesWithGreeting}
@@ -549,6 +853,8 @@ const ChatsContent = () => {
                       onBack={isMobileView ? () => setShowMobileChat(false) : undefined}
                       onToggleInfoPanel={handleToggleInfoPanel}
                       showInfoPanel={showInfoPanel}
+                      pendingMediaGeneration={pendingMedia?.type ?? null}
+                      onRequestScrollToBottom={scrollChatToBottom}
                     />
 
                     {/* Info panel */}
@@ -584,6 +890,20 @@ const ChatsContent = () => {
                               videoUrl={panelCharacter?.video_url ?? characterProfile?.videoUrl}
                               tags={characterProfile?.tags}
                               description={characterProfile?.description}
+                              onGenerateImage={
+                                hasPresetImages
+                                  ? () => handleRequestPredefinedMedia('image')
+                                  : undefined
+                              }
+                              onGenerateVideo={
+                                hasPresetVideos
+                                  ? () => handleRequestPredefinedMedia('video')
+                                  : undefined
+                              }
+                              hasPresetImages={hasPresetImages}
+                              hasPresetVideos={hasPresetVideos}
+                              isGeneratingImage={pendingMedia?.type === 'image'}
+                              isGeneratingVideo={pendingMedia?.type === 'video'}
                             />
                           </div>
                         )}
@@ -599,6 +919,20 @@ const ChatsContent = () => {
                             videoUrl={panelCharacter?.video_url ?? characterProfile?.videoUrl}
                             tags={characterProfile?.tags}
                             description={characterProfile?.description}
+                            onGenerateImage={
+                              hasPresetImages
+                                ? () => handleRequestPredefinedMedia('image')
+                                : undefined
+                            }
+                            onGenerateVideo={
+                              hasPresetVideos
+                                ? () => handleRequestPredefinedMedia('video')
+                                : undefined
+                            }
+                            hasPresetImages={hasPresetImages}
+                            hasPresetVideos={hasPresetVideos}
+                            isGeneratingImage={pendingMedia?.type === 'image'}
+                            isGeneratingVideo={pendingMedia?.type === 'video'}
                           />
                         )}
                       </div>

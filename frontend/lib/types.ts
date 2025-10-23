@@ -51,6 +51,12 @@ export interface ChatMessage {
   sender: 'user' | 'ai';
   message: string;
   created_at: string;
+  media?: {
+    type: 'image' | 'video';
+    url: string;
+    thumbnailUrl?: string | null;
+    title?: string | null;
+  };
 }
 
 export interface CharacterChatDetail {

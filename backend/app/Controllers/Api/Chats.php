@@ -12,6 +12,8 @@ class Chats extends BaseController
 {
     use ResponseTrait;
 
+    private const MEDIA_MESSAGE_PREFIX = '__media__:';
+
     public function index()
     {
         $request = $this->request;
@@ -155,6 +157,8 @@ class Chats extends BaseController
             ->get()
             ->getResultArray();
 
+        $messages = array_map(fn ($row) => $this->transformMessageRow($row), $messages);
+
         $characterData = [
             'slug'      => $character['slug'],
             'name'      => $character['name'],
@@ -177,6 +181,7 @@ class Chats extends BaseController
             ]);
 
             $messages[] = [
+                'id'         => null,
                 'sender'     => 'ai',
                 'message'    => $introLine,
                 'created_at' => date('Y-m-d H:i:s'),
@@ -380,6 +385,185 @@ class Chats extends BaseController
             ],
             'coin_balance' => $updatedBalance,
         ]);
+    }
+
+    public function storeMedia(string $slug)
+    {
+        $db = Database::connect();
+
+        $userId = session()->get('user_id');
+        if (! $userId) {
+            return $this->fail('Please log in first.', 401);
+        }
+
+        $payload = $this->request->getJSON(true) ?? $this->request->getPost();
+        $type = isset($payload['type']) ? strtolower(trim((string) $payload['type'])) : '';
+        $url = isset($payload['url']) ? trim((string) $payload['url']) : '';
+        $title = $this->normaliseOptionalString($payload['title'] ?? null);
+        $thumbnailUrl = $this->normaliseOptionalString($payload['thumbnailUrl'] ?? ($payload['thumbnail_url'] ?? null));
+
+        if (! in_array($type, ['image', 'video'], true)) {
+            return $this->fail('Invalid media type. Expected image or video.', 422);
+        }
+
+        if ($url === '') {
+            return $this->fail('Media url is required.', 422);
+        }
+
+        $character = $db->table('ai_characters')
+            ->where('slug', $slug)
+            ->get()
+            ->getRowArray();
+
+        if (! $character) {
+            if (! $db->tableExists('user_characters')) {
+                return $this->failNotFound('Character not found.');
+            }
+
+            $character = $db->table('user_characters')
+                ->where('slug', $slug)
+                ->where('user_id', $userId)
+                ->get()
+                ->getRowArray();
+
+            if (! $character) {
+                return $this->failNotFound('Character not found.');
+            }
+        }
+
+        $mediaPayload = [
+            'type' => $type,
+            'url'  => $url,
+        ];
+
+        if ($title !== null) {
+            $mediaPayload['title'] = $title;
+        }
+
+        if ($thumbnailUrl !== null) {
+            $mediaPayload['thumbnailUrl'] = $thumbnailUrl;
+        }
+
+        $sessionId = session_id();
+        $encoded = $this->encodeMediaMessage($mediaPayload);
+
+        $builder = $db->table('ai_messages');
+
+        $builder->insert([
+            'character_slug' => $slug,
+            'user_id'        => $userId,
+            'session_id'     => $sessionId,
+            'sender'         => 'ai',
+            'message'        => $encoded,
+        ]);
+
+        $insertId = (int) $db->insertID();
+
+        $record = $builder
+            ->select('id, sender, message, created_at')
+            ->where('id', $insertId)
+            ->get()
+            ->getRowArray();
+
+        if (! $record) {
+            return $this->fail('Failed to persist media message.', 500);
+        }
+
+        $message = $this->transformMessageRow($record);
+
+        return $this->respondCreated([
+            'status'  => 'success',
+            'message' => $message,
+        ]);
+    }
+
+    private function encodeMediaMessage(array $media): string
+    {
+        $payload = [
+            'type' => $media['type'],
+            'url'  => $media['url'],
+        ];
+
+        if (! empty($media['title'])) {
+            $payload['title'] = $media['title'];
+        }
+
+        if (! empty($media['thumbnailUrl'])) {
+            $payload['thumbnailUrl'] = $media['thumbnailUrl'];
+        }
+
+        return self::MEDIA_MESSAGE_PREFIX . json_encode($payload, JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     *
+     * @return array<string,mixed>
+     */
+    private function transformMessageRow(array $row): array
+    {
+        $media = $this->decodeMediaMessage($row['message'] ?? null);
+
+        $message = [
+            'id'         => isset($row['id']) ? (int) $row['id'] : null,
+            'sender'     => $row['sender'] ?? 'ai',
+            'message'    => $media ? '' : (string) ($row['message'] ?? ''),
+            'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s'),
+        ];
+
+        if ($media) {
+            $message['media'] = $media;
+        }
+
+        return $message;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private function decodeMediaMessage($value): ?array
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        if ($trimmed === '' || ! str_starts_with($trimmed, self::MEDIA_MESSAGE_PREFIX)) {
+            return null;
+        }
+
+        $json = substr($trimmed, strlen(self::MEDIA_MESSAGE_PREFIX));
+
+        $decoded = json_decode($json, true);
+
+        if (! is_array($decoded)) {
+            return null;
+        }
+
+        $type = isset($decoded['type']) ? strtolower(trim((string) $decoded['type'])) : '';
+        $url = isset($decoded['url']) ? trim((string) $decoded['url']) : '';
+
+        if (! in_array($type, ['image', 'video'], true) || $url === '') {
+            return null;
+        }
+
+        $media = [
+            'type' => $type,
+            'url'  => $url,
+        ];
+
+        $title = $this->normaliseOptionalString($decoded['title'] ?? null);
+        if ($title !== null) {
+            $media['title'] = $title;
+        }
+
+        $thumbnail = $this->normaliseOptionalString($decoded['thumbnailUrl'] ?? ($decoded['thumbnail_url'] ?? null));
+        if ($thumbnail !== null) {
+            $media['thumbnailUrl'] = $thumbnail;
+        }
+
+        return $media;
     }
 
     /**

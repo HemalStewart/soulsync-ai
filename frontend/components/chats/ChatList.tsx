@@ -3,6 +3,37 @@ import Image from 'next/image';
 import { User } from 'lucide-react';
 import { ChatSummary } from '@/lib/types';
 
+const MEDIA_PREFIX = '__media__:';
+
+const summariseMessagePreview = (summary: ChatSummary): string => {
+  const raw = summary.message ?? '';
+
+  if (raw.startsWith(MEDIA_PREFIX)) {
+    try {
+      const payload = JSON.parse(raw.slice(MEDIA_PREFIX.length)) as {
+        type?: string;
+        title?: string | null;
+      };
+
+      if (payload && typeof payload === 'object') {
+        if (payload.type === 'image') {
+          return 'Shared an image';
+        }
+
+        if (payload.type === 'video') {
+          return 'Shared a video';
+        }
+      }
+    } catch {
+      // ignore and fall through
+    }
+
+    return 'Shared new media';
+  }
+
+  return raw;
+};
+
 interface ChatListProps {
   chats: ChatSummary[];
   selectedChat: string | null;
@@ -45,6 +76,7 @@ const ChatList = ({ chats, selectedChat, onSelect, loading, fullWidth }: ChatLis
       ) : chats.length ? (
         chats.map((chat) => {
           const avatar = chat.character_avatar?.trim() ?? '';
+          const previewMessage = summariseMessagePreview(chat);
           return (
             <button
               key={chat.character_slug}
@@ -76,7 +108,7 @@ const ChatList = ({ chats, selectedChat, onSelect, loading, fullWidth }: ChatLis
                 </h3>
                 <p className="truncate text-xs sm:text-sm text-gray-500">
                   {chat.sender === 'ai' ? '' : 'You: '}
-                  {chat.message}
+                  {previewMessage}
                 </p>
               </div>
             </button>

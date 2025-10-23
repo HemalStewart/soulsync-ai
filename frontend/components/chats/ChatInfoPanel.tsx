@@ -11,6 +11,12 @@ interface ChatInfoPanelProps {
   videoUrl?: string | null;
   tags?: string[];
   description?: string;
+  onGenerateVideo?: () => void;
+  onGenerateImage?: () => void;
+  hasPresetVideos?: boolean;
+  hasPresetImages?: boolean;
+  isGeneratingImage?: boolean;
+  isGeneratingVideo?: boolean;
 }
 
 const ChatInfoPanel = ({
@@ -22,6 +28,12 @@ const ChatInfoPanel = ({
   videoUrl,
   tags = [],
   description,
+  onGenerateVideo,
+  onGenerateImage,
+  hasPresetVideos = false,
+  hasPresetImages = false,
+  isGeneratingImage = false,
+  isGeneratingVideo = false,
 }: ChatInfoPanelProps) => {
   const avatar = characterAvatar?.trim() ?? '';
   const videoPosterProps = avatar ? { poster: avatar } : {};
@@ -63,20 +75,52 @@ const ChatInfoPanel = ({
       <User className="h-12 sm:h-14 lg:h-16 w-12 sm:w-14 lg:w-16 text-white drop-shadow-lg" />
     </div>
   )}
-</div>
+          </div>
 
 
           {/* Action Buttons */}
           <div className="mb-4 sm:mb-5 lg:mb-6 flex flex-col gap-2 sm:gap-2.5">
-            <button className="flex items-center justify-center space-x-2 rounded-lg sm:rounded-xl brand-gradient px-4 py-2.5 sm:py-3 font-semibold text-white text-sm shadow-brand transition-all duration-200 hover:shadow-lg active:scale-95">
+            <button
+              className="flex items-center justify-center space-x-2 rounded-lg sm:rounded-xl brand-gradient px-4 py-2.5 sm:py-3 font-semibold text-white text-sm shadow-brand transition-all duration-200 hover:shadow-lg active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none"
+              onClick={onGenerateVideo}
+              disabled={
+                !onGenerateVideo ||
+                !hasPresetVideos ||
+                isGeneratingVideo ||
+                isGeneratingImage
+              }
+              title={
+                hasPresetVideos && !isGeneratingVideo && !isGeneratingImage
+                  ? 'Share a predefined video'
+                  : (isGeneratingVideo || isGeneratingImage)
+                    ? 'Please wait for the current generation to finish'
+                  : 'No predefined videos available'
+              }
+            >
               <Video size={18} />
-              <span>Generate Video</span>
+              <span>{isGeneratingVideo ? 'Generating…' : 'Generate Video'}</span>
             </button>
-            <button className="flex items-center justify-center space-x-2 rounded-lg sm:rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 sm:py-3 font-semibold text-gray-700 text-sm shadow-sm transition-all duration-200 hover:border-brand-primary hover:bg-brand-tint hover:text-brand-primary hover:shadow-brand active:scale-95">
+            <button
+              className="flex items-center justify-center space-x-2 rounded-lg sm:rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 sm:py-3 font-semibold text-gray-700 text-sm shadow-sm transition-all duration-200 hover:border-brand-primary hover:bg-brand-tint hover:text-brand-primary hover:shadow-brand active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white disabled:hover:text-gray-700"
+              onClick={onGenerateImage}
+              disabled={
+                !onGenerateImage ||
+                !hasPresetImages ||
+                isGeneratingImage ||
+                isGeneratingVideo
+              }
+              title={
+                hasPresetImages && !isGeneratingImage && !isGeneratingVideo
+                  ? 'Share a predefined image'
+                  : (isGeneratingImage || isGeneratingVideo)
+                    ? 'Please wait for the current generation to finish'
+                  : 'No predefined images available'
+              }
+            >
               <svg className="h-4 sm:h-5 w-4 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4h2v4h14v-4h2zM17 9l-1.41-1.41L13 10.17V3h-2v7.17L8.41 7.59 7 9l5 5 5-5z" />
               </svg>
-              <span>Generate Photo</span>
+              <span>{isGeneratingImage ? 'Generating…' : 'Generate Photo'}</span>
             </button>
           </div>
 

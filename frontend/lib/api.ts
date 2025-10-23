@@ -232,6 +232,28 @@ export const sendChatMessage = async (
   };
 };
 
+export interface ShareChatMediaPayload {
+  type: 'image' | 'video';
+  url: string;
+  title?: string | null;
+  thumbnailUrl?: string | null;
+}
+
+export const shareChatMedia = async (
+  slug: string,
+  payload: ShareChatMediaPayload
+): Promise<ChatMessage> => {
+  const response = await fetchJson<{ message: ChatMessage }>(
+    `/chats/${slug}/media`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return response.message;
+};
+
 export const apiConfig = {
   baseUrl: API_BASE_URL,
   backendBaseUrl: BACKEND_BASE_URL,

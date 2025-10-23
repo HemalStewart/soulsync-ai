@@ -12,6 +12,7 @@ $routes->group('api', static function ($routes) {
     $routes->get('chats', 'Api\Chats::index');
     $routes->get('chats/(:segment)', 'Api\Chats::show/$1');
     $routes->post('chats/(:segment)', 'Api\Chats::send/$1');
+    $routes->post('chats/(:segment)/media', 'Api\Chats::storeMedia/$1');
     $routes->get('user-characters', 'Api\UserCharacters::index');
     $routes->post('user-characters', 'Api\UserCharacters::store');
     $routes->put('user-characters/(:num)', 'Api\UserCharacters::update/$1');
