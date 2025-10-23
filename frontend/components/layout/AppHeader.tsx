@@ -101,11 +101,16 @@ const AppHeader = () => {
             href="/"
             className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 cursor-pointer select-none hover:opacity-90 transition"
           >
-            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg brand-gradient shadow-brand hover:scale-105 transition-transform duration-200">
-              <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-md bg-white/20 backdrop-blur-sm" />
+            <div
+              className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg shadow-brand hover:scale-105 transition-transform duration-200 overflow-hidden"
+            >
+              <span className="animate-gradient-surface bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 absolute inset-0 rounded-lg" />
+              <div className="relative h-4 w-4 sm:h-5 sm:w-5 rounded-md bg-white/25 backdrop-blur-sm" />
             </div>
-            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#0ea5e9] bg-clip-text text-transparent whitespace-nowrap">
-              SoulSync
+            <span className="relative text-base sm:text-xl font-bold whitespace-nowrap">
+              <span className="animate-gradient-text bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+                SoulSync
+              </span>
             </span>
           </Link>
 
@@ -320,6 +325,32 @@ const AppHeader = () => {
         .get-pro-pulse:hover {
           animation-play-state: paused;
           transform: scale(1.08);
+        }
+
+        @keyframes flowingGradient {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
+        .animate-gradient-surface {
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background-size: 200% 200%;
+          animation: flowingGradient 4s ease-in-out infinite;
+        }
+
+        .animate-gradient-text {
+          display: inline-block;
+          background-size: 200% 200%;
+          animation: flowingGradient 4s ease-in-out infinite;
         }
       `}</style>
 
