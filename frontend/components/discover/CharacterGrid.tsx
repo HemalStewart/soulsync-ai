@@ -13,6 +13,7 @@ interface CharacterGridProps {
   onOpenChat: (slug: string) => void;
 }
 
+// SkeletonCard from V2 (Unchanged)
 const SkeletonCard = () => (
   <div className="h-80 sm:h-96 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
 );
@@ -26,6 +27,7 @@ const CharacterGrid = ({
 }: CharacterGridProps) => {
   const handleMouseLeave = useCallback(() => onCardHover(null), [onCardHover]);
 
+  // Loading block from V2 (Unchanged)
   if (loading && !characters.length) {
     return (
       <>
@@ -127,7 +129,9 @@ const CharacterGrid = ({
 
   return (
     <>
+      {/* V2 Styles + Merged V1 Styles */}
       <style>{`
+        /* V2 Original Keyframes (Unchanged) */
         @keyframes slideIn {
           from {
             opacity: 0;
@@ -187,7 +191,8 @@ const CharacterGrid = ({
             transform: scale(1.1);
           }
         }
-
+        
+        /* V2 Original Classes (Unchanged) */
         .animate-slide-in {
           animation: slideIn 0.6s ease-out;
         }
@@ -212,6 +217,7 @@ const CharacterGrid = ({
           animation: buttonBounce 0.4s ease-in-out;
         }
 
+        /* V2 .grid-item for promo card (Unchanged) */
         .grid-item {
           animation: slideIn 0.6s ease-out;
         }
@@ -228,35 +234,138 @@ const CharacterGrid = ({
           transform: translateY(-2px);
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
+        
+        /* --- Styles Added/Merged from V1 --- */
 
-        .action-button {
+        /* Keyframes from V1 for character card */
+        @keyframes glow {
+          0%, 100% { 
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+          }
+          50% { 
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+          }
+        }
+
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* .card-item animation for character cards (from V1) */
+        .card-item {
+          animation: slideInUp 0.6s ease-out;
+        }
+
+        /* Gradient Border (from V1) */
+        .gradient-border {
+          position: relative;
+        }
+
+        .gradient-border::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 1.5rem; /* Matches rounded-3xl */
+          padding: 2px;
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(236, 72, 153, 0.5), rgba(59, 130, 246, 0.5));
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .gradient-border:hover::before {
+          opacity: 1;
+        }
+
+        /* Character Card base + hover - NO LIFT */
+        .character-card {
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .image-overlay {
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Action Button styles (from V1) - Replaces V2's .action-button */
+        .action-btn {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .action-btn::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .action-btn:hover::before {
+          opacity: 1;
+        }
+
+        .action-btn:hover {
+          transform: scale(1.1);
+          box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
+        }
+
+        .action-btn:active {
+          transform: scale(0.95);
+        }
+        
+        /* Tag styles (from V1) - Replaces V2's .tag */
+        .tag-item {
           transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
         }
 
-        .action-button:hover {
-          transform: scale(1.15) rotate(5deg);
-          box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        .tag-item::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
         }
 
-        .tag {
-          transition: all 0.3s ease;
+        .tag-item:hover::before {
+          transform: translateX(100%);
         }
 
-        .tag:hover {
-          background-color: rgba(255, 255, 255, 0.3);
+        .tag-item:hover {
+          background: rgba(255, 255, 255, 0.3);
           transform: translateY(-2px);
         }
-
-        .character-card {
-          transition: box-shadow 0.3s ease;
+        
+        /* Glass/Glow styles (from V1) */
+        .glass-effect {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .character-card:hover {
-          box-shadow: 0 25px 50px rgba(59, 130, 246, 0.15);
+        .text-glow {
+          text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
       `}</style>
 
+      {/* Grid from V2 (Unchanged) */}
       <div className="mx-auto px-4 grid max-w-7xl grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        
+        {/* Promo Card from V2 (Unchanged) */}
         <div className="relative h-80 sm:h-96 cursor-pointer overflow-hidden rounded-2xl sm:rounded-3xl grid-item shadow-lg hover:shadow-3xl transition-shadow duration-300">
           <video autoPlay loop muted playsInline className="h-full w-full object-cover">
             <source
@@ -277,11 +386,12 @@ const CharacterGrid = ({
           </div>
         </div>
 
+        {/* Character Cards (Updated with V1 hover styles) */}
         {characters.map((character, index) => {
           const hasVideo = Boolean(character.videoUrl);
           const hasAvatar = Boolean(character.avatar && character.avatar.trim() !== '');
           const imageTransitionClass =
-            hoveredCard === index && hasVideo ? 'opacity-0 scale-95' : 'opacity-100 scale-100';
+            hoveredCard === index && hasVideo ? 'opacity-0 scale-110' : 'opacity-100 scale-100';
           const trimmedRole = (character.role ?? '').trim();
           const metaDetails: string[] = [];
           if (typeof character.age === 'number' && character.age > 0) {
@@ -295,32 +405,34 @@ const CharacterGrid = ({
           return (
             <div
               key={character.slug}
-              className="character-card relative h-80 sm:h-96 cursor-pointer overflow-hidden rounded-2xl sm:rounded-3xl grid-item group"
+              className="character-card gradient-border relative h-80 sm:h-96 cursor-pointer overflow-hidden rounded-3xl card-item group shadow-xl"
               onMouseEnter={() => onCardHover(index)}
               onMouseLeave={handleMouseLeave}
               style={{ animationDelay: `${(index + 1) * 0.1}s` }}
             >
+              {/* Image/Avatar Layer */}
               {hasAvatar ? (
                 <Image
                   src={character.avatar}
                   alt={character.name}
                   fill
                   sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ${imageTransitionClass}`}
+                  className={`absolute inset-0 h-full w-full object-cover image-overlay ${imageTransitionClass}`}
                   priority={index < 2}
                 />
               ) : (
                 <div
-                  className={`absolute inset-0 flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 transition-all duration-500 ${imageTransitionClass}`}
+                  className={`absolute inset-0 flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 image-overlay ${imageTransitionClass}`}
                 >
-                  <User className="h-12 sm:h-16 w-12 sm:w-16 text-white drop-shadow-lg" />
+                  <User className="h-16 w-16 sm:h-20 sm:w-20 text-white/80 drop-shadow-2xl" />
                 </div>
               )}
 
+              {/* Video Layer */}
               {hasVideo && (
                 <video
-                  className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ${
-                    hoveredCard === index ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                  className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ${
+                    hoveredCard === index ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
                   }`}
                   autoPlay
                   muted
@@ -341,55 +453,72 @@ const CharacterGrid = ({
                 </video>
               )}
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              {/* Gradient Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+              <div className={`absolute inset-0 bg-gradient-to-br from-purple-600/20 via-transparent to-blue-600/20 transition-opacity duration-500 ${
+                hoveredCard === index ? 'opacity-100' : 'opacity-0'
+              }`} />
 
-              {hoveredCard === index && (
-                <button
-                  onClick={() => onOpenChat(character.slug)}
-                  className="action-button absolute right-3 sm:right-4 top-3 sm:top-4 z-10 flex h-10 sm:h-12 w-10 sm:w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition animate-scale-in"
-                >
-                  <MessageCircle size={20} className="sm:w-6 sm:h-6 text-white" />
-                </button>
-              )}
-
-              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-6 card-content">
-                <div className="mb-1 flex items-center justify-between gap-2">
-                  <h3 className="text-lg sm:text-2xl font-bold text-white drop-shadow-lg group-hover:translate-y-0 transition-all duration-300 truncate">
+              {/* Content */}
+              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-6 space-y-2 sm:space-y-3">
+                {/* Name and Actions Row */}
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-lg sm:text-2xl font-bold text-white text-glow leading-tight truncate flex-1 group-hover:scale-105 transition-transform duration-300">
                     {character.name}
                   </h3>
-                  <div className="flex space-x-1 sm:space-x-2 flex-shrink-0">
-                    <button className="action-button flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/30">
+                  <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+                    <button 
+                      onClick={() => onOpenChat(character.slug)}
+                      className="action-btn flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full glass-effect"
+                    >
+                      <MessageCircle size={16} className="sm:w-5 sm:h-5 text-white" />
+                    </button>
+                    <button className="action-btn flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full glass-effect">
                       <Phone size={16} className="sm:w-5 sm:h-5 text-white" />
                     </button>
-                    <button className="action-button flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/30">
+                    <button className="action-btn flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-full glass-effect">
                       <Video size={16} className="sm:w-5 sm:h-5 text-white" />
                     </button>
                   </div>
                 </div>
+
+                {/* Meta Info */}
                 {metaLine && (
-                  <p className="mb-2 text-xs sm:text-sm text-white/80 drop-shadow-lg truncate">
+                  <p className="text-xs sm:text-sm text-white/90 font-medium truncate mb-2">
                     {metaLine}
                   </p>
                 )}
 
+                {/* Description on Hover */}
                 {hoveredCard === index && (
-                  <p className="mb-3 text-xs sm:text-sm text-white drop-shadow-lg animate-fade-in-up line-clamp-2">
+                  <p 
+                    className="text-xs sm:text-sm text-white/90 leading-relaxed line-clamp-2"
+                    style={{ animation: 'slideInUp 0.5s ease-out' }}
+                  >
                     {character.description}
                   </p>
                 )}
 
-                <div className="flex flex-wrap gap-2">
-                  {character.tags.map((tag, tagIndex) => (
-                    <span
-                      key={tag}
-                      className="tag rounded-full bg-white/20 px-2 sm:px-3 py-1 text-xs sm:text-sm text-white backdrop-blur-sm"
-                      style={{ animationDelay: `${tagIndex * 0.05}s` }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                {/* Tags */}
+                {character.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {character.tags.map((tag, tagIndex) => (
+                      <span
+                        key={`${character.slug}-${tag}`}
+                        className="tag-item rounded-full glass-effect px-3 py-1.5 text-xs sm:text-sm text-white font-medium"
+                        style={{ animationDelay: `${tagIndex * 0.05}s` }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* Shine Effect on Hover */}
+              <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 ${
+                hoveredCard === index ? 'translate-x-full' : '-translate-x-full'
+              }`} />
             </div>
           );
         })}
