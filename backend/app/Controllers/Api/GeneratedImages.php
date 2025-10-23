@@ -9,9 +9,20 @@ use CodeIgniter\API\ResponseTrait;
 use Config\Database;
 use Throwable;
 
+/**
+ * Persists generated image metadata for the currently authenticated user.
+ *
+ * Incoming `remote_url` values can be either fully qualified HTTP URLs
+ * (e.g. Venice hosted assets) or base64 data URLs returned by Venice
+ * when `return_binary` is false. We convert those base64 payloads into
+ * files under `public/uploads/generated` so the frontend always receives
+ * a lightweight HTTP URL instead of a multi-megabyte string.
+ */
 class GeneratedImages extends BaseController
 {
     use ResponseTrait;
+
+    private const GENERATED_UPLOAD_DIR = 'uploads/generated';
 
     private function resolveUserId(): ?string
     {
@@ -90,6 +101,8 @@ class GeneratedImages extends BaseController
         if ($aspectRatio === '') {
             return $this->fail('aspect_ratio is required.', 422);
         }
+
+        $remoteUrl = $this->resolveRemoteUrl($remoteUrl, (string) $userId);
 
         $db = Database::connect();
         $builder = $db->table('generated_images');
@@ -190,5 +203,49 @@ class GeneratedImages extends BaseController
             'status' => 'success',
             'message'=> 'All generated images removed.',
         ]);
+    }
+
+    /**
+     * Converts data URLs to public files so the database keeps small URLs.
+     * HTTP URLs are left untouched.
+     */
+    private function resolveRemoteUrl(string $value, string $userId): string
+    {
+        if ($value === '' || strpos($value, 'data:image/') !== 0) {
+            return $value;
+        }
+
+        if (! preg_match('#^data:image/([a-z0-9+.-]+);base64,(.+)$#i', $value, $matches)) {
+            return $value;
+        }
+
+        $extension = strtolower($matches[1]);
+        $extension = $extension === 'jpeg' ? 'jpg' : $extension;
+        $encoded = str_replace(' ', '+', $matches[2]);
+        $binary = base64_decode($encoded, true);
+
+        if ($binary === false) {
+            return $value;
+        }
+
+        $publicDir = FCPATH . self::GENERATED_UPLOAD_DIR;
+        if (! is_dir($publicDir) && ! mkdir($publicDir, 0755, true) && ! is_dir($publicDir)) {
+            return $value;
+        }
+
+        $filename = sprintf(
+            '%s_%s.%s',
+            $userId,
+            bin2hex(random_bytes(8)),
+            $extension ?: 'webp'
+        );
+
+        $filepath = $publicDir . DIRECTORY_SEPARATOR . $filename;
+        if (file_put_contents($filepath, $binary) === false) {
+            return $value;
+        }
+
+        helper('url');
+        return base_url(self::GENERATED_UPLOAD_DIR . '/' . $filename);
     }
 }

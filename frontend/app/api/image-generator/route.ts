@@ -1,96 +1,314 @@
+import { Buffer } from 'node:buffer';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
-const REPLICATE_BASE_URL =
-  'https://api.replicate.com/v1/models/google/imagen-4';
-const POLL_INTERVAL_MS = 1500;
-const POLL_TIMEOUT_MS = 60_000;
-const DEFAULT_ASPECT_RATIO = '1:1';
-const DEFAULT_SAFETY_FILTER = 'block_medium_and_above';
-const DEFAULT_OUTPUT_FORMAT = 'jpg';
-const ALLOWED_ASPECT_RATIOS = new Set(['1:1', '9:16', '16:9', '3:4', '4:3']);
+/**
+ * Venice image bridge.
+ *
+ * Why so much plumbing?
+ * - Venice sometimes returns raw base64, other times a hosted URL, and may
+ *   sprinkle in metadata like `{ image: '...' }`.
+ * - We standardise the payload so the frontend always gets an `imageUrl`
+ *   that works (data URL for base64, untouched if it's already a URL) and
+ *   expose the stripped base64 separately for download/conversion flows.
+ * - Quality, model, aspect ratio, etc. are sanitised to keep the API happy.
+ */
 
-type ReplicatePrediction = {
-  id: string;
-  status: 'starting' | 'processing' | 'succeeded' | 'failed' | 'canceled';
-  error?: string | null;
-  output?: unknown;
+const DEFAULT_API_BASE = 'https://api.venice.ai/api/v1';
+const VENICE_API_KEY =
+  process.env.VENICE_API_KEY ||
+  process.env.VENICE_TOKEN ||
+  process.env.VENICE_API_TOKEN ||
+  process.env.VENICE_APIKEY ||
+  '';
+const VENICE_IMAGE_ENDPOINT =
+  process.env.VENICE_IMAGE_ENDPOINT ||
+  `${DEFAULT_API_BASE.replace(/\/$/, '')}/image/generate`;
+const VENICE_IMAGE_MODEL =
+  process.env.VENICE_IMAGE_MODEL || 'hidream';
+
+type AspectRatio = '1:1' | '9:16' | '16:9' | '3:4' | '4:3';
+type ImageFormat = 'webp' | 'png' | 'jpeg';
+
+const ASPECT_DIMENSIONS: Record<AspectRatio, { width: number; height: number }> =
+  {
+    '1:1': { width: 1024, height: 1024 },
+    '9:16': { width: 768, height: 1280 },
+    '16:9': { width: 1280, height: 720 },
+    '3:4': { width: 960, height: 1280 },
+    '4:3': { width: 1280, height: 960 },
+  };
+
+const QUALITY_SETTINGS = [
+  { cfgScale: 6.5, steps: 18 },
+  { cfgScale: 7, steps: 22 },
+  { cfgScale: 7.5, steps: 26 },
+  { cfgScale: 8, steps: 32 },
+  { cfgScale: 8.5, steps: 38 },
+];
+
+const STYLE_PRESET_MAP: Record<string, string> = {
+  analog: 'Analog Film',
+  anime: 'Anime',
+  cinematic: 'Cinematic',
+  comic: 'Comic Book',
+  model3d: '3D Model',
+  realistic: 'Analog Film',
+  fantasy: 'Comic Book',
+  '3d_model': '3D Model',
 };
 
-const wait = (ms: number) =>
-  new Promise<void>((resolve) => setTimeout(resolve, ms));
+const ALLOWED_FORMATS: ImageFormat[] = ['webp', 'png', 'jpeg'];
 
-const extractImageUrl = (output: unknown): string | null => {
-  if (!output) {
+const sanitizeString = (value: unknown): string =>
+  typeof value === 'string' ? value.trim() : '';
+
+const sanitizeAspectRatio = (value: unknown): AspectRatio => {
+  const candidate = sanitizeString(value);
+  if (candidate && candidate in ASPECT_DIMENSIONS) {
+    return candidate as AspectRatio;
+  }
+
+  switch (candidate) {
+    case '2:3':
+      return '3:4';
+    case '3:2':
+      return '4:3';
+    default:
+      return '1:1';
+  }
+};
+
+const sanitizeFormat = (value: unknown): ImageFormat => {
+  const candidate = sanitizeString(value)
+    .toLowerCase()
+    .replace(/^image\//, '');
+
+  if (ALLOWED_FORMATS.includes(candidate as ImageFormat)) {
+    return candidate as ImageFormat;
+  }
+
+  if (candidate === 'jpg' || candidate === 'jpe') {
+    return 'jpeg';
+  }
+
+  const fallback =
+    sanitizeString(process.env.VENICE_IMAGE_FORMAT)
+      .toLowerCase()
+      .replace(/^image\//, '') || 'webp';
+
+  if (ALLOWED_FORMATS.includes(fallback as ImageFormat)) {
+    return fallback as ImageFormat;
+  }
+
+  return 'webp';
+};
+
+const clampQuality = (value: unknown): number => {
+  const parsed =
+    typeof value === 'number'
+      ? value
+      : Number.parseInt(String(value), 10);
+
+  if (Number.isNaN(parsed)) {
+    return 3;
+  }
+
+  return Math.min(Math.max(parsed, 1), 5);
+};
+
+const buildError = (message: string, status = 400) =>
+  NextResponse.json({ error: message }, { status });
+
+const stripBase64Whitespace = (value: string): string =>
+  value.replace(/\s+/g, '');
+
+const isProbablyBase64 = (value: string): boolean => {
+  if (!value) {
+    return false;
+  }
+
+  const normalized = stripBase64Whitespace(value);
+  if (normalized.length < 16) {
+    return false;
+  }
+
+  if (/[^A-Za-z0-9+/=]/.test(normalized)) {
+    return false;
+  }
+
+  try {
+    const buffer = Buffer.from(normalized, 'base64');
+    return buffer.length > 0;
+  } catch {
+    return false;
+  }
+};
+
+const inferFormatFromUrl = (url: string): ImageFormat | null => {
+  const match = url
+    .split(/[?#]/, 1)[0]
+    ?.toLowerCase()
+    ?.match(/\.([a-z0-9]+)$/);
+
+  if (!match) {
     return null;
   }
 
-  if (typeof output === 'string') {
-    return output;
+  switch (match[1]) {
+    case 'webp':
+      return 'webp';
+    case 'png':
+      return 'png';
+    case 'jpg':
+    case 'jpeg':
+    case 'jpe':
+      return 'jpeg';
+    default:
+      return null;
+  }
+};
+
+const normalizeFormat = (value: unknown): ImageFormat | null => {
+  const candidate = sanitizeString(value)
+    .toLowerCase()
+    .replace(/^image\//, '');
+
+  if (ALLOWED_FORMATS.includes(candidate as ImageFormat)) {
+    return candidate as ImageFormat;
   }
 
-  if (Array.isArray(output)) {
-    for (const item of output) {
-      const candidate = extractImageUrl(item);
-      if (candidate) {
-        return candidate;
+  if (candidate === 'jpg' || candidate === 'jpe') {
+    return 'jpeg';
+  }
+
+  return null;
+};
+
+const DATA_URL_REGEX =
+  /^data:image\/([a-z0-9+.-]+);base64,(.+)$/i;
+
+type VeniceImageResult =
+  | {
+      kind: 'base64';
+      base64: string;
+      formatHint?: string;
+    }
+  | {
+      kind: 'url';
+      url: string;
+      formatHint?: string;
+    };
+
+const parseDataUrl = (value: string): VeniceImageResult | null => {
+  const match = value.match(DATA_URL_REGEX);
+  if (!match) {
+    return null;
+  }
+
+  const [, mimePart, base64Part] = match;
+  return {
+    kind: 'base64',
+    base64: stripBase64Whitespace(base64Part),
+    formatHint: mimePart,
+  };
+};
+
+/**
+ * Venice responses are fairly loose: `images` can be an array of strings,
+ * objects, base64 chunks, or hosted URLs. We walk the array and return the
+ * first usable payload, carrying through any format hints so the caller can
+ * label the file correctly.
+ */
+const extractFirstImage = (images: unknown[]): VeniceImageResult | null => {
+  for (const item of images) {
+    if (typeof item === 'string' && item.trim()) {
+      const trimmed = item.trim();
+      if (trimmed.startsWith('data:image/')) {
+        const parsed = parseDataUrl(trimmed);
+        if (parsed) {
+          return parsed;
+        }
+        continue;
+      }
+
+      if (/^https?:\/\//i.test(trimmed)) {
+        return { kind: 'url', url: trimmed };
+      }
+
+      if (isProbablyBase64(trimmed)) {
+        return {
+          kind: 'base64',
+          base64: stripBase64Whitespace(trimmed),
+        };
       }
     }
-    return null;
-  }
 
-  if (typeof output === 'object') {
-    const record = output as Record<string, unknown>;
-    if (typeof record.url === 'string') {
-      return record.url;
-    }
+    if (item && typeof item === 'object') {
+      const record = item as Record<string, unknown>;
+      const formatHint = sanitizeString(
+        record.format ?? record.mime_type ?? record.mimeType
+      );
+      const candidate =
+        record.data_url ??
+        record.dataUrl ??
+        record.imageUrl ??
+        record.image_url ??
+        record.url ??
+        record.href ??
+        record.remote_url ??
+        record.src ??
+        record.base64 ??
+        record.base64_data ??
+        record.b64_json ??
+        record.binary ??
+        record.data ??
+        record.content ??
+        null;
 
-    if (typeof record.image === 'string') {
-      return record.image;
-    }
+      if (typeof candidate === 'string' && candidate.trim()) {
+        const trimmed = candidate.trim();
 
-    if (record.output) {
-      return extractImageUrl(record.output);
+        if (trimmed.startsWith('data:image/')) {
+          const parsed = parseDataUrl(trimmed);
+          if (parsed) {
+            return {
+              ...parsed,
+              formatHint: parsed.formatHint ?? formatHint,
+            };
+          }
+          continue;
+        }
+
+        if (/^https?:\/\//i.test(trimmed)) {
+          return {
+            kind: 'url',
+            url: trimmed,
+            formatHint: formatHint || undefined,
+          };
+        }
+
+        if (isProbablyBase64(trimmed)) {
+          return {
+            kind: 'base64',
+            base64: stripBase64Whitespace(trimmed),
+            formatHint: formatHint || undefined,
+          };
+        }
+      }
     }
   }
 
   return null;
 };
 
-const sanitizeAspectRatio = (value: unknown): string => {
-  if (typeof value !== 'string') {
-    return DEFAULT_ASPECT_RATIO;
-  }
-
-  const trimmed = value.trim();
-
-  if (ALLOWED_ASPECT_RATIOS.has(trimmed)) {
-    return trimmed;
-  }
-
-  // Backwards compatibility with legacy aspect ratios.
-  switch (trimmed) {
-    case '2:3':
-      return '3:4';
-    case '3:2':
-      return '4:3';
-    default:
-      return DEFAULT_ASPECT_RATIO;
-  }
-};
-
-const sanitizeString = (value: unknown): string => {
-  return typeof value === 'string' ? value.trim() : '';
-};
-
-const buildErrorResponse = (message: string, status = 400) =>
-  NextResponse.json({ error: message }, { status });
+const buildDataUrl = (image: string, format: ImageFormat): string =>
+  `data:image/${format};base64,${stripBase64Whitespace(image)}`;
 
 export async function POST(request: NextRequest) {
-  if (!REPLICATE_API_TOKEN) {
-    return buildErrorResponse('REPLICATE_API_TOKEN is not configured.', 500);
+  if (!VENICE_API_KEY) {
+    return buildError('VENICE_API_KEY is not configured.', 500);
   }
 
   let payload: Record<string, unknown>;
@@ -98,129 +316,146 @@ export async function POST(request: NextRequest) {
   try {
     payload = await request.json();
   } catch {
-    return buildErrorResponse('Invalid JSON payload.');
+    return buildError('Invalid JSON payload.');
   }
 
   const prompt = sanitizeString(payload.prompt);
-  const aspectRatio = sanitizeAspectRatio(payload.aspect_ratio);
-  const negativePrompt = sanitizeString(payload.negative_prompt);
-  const safetyFilter =
-    sanitizeString(payload.safety_filter_level) || DEFAULT_SAFETY_FILTER;
-  const outputFormat =
-    sanitizeString(payload.output_format) || DEFAULT_OUTPUT_FORMAT;
-
   if (!prompt) {
-    return buildErrorResponse('prompt is required.');
+    return buildError('prompt is required.');
   }
 
-  const replicateInput: Record<string, unknown> = {
+  const aspectRatio = sanitizeAspectRatio(payload.aspect_ratio);
+  const { width, height } = ASPECT_DIMENSIONS[aspectRatio];
+  const negativePrompt = sanitizeString(payload.negative_prompt);
+  const style = sanitizeString(payload.style);
+  const format = sanitizeFormat(payload.output_format);
+  const quality = clampQuality(payload.quality);
+  const qualityPreset =
+    QUALITY_SETTINGS[quality - 1] ?? QUALITY_SETTINGS[2];
+  const seed = sanitizeString(payload.seed);
+  const cfgScale = payload.cfg_scale ?? undefined;
+  const stepsOverride = payload.steps ?? undefined;
+
+  const venicePayload: Record<string, unknown> = {
+    model: sanitizeString(payload.model) || VENICE_IMAGE_MODEL,
     prompt,
-    aspect_ratio: aspectRatio,
-    output_format: outputFormat,
-    safety_filter_level: safetyFilter,
+    width,
+    height,
+    format,
+    cfg_scale:
+      typeof cfgScale === 'number'
+        ? cfgScale
+        : qualityPreset.cfgScale,
+    steps:
+      typeof stepsOverride === 'number'
+        ? stepsOverride
+        : qualityPreset.steps,
+    return_binary: false,
+    variants: 1,
+    hide_watermark: true,
+    safe_mode: payload.safe_mode === true,
+    embed_exif_metadata: false,
   };
 
   if (negativePrompt) {
-    replicateInput.negative_prompt = negativePrompt;
+    venicePayload.negative_prompt = negativePrompt;
+  }
+
+  if (style) {
+    const preset = STYLE_PRESET_MAP[style.toLowerCase()];
+    if (preset) {
+      venicePayload.style_preset = preset;
+    }
+  }
+
+  if (seed) {
+    const numericSeed = Number.parseInt(seed, 10);
+    if (!Number.isNaN(numericSeed)) {
+      venicePayload.seed = numericSeed;
+    }
   }
 
   try {
-    const createResponse = await fetch(`${REPLICATE_BASE_URL}/predictions`, {
+    const response = await fetch(VENICE_IMAGE_ENDPOINT, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
+        Authorization: `Bearer ${VENICE_API_KEY}`,
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: JSON.stringify({ input: replicateInput }),
+      body: JSON.stringify(venicePayload),
       cache: 'no-store',
     });
 
-    const initialPrediction =
-      (await createResponse.json()) as ReplicatePrediction & {
-        detail?: string;
-      };
+    const payloadJson = (await response.json().catch(() => null)) as
+      | {
+          id?: unknown;
+          images?: unknown;
+          error?: unknown;
+          message?: unknown;
+        }
+      | null;
 
-    if (!createResponse.ok) {
+    if (!response.ok) {
       const detail =
-        sanitizeString(initialPrediction?.error) ||
-        sanitizeString(initialPrediction?.detail) ||
-        `Replicate request failed with status ${createResponse.status}`;
-      return buildErrorResponse(detail, createResponse.status);
+        sanitizeString(payloadJson?.error) ||
+        sanitizeString(payloadJson?.message) ||
+        `Venice request failed with status ${response.status}`;
+      return buildError(detail, response.status);
     }
 
-    let currentPrediction: ReplicatePrediction = initialPrediction;
-    const start = Date.now();
+    const images = Array.isArray(payloadJson?.images)
+      ? payloadJson.images
+      : [];
+    const imageResult = extractFirstImage(images);
 
-    while (
-      currentPrediction.status !== 'succeeded' &&
-      currentPrediction.status !== 'failed' &&
-      currentPrediction.status !== 'canceled'
-    ) {
-      if (Date.now() - start > POLL_TIMEOUT_MS) {
-        return buildErrorResponse(
-          'Image generation timed out before completion.',
-          504,
-        );
-      }
-
-      await wait(POLL_INTERVAL_MS);
-
-      const pollResponse = await fetch(
-        `https://api.replicate.com/v1/predictions/${currentPrediction.id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            Accept: 'application/json',
-          },
-          cache: 'no-store',
-        },
+    if (!imageResult) {
+      return buildError(
+        'Venice response did not include an image.',
+        502
       );
+    }
 
-      if (!pollResponse.ok) {
-        const detail = await pollResponse
-          .json()
-          .then((json) => sanitizeString(json?.error) || sanitizeString(json?.detail))
-          .catch(() => '');
-        return buildErrorResponse(
-          detail || `Failed to poll prediction ${currentPrediction.id}.`,
-          pollResponse.status,
-        );
+    let resolvedFormat = format;
+    let imageUrl: string;
+    let imageBase64: string | null = null;
+
+    const hintedFormat = normalizeFormat(imageResult.formatHint);
+    if (hintedFormat) {
+      resolvedFormat = hintedFormat;
+    }
+
+    if (imageResult.kind === 'base64') {
+      imageBase64 = stripBase64Whitespace(imageResult.base64);
+      imageUrl = buildDataUrl(imageBase64, resolvedFormat);
+    } else {
+      const inferred = inferFormatFromUrl(imageResult.url);
+      if (inferred) {
+        resolvedFormat = inferred;
       }
-
-      currentPrediction = (await pollResponse.json()) as ReplicatePrediction;
-    }
-
-    if (currentPrediction.status !== 'succeeded') {
-      const detail =
-        sanitizeString(currentPrediction.error) ||
-        `Prediction ended with status ${currentPrediction.status}.`;
-      return buildErrorResponse(detail, 502);
-    }
-
-    const imageUrl = extractImageUrl(currentPrediction.output);
-
-    if (!imageUrl) {
-      return buildErrorResponse(
-        'Prediction completed but no image URL was returned.',
-        502,
-      );
+      imageUrl = imageResult.url;
     }
 
     return NextResponse.json({
       data: {
+        image: imageBase64,
         imageUrl,
-        predictionId: currentPrediction.id,
-        status: currentPrediction.status,
+        format: resolvedFormat,
+        requestId:
+          typeof payloadJson?.id === 'string'
+            ? payloadJson.id
+            : null,
       },
     });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : 'Failed to reach Replicate API.';
-    return buildErrorResponse(message, 500);
+      error instanceof Error
+        ? error.message
+        : 'Failed to reach Venice API.';
+    return buildError(message, 500);
   }
 }
 
 export async function GET() {
-  return buildErrorResponse('Use POST to generate images.', 405);
+  return buildError('Use POST to generate images.', 405);
 }

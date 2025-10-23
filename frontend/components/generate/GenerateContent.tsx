@@ -43,12 +43,84 @@ import { GeneratedImageRecord } from '@/lib/types';
 
 const IMAGE_GENERATION_COST = COIN_COSTS.generateImage;
 
-type StyleId = 'realistic' | 'anime' | 'fantasy' | 'cinematic';
+type StyleId = 'analog' | 'anime' | 'cinematic' | 'comic' | 'model3d';
 type AspectRatioId = '1:1' | '9:16' | '16:9' | '3:4' | '4:3';
 
 type StoredImage = Omit<GeneratedImageRecord, 'style' | 'aspect_ratio'> & {
   style: StyleId;
   aspect_ratio: AspectRatioId;
+};
+
+const DATA_URL_PATTERN = /^data:([^;,]+);base64,/i;
+const DEFAULT_DOWNLOAD_EXTENSION = 'webp';
+const EXTENSION_TO_MIME: Record<string, string> = {
+  webp: 'image/webp',
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+};
+const MIME_TO_EXTENSION: Record<string, string> = {
+  'image/webp': 'webp',
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+};
+
+const normaliseExtension = (value: string | undefined): string => {
+  if (!value) {
+    return DEFAULT_DOWNLOAD_EXTENSION;
+  }
+  const candidate = value.toLowerCase();
+  if (candidate in EXTENSION_TO_MIME) {
+    return candidate === 'jpeg' ? 'jpg' : candidate;
+  }
+  if (candidate === 'jpeg') {
+    return 'jpg';
+  }
+  if (candidate === 'jpe') {
+    return 'jpg';
+  }
+  return DEFAULT_DOWNLOAD_EXTENSION;
+};
+
+const inferDownloadInfo = (
+  remoteUrl: string
+): { extension: string; mimeType: string } => {
+  let extension = DEFAULT_DOWNLOAD_EXTENSION;
+  let mimeType = EXTENSION_TO_MIME[extension];
+
+  const dataUrlMatch = DATA_URL_PATTERN.exec(remoteUrl);
+  if (dataUrlMatch?.[1]) {
+    const candidateMime = dataUrlMatch[1].toLowerCase();
+    const mappedExtension =
+      MIME_TO_EXTENSION[candidateMime] ??
+      normaliseExtension(candidateMime.split('/').pop());
+    extension = mappedExtension;
+    mimeType = EXTENSION_TO_MIME[extension] ?? candidateMime;
+    return { extension, mimeType };
+  }
+
+  try {
+    const parsed = new URL(remoteUrl);
+    const pathMatch = parsed.pathname
+      .toLowerCase()
+      .match(/\.([a-z0-9]+)$/);
+    if (pathMatch?.[1]) {
+      extension = normaliseExtension(pathMatch[1]);
+      mimeType = EXTENSION_TO_MIME[extension] ?? mimeType;
+      return { extension, mimeType };
+    }
+  } catch {
+    // Ignore URL parse errors; fall back to regex matching below.
+  }
+
+  const fallbackMatch = remoteUrl.toLowerCase().match(/\.([a-z0-9]+)$/);
+  if (fallbackMatch?.[1]) {
+    extension = normaliseExtension(fallbackMatch[1]);
+    mimeType = EXTENSION_TO_MIME[extension] ?? mimeType;
+  }
+
+  return { extension, mimeType };
 };
 
 const styleOptions: Array<{
@@ -58,9 +130,9 @@ const styleOptions: Array<{
   icon: JSX.Element;
 }> = [
   {
-    id: 'realistic',
-    label: 'Realistic',
-    description: 'Photographic lighting & detail',
+    id: 'analog',
+    label: 'Analog Film',
+    description: 'Natural lighting & timeless detail',
     icon: <Camera className="h-4 w-4 text-brand-primary" />,
   },
   {
@@ -70,9 +142,9 @@ const styleOptions: Array<{
     icon: <Sparkles className="h-4 w-4 text-brand-primary" />,
   },
   {
-    id: 'fantasy',
-    label: 'Fantasy',
-    description: 'Epic scenes & magical moods',
+    id: 'comic',
+    label: 'Comic Book',
+    description: 'Bold line art & dynamic colour',
     icon: <Sword className="h-4 w-4 text-brand-primary" />,
   },
   {
@@ -80,6 +152,12 @@ const styleOptions: Array<{
     label: 'Cinematic',
     description: 'Film-grade composition',
     icon: <Palette className="h-4 w-4 text-brand-primary" />,
+  },
+  {
+    id: 'model3d',
+    label: '3D Model',
+    description: 'Stylised renders with depth',
+    icon: <Monitor className="h-4 w-4 text-brand-primary" />,
   },
 ];
 
@@ -118,15 +196,25 @@ const aspectOptions: Array<{
 const qualityLabels = ['Draft', 'Standard', 'High', 'Ultra', 'Max'];
 
 const stylePromptHints: Record<StyleId, string> = {
-  realistic: 'photorealistic, ultra-detailed, natural lighting',
+  analog: 'analog film photography, soft grain, natural lighting',
   anime: 'anime illustration, vibrant colors, clean cel shading',
-  fantasy: 'fantasy concept art, ethereal atmosphere, high detail',
+  comic: 'comic book illustration, bold ink, dynamic shading',
   cinematic: 'cinematic lighting, 35mm film still, dramatic composition',
+  model3d: '3d render, volumetric lighting, high polygon detail',
 };
 
 const normalizeStyle = (value: string): StyleId => {
-  const styles: StyleId[] = ['realistic', 'anime', 'fantasy', 'cinematic'];
-  return styles.includes(value as StyleId) ? (value as StyleId) : 'realistic';
+  const styles: StyleId[] = ['analog', 'anime', 'cinematic', 'comic', 'model3d'];
+  if (styles.includes(value as StyleId)) {
+    return value as StyleId;
+  }
+
+  const legacyMap: Record<string, StyleId> = {
+    realistic: 'analog',
+    fantasy: 'comic',
+  };
+
+  return legacyMap[value as keyof typeof legacyMap] ?? 'analog';
 };
 
 const normalizeAspectRatio = (value: string): AspectRatioId => {
@@ -186,7 +274,7 @@ const GenerateContent = () => {
   const { balance, setBalance, refresh: refreshCoinBalance } = useCoins();
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
-  const [selectedStyle, setSelectedStyle] = useState<StyleId>('realistic');
+  const [selectedStyle, setSelectedStyle] = useState<StyleId>('analog');
   const [selectedAspect, setSelectedAspect] = useState<AspectRatioId>('1:1');
   const [quality, setQuality] = useState(4);
   const [images, setImages] = useState<StoredImage[]>([]);
@@ -235,7 +323,7 @@ const GenerateContent = () => {
     const generationPrompt = styleHint
       ? `${trimmedPrompt}, ${styleHint}`
       : trimmedPrompt;
-    const apiType = 'replicate/google/imagen-4';
+    const apiType = 'venice/image/generate';
     const negative = negativePrompt.trim();
 
     try {
@@ -247,9 +335,8 @@ const GenerateContent = () => {
         body: JSON.stringify({
           prompt: generationPrompt,
           aspect_ratio: selectedAspect,
+          output_format: 'webp',
           negative_prompt: negative || undefined,
-          safety_filter_level: 'block_medium_and_above',
-          output_format: 'jpg',
           style: selectedStyle,
           quality,
         }),
@@ -394,9 +481,11 @@ const GenerateContent = () => {
   };
 
   const handleDownload = (image: StoredImage) => {
+    const { extension, mimeType } = inferDownloadInfo(image.remote_url);
     const link = document.createElement('a');
     link.href = image.remote_url;
-    link.download = `soulsync-image-${image.id}.jpg`;
+    link.download = `soulsync-image-${image.id}.${extension}`;
+    link.type = mimeType;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -701,14 +790,22 @@ const GenerateContent = () => {
                         className="group rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm transition hover:border-brand-primary hover:-translate-y-1 hover:shadow-brand"
                       >
                         <div className="relative w-full overflow-hidden aspect-square">
-                          <Image
-                            src={image.remote_url}
-                            alt={image.prompt}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover transition duration-500 group-hover:scale-105"
-                            unoptimized
-                          />
+                          {image.remote_url.startsWith('data:') ? (
+                            <img
+                              src={image.remote_url}
+                              alt={image.prompt}
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <Image
+                              src={image.remote_url}
+                              alt={image.prompt}
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              className="object-cover transition duration-500 group-hover:scale-105"
+                              unoptimized
+                            />
+                          )}
                           <div className="absolute inset-0 flex items-center justify-center bg-transparent transition group-hover:bg-[rgba(124,58,237,0.2)]">
                             <div className="flex translate-y-2 gap-1 sm:gap-2 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                               <button
