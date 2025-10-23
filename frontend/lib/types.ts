@@ -13,7 +13,7 @@ export interface CharacterApiModel {
   greeting?: string | null;
   intro_line?: string | null;
   source?: 'global' | 'user';
-  age?: number | null;
+  age?: number | string | null;
   role?: string | null;
 }
 
@@ -64,7 +64,7 @@ export interface CharacterChatDetail {
     greeting?: string | null;
     source?: 'global' | 'user';
     role?: string | null;
-    age?: number | null;
+    age?: number | string | null;
   };
   messages: ChatMessage[];
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, Wand2, Video, Image, Bot, Clock, PlusCircle, X } from 'lucide-react';
+import { Sparkles, Wand2, Video, Image as ImageIcon, Bot, Clock, PlusCircle, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 interface ProBenefitsModalProps {
@@ -89,7 +89,7 @@ const ProBenefitsModal = ({ open, onClose, onSelectPlan, initialPlanId }: ProBen
         description: 'Save highlights for up to 20 seconds.',
       },
       {
-        icon: <Image className="h-4 w-4" />,
+        icon: <ImageIcon className="h-4 w-4" />,
         title: 'Image generation',
         description: 'Produce cinematic portraits.',
       },
@@ -226,7 +226,7 @@ const ProBenefitsModal = ({ open, onClose, onSelectPlan, initialPlanId }: ProBen
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
               <button
                 onClick={handleActivate}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2.5 text-xs font-bold text-white shadow-lg transition hover:from-blue-700 hover:to-blue-600 sm:w-auto"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 px-4 py-2.5 text-xs font-bold text-white shadow-lg transition sm:w-auto"
               >
                 Activate Pro Savings
               </button>

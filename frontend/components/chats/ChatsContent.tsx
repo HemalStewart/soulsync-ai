@@ -342,9 +342,21 @@ const ChatsContent = () => {
     panelCharacter?.avatar ?? characterProfile?.avatar ?? null;
   const resolvedRole =
     panelCharacter?.role ?? characterProfile?.role ?? null;
-  const resolvedAge =
-    panelCharacter?.age ?? characterProfile?.age ?? null;
-  const baseMessages = chatDetail?.messages ?? [];
+  const resolvedAge = useMemo(() => {
+    const candidate =
+      (panelCharacter?.age ?? characterProfile?.age ?? null) ?? null;
+
+    if (typeof candidate === 'number') {
+      return Number.isFinite(candidate) && candidate > 0 ? candidate : null;
+    }
+
+    if (typeof candidate === 'string') {
+      const parsed = Number.parseInt(candidate, 10);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    }
+
+    return null;
+  }, [panelCharacter?.age, characterProfile?.age]);
   const resolvedGreeting = useMemo(() => {
     const candidates = [
       characterProfile?.introLine,
@@ -369,6 +381,8 @@ const ChatsContent = () => {
     panelCharacter?.intro_line,
   ]);
   const messagesWithGreeting = useMemo(() => {
+    const baseMessages = chatDetail?.messages ?? [];
+
     if (!resolvedGreeting) {
       return baseMessages;
     }
@@ -394,7 +408,7 @@ const ChatsContent = () => {
     };
 
     return [greetingMessage, ...baseMessages];
-  }, [baseMessages, resolvedGreeting, selectedChat]);
+  }, [chatDetail?.messages, resolvedGreeting, selectedChat]);
 
   if (authLoading) {
     return (

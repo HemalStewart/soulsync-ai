@@ -137,12 +137,12 @@ const AppHeader = () => {
 
             {/* Get Pro Button - Fixed width */}
             <button
-              className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 brand-gradient hover:shadow-brand hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 get-pro-pulse"
+              className="group relative px-3 sm:px-4 md:px-5 py-2 sm:py-2 md:py-2.5 rounded-lg font-semibold text-white overflow-hidden transition-all duration-300 bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 hover:shadow-brand hover:scale-105 text-xs sm:text-sm whitespace-nowrap flex-shrink-0 get-pro-pulse"
               onClick={handleOpenPro}
               type="button"
             >
-              <span className="relative z-10">Get Pro</span>
-              <div className="absolute inset-0 brand-gradient opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="relative z-10 text-brand-gradinet">Get Pro</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
 
             {loading ? (
@@ -243,7 +243,7 @@ const AppHeader = () => {
                         </div>
                       </div>
                       <button
-                        className="px-3 py-2 text-xs font-semibold text-white rounded-lg brand-gradient transition get-pro-pulse"
+                        className="px-3 py-2 text-xs font-semibold text-white rounded-lg bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 transition get-pro-pulse"
                         onClick={() => {
                           setShowAccountMenu(false);
                           handleOpenPro();

@@ -158,7 +158,7 @@ const ProExclusiveOfferModal = ({ open, onClose, onActivate, initialPlanId }: Pr
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
               onClick={handleActivate}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2.5 text-xs font-bold text-white shadow-lg transition hover:from-blue-700 hover:to-blue-600 sm:w-auto"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg transition hover:from-cyan-500 hover:via-blue-500 hover:to-purple-500 sm:w-auto"
             >
               Activate 75% Off!
             </button>

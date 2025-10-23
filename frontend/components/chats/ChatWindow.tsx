@@ -133,7 +133,6 @@ const ChatWindow = ({
         window.cancelAnimationFrame(frame);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInputFocused]);
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
