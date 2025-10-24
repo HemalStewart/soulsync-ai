@@ -1,7 +1,15 @@
 'use client';
 
 import Image from 'next/image';
-import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  KeyboardEvent,
+  TouchEvent,
+  WheelEvent,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ChatMessage } from '@/lib/types';
 import {
   MoreVertical,
@@ -82,6 +90,8 @@ const ChatWindow = ({
     url: string;
     type: 'image' | 'video';
   } | null>(null);
+  const footerRef = useRef<HTMLDivElement | null>(null);
+  const footerTouchStartRef = useRef<number | null>(null);
 
   // Check if user is near bottom of scroll
   const checkIfNearBottom = () => {
@@ -114,6 +124,72 @@ const ChatWindow = ({
     }
   };
 
+  const clampAndScroll = (delta: number) => {
+    const container = messagesContainerRef.current;
+    if (!container || delta === 0) {
+      return;
+    }
+
+    const maxScroll = container.scrollHeight - container.clientHeight;
+    const next = Math.min(Math.max(container.scrollTop + delta, 0), maxScroll);
+    container.scrollTop = next;
+  };
+
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) {
+      return;
+    }
+
+    const onWheel = (event: WheelEvent) => {
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      clampAndScroll(event.deltaY);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      footerTouchStartRef.current = touch ? touch.clientY : null;
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      const startY = footerTouchStartRef.current;
+      const touch = event.touches[0];
+
+      if (!touch || startY === null) {
+        return;
+      }
+
+      const delta = startY - touch.clientY;
+      if (Math.abs(delta) < 1) {
+        return;
+      }
+
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      clampAndScroll(delta);
+      footerTouchStartRef.current = touch.clientY;
+    };
+
+    const onTouchEnd = () => {
+      footerTouchStartRef.current = null;
+    };
+
+    footer.addEventListener('wheel', onWheel, { passive: false });
+    footer.addEventListener('touchstart', onTouchStart, { passive: false });
+    footer.addEventListener('touchmove', onTouchMove, { passive: false });
+    footer.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      footer.removeEventListener('wheel', onWheel);
+      footer.removeEventListener('touchstart', onTouchStart);
+      footer.removeEventListener('touchmove', onTouchMove);
+      footer.removeEventListener('touchend', onTouchEnd);
+    };
+  }, []);
+
   // Auto-scroll only when new messages arrive AND user is near bottom
   useEffect(() => {
     // Only scroll if:
@@ -135,10 +211,15 @@ const ChatWindow = ({
   }, [characterName]);
 
   useEffect(() => {
-    if (pendingMediaGeneration) {
+    if (!pendingMediaGeneration) {
+      return;
+    }
+
+    if (shouldAutoScroll) {
+      scrollToBottom();
       onRequestScrollToBottom?.();
     }
-  }, [pendingMediaGeneration, onRequestScrollToBottom]);
+  }, [pendingMediaGeneration, shouldAutoScroll, onRequestScrollToBottom]);
 
   useEffect(() => {
     if (!isInputFocused) {
@@ -266,11 +347,11 @@ const ChatWindow = ({
       </div>
 
       {/* Messages Area - Scrollable */}
-      <div 
+      <div
         ref={messagesContainerRef}
         data-chat-messages
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-gray-100 px-2 sm:px-4 py-4 sm:py-6"
+        className="flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-gray-50 to-gray-100 px-2 sm:px-4 py-4 sm:py-6"
       >
         <div className="space-y-4">
           {isLoading ? (
@@ -507,7 +588,10 @@ const ChatWindow = ({
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      <div className="border-t bg-white px-3 sm:px-4 py-3 sm:py-4 shadow-lg flex-shrink-0">
+      <div
+        ref={footerRef}
+        className="border-t bg-white px-3 sm:px-4 py-3 sm:py-4 shadow-lg flex-shrink-0"
+      >
         <div className="flex items-center space-x-2 sm:space-x-3">
           <div className="relative flex-1 min-w-0">
             <input

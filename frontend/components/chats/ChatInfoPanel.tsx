@@ -1,5 +1,7 @@
 'use client';
+
 import Image from 'next/image';
+import { useEffect, useRef } from 'react';
 import { Video, User } from 'lucide-react';
 
 interface ChatInfoPanelProps {
@@ -49,34 +51,107 @@ const ChatInfoPanel = ({
     metaDetails.push(`${characterAge} yrs old`);
   }
 
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const touchStartRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) {
+      return;
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      if (!event.cancelable) {
+        return;
+      }
+
+      const delta = event.deltaY;
+      if (delta === 0) {
+        return;
+      }
+
+      const maxScroll = element.scrollHeight - element.clientHeight;
+      const next = Math.min(Math.max(element.scrollTop + delta, 0), maxScroll);
+
+      event.preventDefault();
+      element.scrollTop = next;
+    };
+
+    const handleTouchStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      touchStartRef.current = touch ? touch.clientY : null;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const startY = touchStartRef.current;
+      const touch = event.touches[0];
+
+      if (!touch || startY === null) {
+        return;
+      }
+
+      const delta = startY - touch.clientY;
+      if (Math.abs(delta) < 1) {
+        return;
+      }
+
+      if (!event.cancelable) {
+        touchStartRef.current = touch.clientY;
+        return;
+      }
+
+      const maxScroll = element.scrollHeight - element.clientHeight;
+      const next = Math.min(Math.max(element.scrollTop + delta, 0), maxScroll);
+
+      event.preventDefault();
+      element.scrollTop = next;
+      touchStartRef.current = touch.clientY;
+    };
+
+    const handleTouchEnd = () => {
+      touchStartRef.current = null;
+    };
+
+    element.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+    element.addEventListener('touchstart', handleTouchStart, { passive: false, capture: true });
+    element.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
+    element.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      element.removeEventListener('wheel', handleWheel, { capture: true });
+      element.removeEventListener('touchstart', handleTouchStart, { capture: true });
+      element.removeEventListener('touchmove', handleTouchMove, { capture: true });
+      element.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col bg-white h-full overflow-hidden w-full lg:w-80">
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain">
         <div className="p-4 sm:p-5 lg:p-6">
           {/* Video/Image Section */}
           <div className="relative mb-4 sm:mb-5 h-48 sm:h-56 md:h-64 lg:h-80 w-full rounded-xl overflow-hidden">
-  {videoUrl ? (
-    <video
-      src={videoUrl}
-      className="h-full w-full object-cover"
-      controls
-      {...videoPosterProps}
-    />
-  ) : avatar ? (
-    <Image
-      src={avatar}
-      alt={characterName}
-      fill
-      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
-      className="object-cover"
-    />
-  ) : (
-    <div className="flex h-full w-full items-center justify-center brand-gradient">
-      <User className="h-12 sm:h-14 lg:h-16 w-12 sm:w-14 lg:w-16 text-white drop-shadow-lg" />
-    </div>
-  )}
+            {videoUrl ? (
+              <video
+                src={videoUrl}
+                className="h-full w-full object-cover"
+                controls
+                {...videoPosterProps}
+              />
+            ) : avatar ? (
+              <Image
+                src={avatar}
+                alt={characterName}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center brand-gradient">
+                <User className="h-12 sm:h-14 lg:h-16 w-12 sm:w-14 lg:w-16 text-white drop-shadow-lg" />
+              </div>
+            )}
           </div>
-
 
           {/* Action Buttons */}
           <div className="mb-4 sm:mb-5 lg:mb-6 flex flex-col gap-2 sm:gap-2.5">

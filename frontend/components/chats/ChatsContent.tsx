@@ -7,6 +7,7 @@ import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import ChatInfoPanel from './ChatInfoPanel';
 import ChatEmptyState from './ChatEmptyState';
+import useLockBodyScroll from '@/hooks/useLockBodyScroll';
 
 import {
   getCharacters,
@@ -116,6 +117,8 @@ const ChatsContent = () => {
     setPendingMedia(null);
   };
 
+  useLockBodyScroll(true);
+
   const scrollChatToBottom = () => {
     if (typeof window === 'undefined') {
       return;
@@ -138,6 +141,25 @@ const ChatsContent = () => {
     () => chatSummaries[0]?.character_slug ?? null,
     [chatSummaries]
   );
+
+useEffect(() => {
+  if (typeof document === 'undefined') {
+    return () => undefined;
+  }
+
+  const body = document.body;
+  const previousOverflow = body.style.overflow;
+
+  if (!isMobileView) {
+    body.style.overflow = 'hidden';
+  } else {
+    body.style.overflow = '';
+  }
+
+  return () => {
+    body.style.overflow = previousOverflow;
+  };
+}, [isMobileView]);
 
   // Auto-hide error after 5 seconds
   useEffect(() => {
@@ -680,12 +702,16 @@ useEffect(
     setPendingMedia({ type, item: nextItem });
     setErrorMessage(null);
     setIsErrorVisible(false);
-    scrollChatToBottom();
+    setTimeout(() => {
+      scrollChatToBottom();
+    }, 0);
 
     const targetSlug = selectedChatRef.current;
     mediaGenerationTimeoutRef.current = setTimeout(() => {
       if (targetSlug && targetSlug === selectedChatRef.current) {
-        void handleInsertPredefinedMedia(nextItem, type);
+        void handleInsertPredefinedMedia(nextItem, type).then(() => {
+          scrollChatToBottom();
+        });
       } else {
         clearPendingMediaGeneration();
       }
