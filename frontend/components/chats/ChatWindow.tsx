@@ -4,8 +4,6 @@ import Image from 'next/image';
 import {
   ChangeEvent,
   KeyboardEvent,
-  TouchEvent,
-  WheelEvent,
   useEffect,
   useRef,
   useState,
@@ -141,19 +139,19 @@ const ChatWindow = ({
       return;
     }
 
-    const onWheel = (event: WheelEvent) => {
+    const onWheel = (event: globalThis.WheelEvent) => {
       if (event.cancelable) {
         event.preventDefault();
       }
       clampAndScroll(event.deltaY);
     };
 
-    const onTouchStart = (event: TouchEvent) => {
+    const onTouchStart = (event: globalThis.TouchEvent) => {
       const touch = event.touches[0];
       footerTouchStartRef.current = touch ? touch.clientY : null;
     };
 
-    const onTouchMove = (event: TouchEvent) => {
+    const onTouchMove = (event: globalThis.TouchEvent) => {
       const startY = footerTouchStartRef.current;
       const touch = event.touches[0];
 
