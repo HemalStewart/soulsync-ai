@@ -109,7 +109,7 @@ const AppHeader = () => {
             </div>
             <span className="relative text-base sm:text-xl font-bold whitespace-nowrap">
               <span className="animate-gradient-text bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                SoulSync
+                ChatSoul AI
               </span>
             </span>
           </Link>
