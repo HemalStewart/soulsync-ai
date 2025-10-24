@@ -102,10 +102,10 @@ const AppHeader = () => {
   className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 cursor-pointer select-none hover:opacity-90 transition"
 >
   {/* Logo Image */}
-  <div className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl  shadow-brand hover:scale-105 transition-transform duration-200">
+  <div className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 p-[3px] shadow-brand hover:scale-105 transition-transform duration-200">
     <div className="flex h-full w-full items-center justify-center rounded-lg bg-white/95 overflow-hidden">
       <img
-        src="/logo/Inverted colors.png"
+        src="/logo/4.png"
         alt="ChatSoul AI Logo"
         className="h-full w-full object-cover"
       />
