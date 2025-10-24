@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 import { Video, User } from 'lucide-react';
+import { COIN_COSTS } from '@/lib/coins';
 
 interface ChatInfoPanelProps {
   characterName: string;
@@ -154,7 +155,7 @@ const ChatInfoPanel = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="mb-4 sm:mb-5 lg:mb-6 flex flex-col gap-2 sm:gap-2.5">
+          <div className="mb-4 sm:mb-5 lg:mb-6 flex flex-col gap-4">
             <button
               className="flex items-center justify-center space-x-2 rounded-lg sm:rounded-xl brand-gradient px-4 py-2.5 sm:py-3 font-semibold text-white text-sm shadow-brand transition-all duration-200 hover:shadow-lg active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none"
               onClick={onGenerateVideo}
@@ -174,6 +175,9 @@ const ChatInfoPanel = ({
             >
               <Video size={18} />
               <span>{isGeneratingVideo ? 'Generating…' : 'Generate Video'}</span>
+              <span className="text-[11px] font-medium text-white/80">
+                {COIN_COSTS.shareChatVideo} coins
+              </span>
             </button>
             <button
               className="flex items-center justify-center space-x-2 rounded-lg sm:rounded-xl border-2 border-gray-200 bg-white px-4 py-2.5 sm:py-3 font-semibold text-gray-700 text-sm shadow-sm transition-all duration-200 hover:border-brand-primary hover:bg-brand-tint hover:text-brand-primary hover:shadow-brand active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white disabled:hover:text-gray-700"
@@ -196,6 +200,9 @@ const ChatInfoPanel = ({
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4h2v4h14v-4h2zM17 9l-1.41-1.41L13 10.17V3h-2v7.17L8.41 7.59 7 9l5 5 5-5z" />
               </svg>
               <span>{isGeneratingImage ? 'Generating…' : 'Generate Photo'}</span>
+              <span className="text-[11px] font-medium text-gray-500">
+                {COIN_COSTS.shareChatImage} coins
+              </span>
             </button>
           </div>
 

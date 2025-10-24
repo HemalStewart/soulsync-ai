@@ -108,6 +108,7 @@ const ChatsContent = () => {
     null
   );
   const selectedChatRef = useRef<string | null>(null);
+  const [storedChatSlug, setStoredChatSlug] = useState<string | null>(null);
 
   const clearPendingMediaGeneration = () => {
     if (mediaGenerationTimeoutRef.current) {
@@ -118,6 +119,25 @@ const ChatsContent = () => {
   };
 
   useLockBodyScroll(true);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const stored = window.localStorage.getItem('soulsync:last-chat');
+    if (stored) {
+      setStoredChatSlug(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !selectedChat) {
+      return;
+    }
+
+    window.localStorage.setItem('soulsync:last-chat', selectedChat);
+  }, [selectedChat]);
 
   const scrollChatToBottom = () => {
     if (typeof window === 'undefined') {
@@ -142,24 +162,6 @@ const ChatsContent = () => {
     [chatSummaries]
   );
 
-useEffect(() => {
-  if (typeof document === 'undefined') {
-    return () => undefined;
-  }
-
-  const body = document.body;
-  const previousOverflow = body.style.overflow;
-
-  if (!isMobileView) {
-    body.style.overflow = 'hidden';
-  } else {
-    body.style.overflow = '';
-  }
-
-  return () => {
-    body.style.overflow = previousOverflow;
-  };
-}, [isMobileView]);
 
   // Auto-hide error after 5 seconds
   useEffect(() => {
@@ -250,9 +252,17 @@ useEffect(() => {
   }, [authLoading, user]);
 
   useEffect(() => {
+    const storedSlugValid =
+      storedChatSlug &&
+      (chatSummaries.some((chat) => chat.character_slug === storedChatSlug) ||
+        storedChatSlug in characters)
+        ? storedChatSlug
+        : null;
+
     const slug =
       characterParam ??
       selectedChat ??
+      storedSlugValid ??
       defaultChatSlug ??
       Object.keys(characters)[0] ??
       null;
@@ -260,8 +270,7 @@ useEffect(() => {
     if (slug && slug !== selectedChat) {
       setSelectedChat(slug);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [characterParam, defaultChatSlug, characters]);
+  }, [characterParam, defaultChatSlug, characters, storedChatSlug, selectedChat, chatSummaries]);
 
   useEffect(() => {
     if (!isMobileView) {

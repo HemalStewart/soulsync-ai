@@ -310,8 +310,9 @@ class Chats extends BaseController
         $history = $db->table('ai_messages')
             ->where('character_slug', $slug)
             ->where('user_id', $userId)
+            ->where('created_at >=', date('Y-m-d H:i:s', strtotime('-7 days')))
             ->orderBy('id', 'DESC')
-            ->limit(10)
+            ->limit(200)
             ->get()
             ->getResultArray();
 
@@ -698,12 +699,36 @@ class Chats extends BaseController
             ],
         ];
 
+        $characterName = $character['name'] ?? 'Your companion';
+
         foreach (array_reverse($history) as $entry) {
             $role = ($entry['sender'] ?? '') === 'user' ? 'user' : 'assistant';
+
+            $media = $this->decodeMediaMessage($entry['message'] ?? null);
+            if ($media) {
+                $descriptor = $media['type'] === 'video' ? 'video' : 'image';
+                $content = sprintf(
+                    '%s shared a %s of themselves with the user earlier in this chat. Acknowledge it was them whenever the user references it.',
+                    $characterName,
+                    $descriptor
+                );
+
+                if (! empty($media['title'])) {
+                    $content .= ' Title/description: ' . $media['title'];
+                }
+
+                $messages[] = [
+                    'role'    => $role,
+                    'content' => $content,
+                ];
+                continue;
+            }
+
             $content = trim((string) ($entry['message'] ?? ''));
             if ($content === '') {
                 continue;
             }
+
             $messages[] = [
                 'role'    => $role,
                 'content' => $content,
@@ -830,6 +855,8 @@ class Chats extends BaseController
             'Blend flirtation, intimacy, and everyday warmth with the character’s role; do not obsess over their job title or gimmick.',
             'Avoid repeating the same wording twice in a row; vary vocabulary while staying on theme.',
             'Ask a light personal question early—about their name, day, or mood—before diving into the persona’s own world.',
+            'If you share an image or video in the chat, it is canonically you. Always affirm it depicts you when the user references it, and describe it consistently with your persona.',
+            'Never describe or invent photos/videos unless they were actually shared earlier in the conversation.',
             // 'Keep every response PG-13; if the user pushes for explicit sexual detail, set a gentle boundary or redirect to affectionate but safe topics.',
         ];
 
