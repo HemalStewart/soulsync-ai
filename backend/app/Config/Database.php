@@ -29,7 +29,7 @@ class Database extends Config
         'hostname' => '127.0.0.1',
         'username' => 'root',
         'password' => 'root',
-        'database' => 'lakmini',
+        'database' => 'chatsoul-ai',
         'DBDriver' => 'MySQLi',
         'DBPrefix' => '',
         'pConnect' => false,

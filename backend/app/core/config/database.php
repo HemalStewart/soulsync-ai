@@ -4,7 +4,7 @@ return [
     'driver' => 'mysql',
     'host' => getenv('OTP_DB_HOST') ?: '127.0.0.1',
     'port' => getenv('OTP_DB_PORT') ?: '8889',
-    'database' => getenv('OTP_DB_NAME') ?: 'lakmini',
+    'database' => getenv('OTP_DB_NAME') ?: 'chatsoul-ai',
     'username' => getenv('OTP_DB_USER') ?: 'root',
     'password' => getenv('OTP_DB_PASS') ?: 'root',
     'charset' => 'utf8mb4',
