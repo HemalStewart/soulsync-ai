@@ -819,7 +819,7 @@ const GenerateContent = () => {
     const { extension, mimeType } = inferDownloadInfo(image.remote_url);
     const link = document.createElement('a');
     link.href = image.remote_url;
-    link.download = `soulsync-image-${image.id}.${extension}`;
+    link.download = `chatsoul-ai-image-${image.id}.${extension}`;
     link.type = mimeType;
     document.body.appendChild(link);
     link.click();

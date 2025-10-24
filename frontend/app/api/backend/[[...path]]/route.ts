@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_API_BASE_URL =
   process.env.BACKEND_API_BASE_URL ??
-  'http://localhost:8888/soulsync-full/backend/public/api';
+  'http://localhost:8888/chatsoul-ai/backend/public/api';
 
 const buildBackendUrl = (segments: string[], searchParams: URLSearchParams) => {
   const path = segments.join('/');

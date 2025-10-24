@@ -1,4 +1,4 @@
-# SoulSync API Updates (February 2025)
+# chatsoul-ai API Updates (February 2025)
 
 This addendum captures the latest API and product changes so you can keep Postman collections, customer support macros, and partner documentation in sync without re-exporting the entire specification.
 
@@ -22,7 +22,7 @@ This addendum captures the latest API and product changes so you can keep Postma
 
 - Added the **“Report Generated Image”** request under the **Generated Images** folder with a sample payload.
 - Noted the new coin costs in the descriptions for “Create Generated Image Entry” and “Create Generated Video Entry”.
-- Re-export or sync the updated collection (`postman/SoulSync.postman_collection.json`) if you share it externally.
+- Re-export or sync the updated collection (`postman/chatsoul-ai.postman_collection.json`) if you share it externally.
 
 ## Error Messaging
 

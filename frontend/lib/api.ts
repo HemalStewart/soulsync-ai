@@ -20,7 +20,7 @@ const DEFAULT_BACKEND_BASE =
   process.env.NEXT_PUBLIC_BACKEND_BASE_URL ??
   (API_BASE_URL.startsWith('http')
     ? API_BASE_URL.replace(/\/api(?:\/.+)?$/, '')
-    : 'http://localhost:8888/soulsync-full/backend/public');
+    : 'http://localhost:8888/chatsoul-ai/backend/public');
 
 const BACKEND_BASE_URL = DEFAULT_BACKEND_BASE.replace(/\/$/, '');
 

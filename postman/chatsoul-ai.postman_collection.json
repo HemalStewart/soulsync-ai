@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "b4bf0b1c-91a5-4bff-aa35-5e5a8db719ec",
-    "name": "SoulSync API",
-    "description": "Postman collection covering the public REST endpoints exposed by the SoulSync backend. All requests are rooted at `{{baseUrl}}`, which defaults to the local development server.",
+    "name": "chatsoul-ai API",
+    "description": "Postman collection covering the public REST endpoints exposed by the chatsoul-ai backend. All requests are rooted at `{{baseUrl}}`, which defaults to the local development server.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -568,7 +568,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8888/soulsync-full/backend/public/api",
+      "value": "http://localhost:8888/chatsoul-ai/backend/public/api",
       "type": "string"
     },
     {

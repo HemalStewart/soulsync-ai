@@ -125,7 +125,7 @@ const ChatsContent = () => {
       return;
     }
 
-    const stored = window.localStorage.getItem('soulsync:last-chat');
+    const stored = window.localStorage.getItem('chatsoul-ai:last-chat');
     if (stored) {
       setStoredChatSlug(stored);
     }
@@ -136,7 +136,7 @@ const ChatsContent = () => {
       return;
     }
 
-    window.localStorage.setItem('soulsync:last-chat', selectedChat);
+    window.localStorage.setItem('chatsoul-ai:last-chat', selectedChat);
   }, [selectedChat]);
 
   const scrollChatToBottom = () => {

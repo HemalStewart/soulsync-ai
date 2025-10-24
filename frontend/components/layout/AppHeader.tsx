@@ -98,21 +98,28 @@ const AppHeader = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:gap-4 px-3 sm:px-4 md:px-6 py-3 sm:py-4">
           {/* Logo Section */}
           <Link
-            href="/"
-            className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 cursor-pointer select-none hover:opacity-90 transition"
-          >
-            <div
-              className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg shadow-brand hover:scale-105 transition-transform duration-200 overflow-hidden"
-            >
-              <span className="animate-gradient-surface bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 absolute inset-0 rounded-lg" />
-              <div className="relative h-4 w-4 sm:h-5 sm:w-5 rounded-md bg-white/25 backdrop-blur-sm" />
-            </div>
-            <span className="relative text-base sm:text-xl font-bold whitespace-nowrap">
-              <span className="animate-gradient-text bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                ChatSoul AI
-              </span>
-            </span>
-          </Link>
+  href="/"
+  className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 cursor-pointer select-none hover:opacity-90 transition"
+>
+  {/* Logo Image */}
+  <div className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl  shadow-brand hover:scale-105 transition-transform duration-200">
+    <div className="flex h-full w-full items-center justify-center rounded-lg bg-white/95 overflow-hidden">
+      <img
+        src="/logo/Inverted colors.png"
+        alt="ChatSoul AI Logo"
+        className="h-full w-full object-cover"
+      />
+    </div>
+  </div>
+
+  {/* Logo Text */}
+  <span className="relative text-base sm:text-xl font-bold whitespace-nowrap">
+    <span className="animate-gradient-text bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+      ChatSoul AI
+    </span>
+  </span>
+</Link>
+
 
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-3">

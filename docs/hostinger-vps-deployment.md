@@ -1,6 +1,6 @@
-# SoulSync VPS Deployment (Hostinger)
+# chatsoul-ai VPS Deployment (Hostinger)
 
-This guide walks through provisioning a new Hostinger VPS instance and deploying the SoulSync stack (CodeIgniter PHP API + Next.js frontend) in a reproducible way. Adapt paths, hostnames, and credentials to match your environment.
+This guide walks through provisioning a new Hostinger VPS instance and deploying the chatsoul-ai stack (CodeIgniter PHP API + Next.js frontend) in a reproducible way. Adapt paths, hostnames, and credentials to match your environment.
 
 ---
 
@@ -74,16 +74,16 @@ rm composer-setup.php
 
 ## 4. Directory Layout
 
-Choose a common app root (e.g., `/var/www/soulsync`).
+Choose a common app root (e.g., `/var/www/chatsoul-ai`).
 ```bash
-sudo mkdir -p /var/www/soulsync
-sudo chown -R deploy:deploy /var/www/soulsync
+sudo mkdir -p /var/www/chatsoul-ai
+sudo chown -R deploy:deploy /var/www/chatsoul-ai
 ```
 
 Clone the repo:
 ```bash
-cd /var/www/soulsync
-git clone https://github.com/your-org/soulsync-full.git .
+cd /var/www/chatsoul-ai
+git clone https://github.com/your-org/chatsoul-ai.git .
 ```
 
 If the repository is private, configure SSH keys or a personal access token.
@@ -94,7 +94,7 @@ If the repository is private, configure SSH keys or a personal access token.
 
 1. **Install dependencies**
    ```bash
-   cd /var/www/soulsync/backend
+   cd /var/www/chatsoul-ai/backend
    composer install --no-dev --optimize-autoloader
    ```
 
@@ -102,7 +102,7 @@ If the repository is private, configure SSH keys or a personal access token.
    - Copy your production `.env` to the VPS:
      ```bash
      # From local machine
-     scp backend/.env deploy@your-server-ip:/var/www/soulsync/backend/.env
+     scp backend/.env deploy@your-server-ip:/var/www/chatsoul-ai/backend/.env
      ```
    - Confirm `app.baseURL`, database credentials, mail settings, and any API keys.
 
@@ -115,9 +115,9 @@ If the repository is private, configure SSH keys or a personal access token.
 
 4. **Set writable permissions**
    ```bash
-   sudo chown -R www-data:www-data /var/www/soulsync/backend/writable
-   sudo find /var/www/soulsync/backend/writable -type d -exec chmod 775 {} \;
-   sudo find /var/www/soulsync/backend/writable -type f -exec chmod 664 {} \;
+   sudo chown -R www-data:www-data /var/www/chatsoul-ai/backend/writable
+   sudo find /var/www/chatsoul-ai/backend/writable -type d -exec chmod 775 {} \;
+   sudo find /var/www/chatsoul-ai/backend/writable -type f -exec chmod 664 {} \;
    ```
 
 ---
@@ -126,7 +126,7 @@ If the repository is private, configure SSH keys or a personal access token.
 
 1. **Install dependencies & build**
    ```bash
-   cd /var/www/soulsync/frontend
+   cd /var/www/chatsoul-ai/frontend
    npm install
    npm run build
    ```
@@ -134,15 +134,15 @@ If the repository is private, configure SSH keys or a personal access token.
 2. **Environment file**
    ```bash
    # From local machine
-   scp frontend/.env.local deploy@your-server-ip:/var/www/soulsync/frontend/.env.production
+   scp frontend/.env.local deploy@your-server-ip:/var/www/chatsoul-ai/frontend/.env.production
    ```
    - Ensure URLs point to your VPS domain (e.g., `NEXT_PUBLIC_API_BASE_URL=https://api.example.com`).
    - Update `.env.production` references to match Next.js conventions or adjust `next.config.mjs`.
 
 3. **Run with PM2**
    ```bash
-   cd /var/www/soulsync/frontend
-   pm2 start npm --name "soulsync-frontend" -- start
+   cd /var/www/chatsoul-ai/frontend
+   pm2 start npm --name "chatsoul-ai-frontend" -- start
    pm2 save
    pm2 status
    ```
@@ -162,8 +162,8 @@ If the repository is private, configure SSH keys or a personal access token.
 
 1. **Create an upstream block**
    ```bash
-   sudo tee /etc/nginx/conf.d/soulsync.conf >/dev/null <<'EOF'
-   upstream soulsync_frontend {
+   sudo tee /etc/nginx/conf.d/chatsoul-ai.conf >/dev/null <<'EOF'
+   upstream chatsoul_ai_frontend {
        server 127.0.0.1:3000;
    }
    EOF
@@ -171,7 +171,7 @@ If the repository is private, configure SSH keys or a personal access token.
 
 2. **Create the server block**
    ```bash
-   sudo tee /etc/nginx/sites-available/soulsync >/dev/null <<'EOF'
+   sudo tee /etc/nginx/sites-available/chatsoul-ai >/dev/null <<'EOF'
    server {
        listen 80;
        server_name example.com www.example.com;
@@ -180,7 +180,7 @@ If the repository is private, configure SSH keys or a personal access token.
 
        # Frontend proxy
        location / {
-           proxy_pass http://soulsync_frontend;
+           proxy_pass http://chatsoul_ai_frontend;
            proxy_http_version 1.1;
            proxy_set_header Upgrade $http_upgrade;
            proxy_set_header Connection 'upgrade';
@@ -190,7 +190,7 @@ If the repository is private, configure SSH keys or a personal access token.
 
        # API (CodeIgniter)
        location /api {
-           alias /var/www/soulsync/backend/public;
+           alias /var/www/chatsoul-ai/backend/public;
            try_files $uri $uri/ /index.php?$args;
 
            index index.php;
@@ -211,7 +211,7 @@ If the repository is private, configure SSH keys or a personal access token.
 
 3. **Enable the site**
    ```bash
-   sudo ln -s /etc/nginx/sites-available/soulsync /etc/nginx/sites-enabled/soulsync
+   sudo ln -s /etc/nginx/sites-available/chatsoul-ai /etc/nginx/sites-enabled/chatsoul-ai
    sudo nginx -t
    sudo systemctl reload nginx
    ```
@@ -237,11 +237,11 @@ If the repository is private, configure SSH keys or a personal access token.
    sudo mysql_secure_installation
    ```
 
-2. Create the SoulSync database and user:
+2. Create the chatsoul-ai database and user:
    ```sql
-   CREATE DATABASE soulsync CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   CREATE USER 'soulsync'@'localhost' IDENTIFIED BY 'strongpassword';
-   GRANT ALL PRIVILEGES ON soulsync.* TO 'soulsync'@'localhost';
+   CREATE DATABASE `chatsoul-ai` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE USER 'chatsoul-ai'@'localhost' IDENTIFIED BY 'strongpassword';
+   GRANT ALL PRIVILEGES ON `chatsoul-ai`.* TO 'chatsoul-ai'@'localhost';
    FLUSH PRIVILEGES;
    ```
 
@@ -253,7 +253,7 @@ If the repository is private, configure SSH keys or a personal access token.
 
 1. **Pull latest code**
    ```bash
-   cd /var/www/soulsync
+   cd /var/www/chatsoul-ai
    git fetch origin
    git checkout main
    git pull origin main
@@ -270,10 +270,10 @@ If the repository is private, configure SSH keys or a personal access token.
 
 3. **Frontend rebuild**
    ```bash
-   cd /var/www/soulsync/frontend
+   cd /var/www/chatsoul-ai/frontend
    npm install
    npm run build
-   pm2 restart soulsync-frontend
+   pm2 restart chatsoul-ai-frontend
    pm2 save
    ```
 
@@ -291,7 +291,7 @@ If the repository is private, configure SSH keys or a personal access token.
 - **Logs**
   - Nginx: `/var/log/nginx/access.log` & `/var/log/nginx/error.log`
   - PHP-FPM: `/var/log/php8.2-fpm.log`
-  - PM2/Next.js: `pm2 logs soulsync-frontend`
+  - PM2/Next.js: `pm2 logs chatsoul-ai-frontend`
 - **Backups**: Snapshot the VPS regularly; back up `.env` files and database dumps.
 - **Security updates**: `sudo unattended-upgrade` or scheduled `apt update && apt upgrade`.
 - **Resource usage**: `htop`, `df -h`, or Hostinger’s monitoring tools.
@@ -312,15 +312,15 @@ If the repository is private, configure SSH keys or a personal access token.
 ```bash
 # PM2
 pm2 status
-pm2 restart soulsync-frontend
-pm2 logs soulsync-frontend
+pm2 restart chatsoul-ai-frontend
+pm2 logs chatsoul-ai-frontend
 
 # Nginx & PHP
 sudo systemctl reload nginx
 sudo systemctl restart php8.2-fpm
 
 # Git deploy
-cd /var/www/soulsync && git pull && npm run build && pm2 restart soulsync-frontend
+cd /var/www/chatsoul-ai && git pull && npm run build && pm2 restart chatsoul-ai-frontend
 ```
 
 Keep this document updated as the stack evolves (e.g., runtime upgrades, infrastructure changes, CI/CD automation).
